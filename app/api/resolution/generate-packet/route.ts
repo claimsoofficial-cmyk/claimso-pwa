@@ -227,7 +227,7 @@ async function generateWarrantyClaimPacket(request: GeneratePacketRequest): Prom
 }
 
 // Validation helper function
-function validateGeneratePacketRequest(body: any): GeneratePacketRequest | null {
+function validateGeneratePacketRequest(body: Record<string, unknown>): GeneratePacketRequest | null {
   if (!body || typeof body !== 'object') {
     return null
   }
@@ -254,10 +254,10 @@ function validateGeneratePacketRequest(body: any): GeneratePacketRequest | null 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    let body: any
+    let body: Record<string, unknown>
     try {
       body = await request.json()
-    } catch (parseError) {
+      } catch {
       return NextResponse.json(
         {
           success: false,

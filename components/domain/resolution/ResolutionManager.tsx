@@ -58,7 +58,7 @@ export default function ResolutionManager({
   const [resolutionData, setResolutionData] = useState<ResolutionFlowData | null>(null);
   const [resolutionPath, setResolutionPath] = useState<TriageResponse['recommended_path'] | null>(null);
   const [triageResponse, setTriageResponse] = useState<TriageResponse | null>(null);
-  const [isProcessingTriage, setIsProcessingTriage] = useState(false);
+
 
   // Handle "I have a problem" click from LivingCard
   const handleProblemClick = () => {

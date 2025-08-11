@@ -325,8 +325,8 @@ async function parseStatusUpdateWithAI(subject: string, text: string): Promise<O
 /**
  * Validates and sanitizes AI-processed product data (existing function)
  */
-function validateAndSanitizeProductData(data: AIProcessedProduct, userId: string): any {
-  const sanitized: any = {
+function validateAndSanitizeProductData(data: AIProcessedProduct, userId: string): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {
     user_id: userId,
     product_name: data.product_name?.substring(0, 255) || 'Unknown Product',
     currency: 'USD',
@@ -369,7 +369,7 @@ function validateAndSanitizeProductData(data: AIProcessedProduct, userId: string
 /**
  * Creates a new product record in the database
  */
-async function createNewProduct(productData: AIProcessedProduct, userId: string): Promise<any> {
+async function createNewProduct(productData: AIProcessedProduct, userId: string): Promise<Record<string, unknown>> {
   const sanitizedData = validateAndSanitizeProductData(productData, userId);
   
   const { data, error } = await supabase
@@ -388,7 +388,7 @@ async function createNewProduct(productData: AIProcessedProduct, userId: string)
 /**
  * Updates an existing product record with status information
  */
-async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: string): Promise<any> {
+async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: string): Promise<Record<string, unknown>> {
   // First, find the product by order ID and user ID
   // This assumes we store order IDs in a field like 'order_id' or 'notes'
   const { data: existingProducts, error: searchError } = await supabase
@@ -410,7 +410,7 @@ async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: st
   const targetProduct = existingProducts[0];
 
   // Prepare update data
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
 
@@ -490,7 +490,7 @@ async function processEmailInBackground(emailContent: ParsedEmailContent, userId
     console.log(`Email classified as: ${intentResult.intent}`);
 
     // Stage 2: Process Based on Intent
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (intentResult.intent) {
       case 'PURCHASE':
@@ -634,7 +634,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 // HEALTH CHECK
 // ==============================================================================
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   return NextResponse.json(
     { 
       status: 'healthy', 

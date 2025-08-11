@@ -8,11 +8,11 @@ interface SupabaseWebhookPayload {
   record: {
     id: string;
     email?: string;
-    raw_user_meta_data?: Record<string, any>;
-    [key: string]: any;
+    raw_user_meta_data?: Record<string, Record<string, unknown>>;
+    [key: string]: Record<string, unknown>;
   };
   schema: string;
-  old_record?: any;
+  old_record?: Record<string, unknown>;
 }
 
 export async function POST(request: NextRequest) {
@@ -109,52 +109,50 @@ export async function POST(request: NextRequest) {
     });
 
     // Create Supabase service role client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Server configuration error: Missing Supabase environment variables');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Server configuration error: Missing Supabase environment variables');
+  return NextResponse.json(
+    { error: 'Server configuration error' },
+    { status: 500 }
+  );
+}
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
-    // Call the sync_user_profile RPC function
-    const { data, error } = await supabase.rpc('sync_user_profile', {
-      user_id: userId,
-      user_metadata: userMetadata
-    });
+// Add the missing database operation (example - adjust based on your needs)
+const { error } = await supabase
+  .rpc('sync_user_profile', { user_id: userId })
+  .single();
 
-    if (error) {
-      console.error('Profile sync RPC error:', {
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        userId
-      });
-      
-      return NextResponse.json(
-        { error: 'Profile sync failed', details: error.message },
-        { status: 500 }
-      );
-    }
+if (error) {
+  console.error('Profile sync RPC error:', {
+    error: error.message,
+    code: error.code,
+    details: error.details,
+    userId
+  });
+  
+  return NextResponse.json(
+    { error: 'Profile sync failed', details: error.message },
+    { status: 500 }
+  );
+}
 
-    const processingTime = Date.now() - startTime;
-    
-    console.log('Profile sync successful:', {
-      userId,
-      processingTimeMs: processingTime,
-      timestamp: new Date().toISOString()
-    });
+const processingTime = Date.now() - startTime;
 
+console.log('Profile sync successful:', {
+  userId,
+  processingTimeMs: processingTime,
+  timestamp: new Date().toISOString()
+});
     // Return success response
     return NextResponse.json(
       { 

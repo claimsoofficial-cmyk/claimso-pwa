@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
@@ -91,10 +91,10 @@ export default async function DashboardPage() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options: any) {
+        set(_name: string, _value: string, _options: CookieOptions) {
           // Server components are read-only, so we don't set cookies here
         },
-        remove(name: string, options: any) {
+        remove(_name: string, _options: CookieOptions) {
           // Server components are read-only, so we don't remove cookies here
         },
       },

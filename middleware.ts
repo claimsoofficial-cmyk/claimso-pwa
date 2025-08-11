@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value, _options }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -36,37 +36,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isLoggedIn = !!session && !error
 
-  // Define public routes that don't require authentication
-  const publicRoutes = [
-    '/',
-    '/auth',
-    '/auth/login',
-    '/auth/register',
-    '/auth/error',
-    '/auth/callback',
-    '/privacy',
-    '/terms',
-    '/about',
-    '/contact'
-  ]
-
-  // Define public API routes that don't require authentication
-  const publicApiRoutes = [
-    '/api/auth/callback',
-    '/api/auth/amazon/callback',
-    '/api/health',
-    '/api/public'
-  ]
-
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
-  )
-
-  // Check if the current path is a public API route
-  const isPublicApiRoute = publicApiRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
-  )
+ 
 
   // Handle dashboard routes - redirect to homepage if not authenticated
   if (pathname.startsWith('/dashboard')) {

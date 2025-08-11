@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
           get(name: string) {
             return cookieStore.get(name)?.value;
           },
-          set(name: string, value: string, options: any) {
+          set(name: string, value: string, options: Record<string, unknown>) {
             try {
               cookieStore.set({ name, value, ...options });
             } catch (error) {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
               console.error('Failed to set cookie:', error);
             }
           },
-          remove(name: string, options: any) {
+          remove(name: string, options: Record<string, unknown>) {
             try {
               cookieStore.set({ name, value: '', ...options });
             } catch (error) {

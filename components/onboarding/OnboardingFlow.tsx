@@ -14,7 +14,7 @@ import {
   Party
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MultiConnect from '@/components/onboarding/MultiConnect';
 
@@ -47,7 +47,7 @@ function detectDevice(): DeviceInfo {
   }
 
   const userAgent = window.navigator.userAgent;
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+ 
   
   if (/iPhone|iPad|iPod/i.test(userAgent)) {
     return { os: 'ios', isMobile: true };
@@ -430,9 +430,9 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
       {/* Mission Statement */}
       <div className="pt-8 border-t border-gray-100">
         <p className="text-xs text-gray-500 max-w-lg mx-auto leading-relaxed">
-          By using CLAIMSO, you're contributing to a more transparent market where 
+          By using CLAIMSO, you&apos;re contributing to a more transparent market where 
           consumers have the power to hold companies accountable for their promises. 
-          Together, we're building a world where every warranty matters.
+          Together, we&apos;re building a world where every warranty matters.
         </p>
       </div>
     </div>

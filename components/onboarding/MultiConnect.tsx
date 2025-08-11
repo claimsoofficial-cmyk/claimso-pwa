@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+
 import { 
   CheckCircle2, 
   ArrowRight,
@@ -174,18 +174,13 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
       // Open OAuth flow in popup or redirect
       window.location.href = amazonAuthUrl;
       
-    } catch (error) {
+    } catch {
       throw new Error('Failed to initiate Amazon OAuth');
     }
   };
 
-  // TODO: This would be called from a callback or polling mechanism
-  const handleSuccessfulConnection = (retailerId: string) => {
-    setConnectionStates(prev => ({
-      ...prev,
-      [retailerId]: 'connected'
-    }));
-  };
+
+
 
   // Get connection status for a retailer
   const getConnectionStatus = (retailerId: string): ConnectionStatus => {
@@ -279,11 +274,11 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Let's build your vault. Connect the places you shop.
+          Let&apos;s build your vault. Connect the places you shop.
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Connect your favorite retailers to automatically import your purchases and warranties. 
-          We'll prioritize stores available in your region.
+          We&apos;ll prioritize stores available in your region.
         </p>
       </div>
 
@@ -323,7 +318,7 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
       {/* Footer help text */}
       <div className="text-center mt-6">
         <p className="text-sm text-gray-500">
-          Don't see your favorite store? We're adding new retailers regularly. 
+          Don&apos;t see your favorite store? We&apos;re adding new retailers regularly. 
           You can also add purchases manually after setup.
         </p>
       </div>

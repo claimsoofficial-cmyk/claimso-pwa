@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
 import type { User } from '@supabase/supabase-js';
 import { 
   User as UserIcon, 
@@ -21,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+
 import { toast } from '@/components/ui/sonner';
 import { 
   updateUserProfile, 
@@ -106,7 +106,7 @@ export default function AccountSettingsPage() {
         } else {
           throw new Error('Failed to update profile');
         }
-      } catch (error) {
+  } catch {
         toast({
           title: "Error",
           description: "Failed to update profile. Please try again.",
@@ -141,7 +141,7 @@ export default function AccountSettingsPage() {
         } else {
           throw new Error('Failed to export data');
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to export data. Please try again.",
@@ -181,7 +181,7 @@ export default function AccountSettingsPage() {
       try {
         await deleteUserAccount();
         // Note: deleteUserAccount handles the redirect, so this code may not execute
-      } catch (error) {
+    } catch {
         toast({
           title: "Error",
           description: "Failed to delete account. Please try again or contact support.",

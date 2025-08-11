@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
 import { Mail, Chrome } from 'lucide-react';
 import {
   Dialog,

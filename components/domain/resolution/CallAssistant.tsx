@@ -1,5 +1,5 @@
 'use client'
-
+import Image from 'next/image'
 import { Phone, CheckCircle2, Calendar, ShoppingBag, Hash, Building2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -129,7 +129,7 @@ export default function CallAssistant({
         <CardContent>
           <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-blue-500">
             <p className="text-lg leading-relaxed text-gray-900 font-medium">
-              "{generateOpeningScript()}"
+              &quot;{generateOpeningScript()}&quot;
             </p>
           </div>
         </CardContent>
@@ -195,7 +195,7 @@ export default function CallAssistant({
         <CardContent>
           <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-500">
             <p className="text-lg leading-relaxed text-gray-900 font-medium">
-              "{problemDescription}"
+              &quot;{problemDescription}&quot;
             </p>
           </div>
         </CardContent>
@@ -212,11 +212,7 @@ export default function CallAssistant({
           <div className="flex items-start gap-4">
             {product.imageUrl && (
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-white shadow-sm flex-shrink-0">
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+                <Image src={product.imageUrl} alt={product.name} width={80} height={80} />
               </div>
             )}
             <div className="space-y-2">

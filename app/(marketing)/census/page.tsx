@@ -89,7 +89,7 @@ export default async function CensusPage() {
             {/* Sub-headline */}
             <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed mb-12">
               Building a transparent and durable future, one verified product at a time. 
-              This is the real-time pulse of our community's ecosystem.
+              This is the real-time pulse of our community&apos;s ecosystem.
             </p>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default async function CensusPage() {
               What is a Verified Product?
             </h2>
             <p className="text-lg text-slate-600">
-              Transparency is at the core of everything we do. Here's exactly how we count.
+              Transparency is at the core of everything we do. Here&apos;s exactly how we count.
             </p>
           </div>
 

@@ -14,7 +14,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardFooter
+
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -216,7 +216,7 @@ export default async function PublicProductSharePage({ params }: PageProps) {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-green-700 font-medium">
                           <CheckCircle2 className="w-4 h-4" />
-                          What's Covered
+                          What&apos;s Covered
                         </div>
                         <ul className="space-y-2 text-sm text-gray-700">
                           {primaryWarranty.snapshot_data.covers.slice(0, 4).map((item, index) => (

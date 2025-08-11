@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
+import { type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { PKPass } from 'passkit-generator';
-import path from 'path';
-import fs from 'fs';
+
+
 
 // ==============================================================================
 // CONFIGURATION & ENVIRONMENT VALIDATION
@@ -32,7 +32,7 @@ interface UserProfile {
 }
 
 interface PassAssets {
-  passJson: any;
+  passJson: Record<string, unknown>;
   iconBuffer: Buffer;
   logoBuffer?: Buffer;
   icon2xBuffer?: Buffer;
@@ -157,7 +157,7 @@ async function generateDefaultIcon(): Promise<Buffer> {
 /**
  * Gets user's product count for display on pass
  */
-async function getUserProductCount(userId: string, supabase: any): Promise<number> {
+async function getUserProductCount(userId: string, supabase: Record<string, unknown>): Promise<number> {
   try {
     const { count } = await supabase
       .from('products')
@@ -182,7 +182,7 @@ async function getUserProductCount(userId: string, supabase: any): Promise<numbe
  * Security: Requires authenticated user session
  * Output: .pkpass file with proper headers for wallet integration
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
@@ -202,10 +202,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           get(name: string) {
             return cookieStore.get(name)?.value;
           },
-          set(name: string, value: string, options: any) {
+          set(_name: string, _value: string, _options: CookieOptions) {
             // Server components are read-only, so we don't set cookies here
           },
-          remove(name: string, options: any) {
+          remove(_name: string, _options: CookieOptions) {
             // Server components are read-only, so we don't remove cookies here
           },
         },
@@ -263,7 +263,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       generic: {
         ...assets.passJson.generic,
         secondaryFields: [
-          ...assets.passJson.generic.secondaryFields.filter((field: any) => field.key !== 'products'),
+          ...assets.passJson.generic.secondaryFields.filter((field: Record<string, unknown>) => field.key !== 'products'),
           {
             key: 'products',
             label: 'Products Protected',
@@ -363,7 +363,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * POST handler for updating existing passes (future enhancement)
  * This would be called by Apple's pass update service
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(_request: NextRequest): Promise<NextResponse> {
   // TODO: Implement pass update logic
   // This would handle requests from Apple's servers to update passes
   // when users' data changes (e.g., new products added)
@@ -381,7 +381,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 /**
  * Simple health check endpoint
  */
-export async function HEAD(request: NextRequest): Promise<NextResponse> {
+export async function HEAD(_request: NextRequest): Promise<NextResponse> {
   return new NextResponse(null, {
     status: 200,
     headers: {

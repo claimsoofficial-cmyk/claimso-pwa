@@ -23,7 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Extract search parameters from the callback URL
     const { searchParams } = new URL(request.url)
     const authCode = searchParams.get('code')
-    const state = searchParams.get('state')
+
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
     

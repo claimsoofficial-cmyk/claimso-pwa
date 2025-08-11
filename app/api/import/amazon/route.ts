@@ -45,18 +45,18 @@ interface ImportResponse {
   }
 }
 
-interface OrderData {
+export interface OrderData {
   order_id: string
   order_date: string
   total_amount: number
   currency: string
   status: string
   items: OrderItem[]
-  shipping_address?: any
+  shipping_address?: Record<string, unknown>
   payment_method?: string
 }
 
-interface OrderItem {
+export interface OrderItem {
   asin: string
   title: string
   quantity: number
@@ -232,7 +232,7 @@ async function navigateToOrdersPage(page: Page): Promise<void> {
       timeout: 15000
     })
     
-  } catch (error) {
+ } catch {
     throw new ImportError('TIMEOUT', 'Failed to load orders page', true)
   }
 }
@@ -260,7 +260,7 @@ async function extractOrdersWithPagination(
       const pageOrders = await page.$$eval(
         SELECTOR_FALLBACKS.orderCard.join(', '),
         (orderElements) => {
-          const orders: any[] = []
+          const orders: Record<string, unknown>[] = []
           
           orderElements.forEach((card) => {
             try {
@@ -723,7 +723,7 @@ async function importAmazonHistory(request: ImportRequest): Promise<ImportRespon
 }
 
 // Validation helper - SECURITY: Explicitly reject insecure fields
-function validateImportRequest(body: any): ImportRequest | null {
+function validateImportRequest(body: Record<string, unknown>): ImportRequest | null {
   if (!body || typeof body !== 'object') {
     return null
   }
@@ -779,52 +779,56 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
     
-    // Parse request body
-    let body: any
-    try {
-      body = await request.json()
-    } catch (parseError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid JSON in request body",
-          error: { code: 'INVALID_JSON', details: 'Request body must be valid JSON' }
-        },
-        { status: 400 }
-      )
-    }
+  // Parse request body
+let body: Record<string, unknown>
+try {
+  body = await request.json()
+} catch {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Invalid JSON in request body",
+      error: { code: 'INVALID_JSON', details: 'Request body must be valid JSON' }
+    },
+    { status: 400 }
+  )
+}
+
+// Validate request body structure and security constraints
+let validatedRequest: ImportRequest
+try {
+  const validated = validateImportRequest(body)
+  if (!validated) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid request format",
+        error: { 
+          code: 'INVALID_REQUEST', 
+          details: 'Missing required fields: user_id, access_token' 
+        }
+      },
+      { status: 400 }
+    )
+  }
+  validatedRequest = validated
+} catch (securityError) {
+  const errorMessage = securityError instanceof Error 
+    ? securityError.message 
+    : 'Request contains prohibited fields'
     
-    // Validate request body structure and security constraints
-    let validatedRequest: ImportRequest
-    try {
-      const validated = validateImportRequest(body)
-      if (!validated) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Invalid request format",
-            error: { 
-              code: 'INVALID_REQUEST', 
-              details: 'Missing required fields: user_id, access_token' 
-            }
-          },
-          { status: 400 }
-        )
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Security validation failed",
+      error: { 
+        code: 'SECURITY_VIOLATION', 
+        details: errorMessage
       }
-      validatedRequest = validated
-    } catch (securityError: any) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Security validation failed",
-          error: { 
-            code: 'SECURITY_VIOLATION', 
-            details: securityError.message || 'Request contains prohibited fields'
-          }
-        },
-        { status: 400 }
-      )
-    }
+    },
+    { status: 400 }
+  )
+}
     
     
     // Call the main import function with OAuth2 token

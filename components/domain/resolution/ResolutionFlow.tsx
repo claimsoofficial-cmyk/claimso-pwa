@@ -1,5 +1,5 @@
 'use client'
-
+import Image from 'next/image'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -104,11 +104,7 @@ export default function ResolutionFlow({ product, onComplete, onCancel }: Resolu
       <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
         {product.imageUrl ? (
           <div className="w-16 h-16 rounded-lg overflow-hidden bg-white shadow-sm flex-shrink-0">
-            <img 
-              src={product.imageUrl} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            <Image src={product.imageUrl} alt={product.name} width={200} height={150}/>
           </div>
         ) : (
           <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">

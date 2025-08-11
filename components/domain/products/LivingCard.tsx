@@ -6,14 +6,12 @@ import {
   Shield, 
   CheckCircle2, 
   XCircle, 
-  Hash, 
   Calendar, 
   DollarSign, 
   AlertTriangle,
   Plus,
   FileText,
   Camera,
-  Download,
   CalendarPlus,
   MoreHorizontal,
   Share2,
@@ -350,7 +348,7 @@ export default function LivingCard({
                 Resolution Engine
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                We'll help you resolve issues with your {product.product_name}
+                We&apos;ll help you resolve issues with your {product.product_name}
               </p>
             </div>
           </div>

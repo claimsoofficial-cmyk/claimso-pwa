@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       country: country || null 
     });
-  } catch (error) {
+ } catch {
     // Handle any unexpected errors gracefully
     return NextResponse.json(
       { country: null },

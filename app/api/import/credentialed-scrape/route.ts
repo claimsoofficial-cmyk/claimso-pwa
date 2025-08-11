@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     let body: CredentialedScrapeRequest;
     try {
       body = await request.json();
-    } catch (parseError) {
+      } catch {
       return NextResponse.json(
         { error: 'Invalid request body. Expected JSON.' },
         { status: 400 }
