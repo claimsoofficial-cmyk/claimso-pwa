@@ -1,285 +1,76 @@
+// file: lib/actions/user-actions.ts
+
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-// Create admin client for privileged operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// --- Types for Return Values ---
+interface ActionResult {
+  success: boolean;
+  error?: string;
+}
+
+interface ExportResult extends ActionResult {
+  data?: string; // Will contain the JSON data
+}
 
 /**
- * Update user profile information
- * @param formData - Form data containing the full_name field
- * @returns Success indicator
+ * Updates a user's full name in their profile.
  */
-export async function updateUserProfile(formData: FormData) {
+export async function updateUserProfile(formData: FormData): Promise<ActionResult> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
   try {
-    // Get authenticated user session
-    const cookieStore = cookies();
-    const supabase = createServerActionClient({ cookies: () => cookieStore });
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (!user?.id || userError) {
-      throw new Error('Unauthorized: No valid session found');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const fullName = formData.get('full_name')?.toString().trim();
+    if (!fullName || fullName.length > 100) {
+      return { success: false, error: 'Invalid name provided.' };
     }
 
-    // Extract and validate form data
-    const fullName = formData.get('full_name')?.toString()?.trim();
-    
-    if (!fullName) {
-      throw new Error('Full name is required');
-    }
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: fullName, updated_at: new Date().toISOString() })
+      .eq('id', user.id);
 
-    if (fullName.length < 1 || fullName.length > 100) {
-      throw new Error('Full name must be between 1 and 100 characters');
-    }
+    if (error) throw error;
 
-    // Update user profile in database
-    await db.profile.update({
-      where: { 
-        user_id: user.id 
-      },
-      data: { 
-        full_name: fullName,
-        updated_at: new Date()
-      }
-    });
-
-    // Revalidate the settings page to reflect changes
     revalidatePath('/settings/account');
-    
     return { success: true };
-    
+
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to update profile'
-    };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update profile' };
   }
 }
 
 /**
- * Export all user data as JSON
- * @returns Success indicator with data payload
+ * Exports all data for the currently authenticated user.
  */
-export async function exportUserData() {
+export async function exportUserData(): Promise<ExportResult> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
   try {
-    // Get authenticated user session
-    const cookieStore = cookies();
-    const supabase = createServerActionClient({ cookies: () => cookieStore });
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (!user?.id || userError) {
-      throw new Error('Unauthorized: No valid session found');
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
-    const userId = user.id;
+    // Fetch all data in parallel using the user's RLS-enabled client
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('*, warranties(*), documents(*)');
 
-    // Fetch all user-related data
-    const [profile, products] = await Promise.all([
-      // Get user profile
-      db.profile.findUnique({
-        where: { user_id: userId },
-        select: {
-          id: true,
-          user_id: true,
-          full_name: true,
-          created_at: true,
-          updated_at: true
-        }
-      }),
-      
-      // Get all products with nested warranties and documents
-      db.product.findMany({
-        where: { user_id: userId },
-        include: {
-          warranties: {
-            select: {
-              id: true,
-              warranty_start_date: true,
-              warranty_end_date: true,
-              warranty_duration_months: true,
-              warranty_type: true,
-              coverage_details: true,
-              claim_process: true,
-              contact_info: true,
-              snapshot_data: true,
-              ai_confidence_score: true,
-              last_analyzed_at: true,
-              created_at: true,
-              updated_at: true
-            }
-          },
-          documents: {
-            select: {
-              id: true,
-              file_name: true,
-              file_url: true,
-              file_type: true,
-              document_type: true,
-              description: true,
-              is_primary: true,
-              upload_date: true,
-              created_at: true
-            }
-          }
-        }
-      })
-    ]);
+    if (error) throw error;
 
-    // Compile export data
     const exportData = {
-      export_metadata: {
-        export_date: new Date().toISOString(),
-        user_id: userId,
-        version: '1.0'
-      },
-      profile: profile,
-      products: products,
-      summary: {
-        total_products: products.length,
-        total_warranties: products.reduce((sum, p) => sum + (p.warranties?.length || 0), 0),
-        total_documents: products.reduce((sum, p) => sum + (p.documents?.length || 0), 0)
-      }
-    };
-
-    // Convert to formatted JSON string
-    const jsonData = JSON.stringify(exportData, null, 2);
-    
-    return { 
-      success: true, 
-      data: jsonData
-    };
-    
-  } catch (error) {
-    console.error('Error exporting user data:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to export data'
-    };
-  }
-}
-
-/**
- * Delete user account and all associated data
- * This is a critical operation that permanently removes the user
- */
-export async function deleteUserAccount() {
-  try {
-    // Get authenticated user session
-    const cookieStore = cookies();
-    const supabase = createServerActionClient({ cookies: () => cookieStore });
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (!user?.id || userError) {
-      throw new Error('Unauthorized: No valid session found');
-    }
-
-    const userId = user.id;
-
-    // Step 1: Delete user from Supabase Auth
-    // This will trigger CASCADE deletes for profile, products, warranties, and documents
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    
-    if (deleteError) {
-      console.error('Supabase user deletion error:', deleteError);
-      throw new Error(`Failed to delete user account: ${deleteError.message}`);
-    }
-
-    // Step 2: Clean up any remaining database records (redundant due to CASCADE, but safe)
-    try {
-      await db.profile.delete({
-        where: { user_id: userId }
-      });
-    } catch (dbError) {
-      // This might fail if already deleted by CASCADE, which is fine
-      console.log('Profile cleanup completed or already handled by CASCADE');
-    }
-
-    // Step 3: Sign out user and redirect to homepage
-    // Note: We can't use signOut() here as it's a client-side function
-    // The redirect will handle the sign out process
-    redirect('/?account-deleted=true');
-    
-  } catch (error) {
-    console.error('Error deleting user account:', error);
-    
-    // If we're already in a redirect, don't throw
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      return;
-    }
-    
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to delete account'
-    );
-  }
-}
-
-export async function exportUserData() {
-  try {
-    const cookieStore = cookies();
-    const supabase = createServerActionClient({ cookies: () => cookieStore });
-
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Fetch all user data
-    const [userProfile, products, warranties, documents] = await Promise.all([
-      // User profile
-      supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single(),
-      
-      // Products
-      supabase
-        .from('products')
-        .select('*')
-        .eq('user_id', user.id),
-      
-      // Warranties
-      supabase
-        .from('warranties')
-        .select('*')
-        .eq('user_id', user.id),
-      
-      // Documents (metadata only, not file content)
-      supabase
-        .from('documents')
-        .select('id, name, type, size, created_at, updated_at')
-        .eq('user_id', user.id)
-    ]);
-
-    // Compile export data
-    const exportData = {
-      export_info: {
-        exported_at: new Date().toISOString(),
-        user_id: user.id,
-        email: user.email
-      },
-      user_profile: userProfile.data,
-      products: products.data || [],
-      warranties: warranties.data || [],
-      documents: documents.data || [],
-      notes: {
-        documents: "Only document metadata is included. File contents are not exported for security reasons.",
-        warranty_reminders: "Warranty reminder settings and history are included with warranty data."
-      }
+      exported_at: new Date().toISOString(),
+      user_id: user.id,
+      products: products || [],
     };
 
     return { 
@@ -288,85 +79,43 @@ export async function exportUserData() {
     };
 
   } catch (error) {
-    console.error('Error in exportUserData:', error);
-    return { success: false, error: 'Failed to export data' };
+    console.error('Error exporting user data:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to export data' };
   }
 }
 
-export async function deleteUserAccount() {
+/**
+ * PERMANENTLY deletes a user's account and all associated data.
+ */
+export async function deleteUserAccount(): Promise<ActionResult> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+  
   try {
-    const cookieStore = cookies();
-    const supabase = createServerActionClient({ cookies: () => cookieStore });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Delete all user data in the correct order (respecting foreign key constraints)
-    // Note: Most of these should be handled by CASCADE deletes, but we'll be explicit
-    
-    // 1. Delete documents and their files from storage
-    const { data: userDocuments } = await supabase
-      .from('documents')
-      .select('storage_path')
-      .eq('user_id', user.id);
-
-    if (userDocuments && userDocuments.length > 0) {
-      // Delete files from storage
-      const filePaths = userDocuments.map(doc => doc.storage_path).filter(Boolean);
-      if (filePaths.length > 0) {
-        await supabase.storage
-          .from('documents')
-          .remove(filePaths);
-      }
-
-      // Delete document records
-      await supabase
-        .from('documents')
-        .delete()
-        .eq('user_id', user.id);
-    }
-
-    // 2. Delete warranties
-    await supabase
-      .from('warranties')
-      .delete()
-      .eq('user_id', user.id);
-
-    // 3. Delete products
-    await supabase
-      .from('products')
-      .delete()
-      .eq('user_id', user.id);
-
-    // 4. Delete user profile
-    await supabase
-      .from('users')
-      .delete()
-      .eq('id', user.id);
-
-    // 5. Delete the auth user (this requires admin privileges)
-    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(
-      user.id
+    // For this critical operation, we need an admin client to delete the auth user
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    if (deleteAuthError) {
-      console.error('Error deleting auth user:', deleteAuthError);
-      // Don't return error here as the data is already deleted
-      // The user will be signed out anyway
-    }
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
-    // Sign out the user
-    await supabase.auth.signOut();
+    if (error) throw error;
+    
+    // The ON DELETE CASCADE on our tables will handle deleting all their data.
+    // We don't need to manually delete from profiles, products, etc.
 
   } catch (error) {
-    console.error('Error in deleteUserAccount:', error);
-    throw new Error('Failed to delete account');
+    console.error('Error deleting user account:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to delete account'
+    };
   }
 
-  // Redirect to home page after successful deletion
-  redirect('/');
+  // Redirect to the homepage after successful deletion on the server
+  redirect('/?account-deleted=true');
 }
