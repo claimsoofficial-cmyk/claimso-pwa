@@ -58,11 +58,6 @@ interface PublicProduct {
   }[] | null;
 }
 
-interface PageProps {
-  params: {
-    productId: string;
-  };
-}
 
 /**
  * Fetch public product data using service role client
@@ -109,8 +104,8 @@ async function getPublicProduct(productId: string): Promise<PublicProduct | null
  * Public Product Share Page
  * Displays a read-only, non-sensitive version of a product card
  */
-export default async function PublicProductSharePage({ params }: PageProps) {
-  const { productId } = params;
+export default async function PublicProductSharePage({ params }: { params: { productId: string } })
+
 
   // Validate productId format (basic UUID check)
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
