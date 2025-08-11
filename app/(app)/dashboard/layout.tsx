@@ -1,55 +1,43 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import AuthenticatedNavbar from '@/components/shared/AuthenticatedNavbar'
+// file: app/(app)/layout.tsx
 
-// User interface
-interface User {
-  id: string
-  email: string
-  user_metadata?: {
-    full_name?: string
-    avatar_url?: string
-  }
-}
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import AuthenticatedNavbar from '@/components/shared/AuthenticatedNavbar';
 
-/**
- * App Layout Component
- * Provides authenticated layout with navbar for all app pages
- * Automatically redirects unauthenticated users to login
- */
 export default async function AppLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
 
-  // Get authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  // Check for authenticated user session
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to login
-  if (authError || !user) {
-    console.log('User not authenticated, redirecting to login')
-    redirect('/login')
+  if (!user) {
+    // This check is now redundant because our middleware handles it,
+    // but it provides an extra layer of "defense in depth."
+    redirect('/');
   }
 
-  // Type assertion for user data
-  const authenticatedUser: User = {
-    id: user.id,
-    email: user.email || '',
-    user_metadata: user.user_metadata
-  }
+  // Fetch user profile for navbar
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, avatar_url')
+    .eq('id', user.id)
+    .single();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Authenticated Navigation Bar */}
-      <AuthenticatedNavbar user={authenticatedUser} />
+    <div className="min-h-screen">
+      {/* The navbar for logged-in users */}
+      <AuthenticatedNavbar user={user} profile={profile} />
       
-      {/* Main Content Area */}
-      <main className="flex-1">
+      {/* The page content (e.g., the dashboard) will be rendered here */}
+      <main>
         {children}
       </main>
     </div>
-  )
+  );
 }

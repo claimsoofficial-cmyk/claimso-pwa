@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
-import ResolutionManager from '@/components/domain/warranty/ResolutionManager';
+import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
 import { Button } from '@/components/ui/button';
 
 // ==============================================================================
