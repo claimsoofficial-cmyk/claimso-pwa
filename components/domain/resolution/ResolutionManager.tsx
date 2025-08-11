@@ -15,11 +15,16 @@ import EditProductModal from '@/components/domain/products/EditProductModal';
 interface Product {
   id: string;
   name: string;
-  category: string;
-  serial_number?: string;
-  order_number?: string;
-  notes?: string;
-  warranty_expiry?: string;
+  category?: string | null; // CORRECTED: Now accepts string, null, or undefined
+  serial_number?: string | null;
+  order_number?: string | null;
+  notes?: string | null;
+  purchase_date?: string | null;
+  warranty_length_months?: number | null;
+  product_image_url?: string | null;
+  retailer?: string | null;
+  price?: number | null;
+  warranties?: Record<string, unknown>[];
 }
 
 interface ResolutionFlowData {
