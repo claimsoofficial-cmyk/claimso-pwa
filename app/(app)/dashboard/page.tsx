@@ -1,9 +1,9 @@
-import { type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers';
+
 import { redirect } from 'next/navigation';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
 import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
 import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/server';
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
@@ -79,27 +79,8 @@ export default async function DashboardPage() {
   // SERVER-SIDE AUTHENTICATION & DATA FETCHING
   // ==============================================================================
   
-  // Get cookies for session management
-  const cookieStore = cookies();
-
-  // Create server-side Supabase client
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(_name: string, _value: string, _options: CookieOptions) {
-          // Server components are read-only, so we don't set cookies here
-        },
-        remove(_name: string, _options: CookieOptions) {
-          // Server components are read-only, so we don't remove cookies here
-        },
-      },
-    }
-  );
+  // Create server-side Supabase client using centralized helper
+  const supabase = createClient();
 
   // Check for authenticated user session
   const { data: { user }, error: authError } = await supabase.auth.getUser();

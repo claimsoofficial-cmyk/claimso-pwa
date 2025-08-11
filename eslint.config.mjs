@@ -1,50 +1,74 @@
-// file: eslint.config.mjs
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
 
-import tseslint from "typescript-eslint";
-import nextPlugin from '@next/eslint-plugin-next/dist/index.js';
-import reactPlugin from "eslint-plugin-react";
-import hooksPlugin from "eslint-plugin-react-hooks";
-import globals from "globals";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-export default tseslint.config(
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  // Ignore common build and dependency directories
   {
-    ignores: [".next/**", "node_modules/**", ".vercel/**", "build/**"],
+    ignores: [
+      ".next/**",
+      "node_modules/**", 
+      ".vercel/**",
+      "build/**",
+      "dist/**",
+      "out/**"
+    ]
   },
-  // Base configurations
-  ...tseslint.configs.recommended,
-  // React configurations
+
+  // Apply to JavaScript and TypeScript files
+  ...compat.extends(
+    "next/core-web-vitals",
+    "next/typescript"
+  ),
+
+  // Custom rules
   {
-    files: ["**/*.{ts,tsx}"],
-    plugins: {
-      react: reactPlugin,
-      "react-hooks": hooksPlugin,
-      "@next/next": nextPlugin,
-    },
-    languageOptions: {
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...globals.browser,
-      },
-    },
+    files: ["**/*.{js,jsx,ts,tsx}"],
     rules: {
-      ...reactPlugin.configs.recommended.rules,
-      ...hooksPlugin.configs.recommended.rules,
-      ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs["core-web-vitals"].rules,
-      "react/react-in-jsx-scope": "off",
+      // Disable prop-types since we're using TypeScript
       "react/prop-types": "off",
+      
+      // React 17+ doesn't require React import for JSX
+      "react/react-in-jsx-scope": "off",
+      
+      // Ensure unescaped entities are caught
       "react/no-unescaped-entities": "error",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    },
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
+      
+      // TypeScript specific rules
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn", 
+        { 
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_"
+        }
+      ],
+      
+      // Next.js specific rules
+      "@next/next/no-html-link-for-pages": "error",
+      "@next/next/no-img-element": "warn",
+      
+      // General code quality
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  },
+
+  // Specific rules for configuration files
+  {
+    files: ["*.config.{js,mjs,ts}"],
+    rules: {
+      "no-console": "off"
+    }
   }
-);
+];
+
+export default eslintConfig;
