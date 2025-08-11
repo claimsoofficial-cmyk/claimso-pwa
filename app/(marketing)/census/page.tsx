@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Metadata } from 'next';
 import { Shield, TrendingUp, Users, CheckCircle, Database, Globe } from 'lucide-react';
-import AnimatedCounter from './components/AnimatedCounter';
+import AnimatedCounter from '@/components/ui/animated-counter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
