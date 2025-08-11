@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { User } from '@supabase/auth-helpers-nextjs';
 import { 
-  User, 
+  User as UserIcon, 
   Download, 
   AlertTriangle,
   Save,
@@ -29,11 +30,53 @@ import {
 } from '@/lib/actions/user-actions';
 
 export default function AccountSettingsPage() {
-  const { data: session } = useSession();
-  const [fullName, setFullName] = useState(session?.user?.name || '');
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [fullName, setFullName] = useState('');
   const [isUpdatingProfile, startUpdateTransition] = useTransition();
   const [isExportingData, startExportTransition] = useTransition();
   const [isDeletingAccount, startDeleteTransition] = useTransition();
+
+  const supabase = createClientComponentClient();
+
+  // Get user on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        // Get user profile data
+        const { data: profile } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setFullName(profile.full_name || '');
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setFullName('');
+        } else if (session?.user) {
+          setUser(session.user);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -148,7 +191,18 @@ export default function AccountSettingsPage() {
     });
   };
 
-  if (!session) {
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="text-center">
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+          <p className="text-gray-600">Loading account settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
@@ -171,7 +225,7 @@ export default function AccountSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
+            <UserIcon className="w-5 h-5" />
             Profile
           </CardTitle>
           <CardDescription>
@@ -185,7 +239,7 @@ export default function AccountSettingsPage() {
               <Input
                 id="email"
                 type="email"
-                value={session.user?.email || ''}
+                value={user?.email || ''}
                 disabled
                 className="bg-gray-50"
               />

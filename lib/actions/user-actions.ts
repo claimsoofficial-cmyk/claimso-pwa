@@ -1,12 +1,17 @@
 'use server';
 
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
-import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+
+// Create admin client for privileged operations
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * Update user profile information
@@ -16,9 +21,12 @@ import { signOut } from 'next-auth/react';
 export async function updateUserProfile(formData: FormData) {
   try {
     // Get authenticated user session
-    const session = await getServerSession(authOptions);
+    const cookieStore = cookies();
+    const supabase = createServerActionClient({ cookies: () => cookieStore });
     
-    if (!session?.user?.id) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (!user?.id || userError) {
       throw new Error('Unauthorized: No valid session found');
     }
 
@@ -36,7 +44,7 @@ export async function updateUserProfile(formData: FormData) {
     // Update user profile in database
     await db.profile.update({
       where: { 
-        user_id: session.user.id 
+        user_id: user.id 
       },
       data: { 
         full_name: fullName,
@@ -65,13 +73,16 @@ export async function updateUserProfile(formData: FormData) {
 export async function exportUserData() {
   try {
     // Get authenticated user session
-    const session = await getServerSession(authOptions);
+    const cookieStore = cookies();
+    const supabase = createServerActionClient({ cookies: () => cookieStore });
     
-    if (!session?.user?.id) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (!user?.id || userError) {
       throw new Error('Unauthorized: No valid session found');
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     // Fetch all user-related data
     const [profile, products] = await Promise.all([
@@ -165,16 +176,16 @@ export async function exportUserData() {
 export async function deleteUserAccount() {
   try {
     // Get authenticated user session
-    const session = await getServerSession(authOptions);
+    const cookieStore = cookies();
+    const supabase = createServerActionClient({ cookies: () => cookieStore });
     
-    if (!session?.user?.id) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (!user?.id || userError) {
       throw new Error('Unauthorized: No valid session found');
     }
 
-    const userId = session.user.id;
-
-    // Create Supabase admin client for user deletion
-    const supabaseAdmin = supabase;
+    const userId = user.id;
 
     // Step 1: Delete user from Supabase Auth
     // This will trigger CASCADE deletes for profile, products, warranties, and documents
@@ -212,4 +223,150 @@ export async function deleteUserAccount() {
       error instanceof Error ? error.message : 'Failed to delete account'
     );
   }
+}
+
+export async function exportUserData() {
+  try {
+    const cookieStore = cookies();
+    const supabase = createServerActionClient({ cookies: () => cookieStore });
+
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Fetch all user data
+    const [userProfile, products, warranties, documents] = await Promise.all([
+      // User profile
+      supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single(),
+      
+      // Products
+      supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', user.id),
+      
+      // Warranties
+      supabase
+        .from('warranties')
+        .select('*')
+        .eq('user_id', user.id),
+      
+      // Documents (metadata only, not file content)
+      supabase
+        .from('documents')
+        .select('id, name, type, size, created_at, updated_at')
+        .eq('user_id', user.id)
+    ]);
+
+    // Compile export data
+    const exportData = {
+      export_info: {
+        exported_at: new Date().toISOString(),
+        user_id: user.id,
+        email: user.email
+      },
+      user_profile: userProfile.data,
+      products: products.data || [],
+      warranties: warranties.data || [],
+      documents: documents.data || [],
+      notes: {
+        documents: "Only document metadata is included. File contents are not exported for security reasons.",
+        warranty_reminders: "Warranty reminder settings and history are included with warranty data."
+      }
+    };
+
+    return { 
+      success: true, 
+      data: JSON.stringify(exportData, null, 2) 
+    };
+
+  } catch (error) {
+    console.error('Error in exportUserData:', error);
+    return { success: false, error: 'Failed to export data' };
+  }
+}
+
+export async function deleteUserAccount() {
+  try {
+    const cookieStore = cookies();
+    const supabase = createServerActionClient({ cookies: () => cookieStore });
+
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Delete all user data in the correct order (respecting foreign key constraints)
+    // Note: Most of these should be handled by CASCADE deletes, but we'll be explicit
+    
+    // 1. Delete documents and their files from storage
+    const { data: userDocuments } = await supabase
+      .from('documents')
+      .select('storage_path')
+      .eq('user_id', user.id);
+
+    if (userDocuments && userDocuments.length > 0) {
+      // Delete files from storage
+      const filePaths = userDocuments.map(doc => doc.storage_path).filter(Boolean);
+      if (filePaths.length > 0) {
+        await supabase.storage
+          .from('documents')
+          .remove(filePaths);
+      }
+
+      // Delete document records
+      await supabase
+        .from('documents')
+        .delete()
+        .eq('user_id', user.id);
+    }
+
+    // 2. Delete warranties
+    await supabase
+      .from('warranties')
+      .delete()
+      .eq('user_id', user.id);
+
+    // 3. Delete products
+    await supabase
+      .from('products')
+      .delete()
+      .eq('user_id', user.id);
+
+    // 4. Delete user profile
+    await supabase
+      .from('users')
+      .delete()
+      .eq('id', user.id);
+
+    // 5. Delete the auth user (this requires admin privileges)
+    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(
+      user.id
+    );
+
+    if (deleteAuthError) {
+      console.error('Error deleting auth user:', deleteAuthError);
+      // Don't return error here as the data is already deleted
+      // The user will be signed out anyway
+    }
+
+    // Sign out the user
+    await supabase.auth.signOut();
+
+  } catch (error) {
+    console.error('Error in deleteUserAccount:', error);
+    throw new Error('Failed to delete account');
+  }
+
+  // Redirect to home page after successful deletion
+  redirect('/');
 }
