@@ -87,7 +87,6 @@ export default async function DashboardPage() {
 
   // Redirect unauthenticated users to homepage
   if (authError || !user) {
-    console.log('No authenticated user found, redirecting to homepage');
     redirect('/');
   }
 
@@ -302,7 +301,10 @@ export default async function DashboardPage() {
               {typedProducts.map((product) => (
                 <ResolutionManager
                   key={product.id}
-                  product={product}
+                  product={{
+                    ...product,
+                    name: product.product_name // Map product_name to name for ResolutionManager
+                  }}
                 />
               ))}
             </div>

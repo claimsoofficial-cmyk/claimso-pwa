@@ -56,7 +56,7 @@ const eslintConfig = [
       "@next/next/no-img-element": "warn",
       
       // General code quality
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": process.env.NODE_ENV === "production" ? "error" : "warn",
       "prefer-const": "error",
       "no-var": "error"
     }
