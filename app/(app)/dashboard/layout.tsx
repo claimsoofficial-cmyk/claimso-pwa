@@ -1,7 +1,6 @@
 // file: app/(app)/layout.tsx
 
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AuthenticatedNavbar from '@/components/shared/AuthenticatedNavbar';
 
@@ -10,8 +9,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+const supabase = createClient();
 
   // Check for authenticated user session
   const { data: { user } } = await supabase.auth.getUser();

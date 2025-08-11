@@ -3,7 +3,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -21,8 +20,7 @@ interface ExportResult extends ActionResult {
  * Updates a user's full name in their profile.
  */
 export async function updateUserProfile(formData: FormData): Promise<ActionResult> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+const supabase = createClient();
 
   try {
     const { data: { user } } = await supabase.auth.getUser();

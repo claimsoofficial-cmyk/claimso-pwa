@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+
 
 interface TriageRequest {
   productId: string;
@@ -45,8 +45,7 @@ function getResolutionPath(
 
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient();
 
   try {
     // 1. Get the current user session

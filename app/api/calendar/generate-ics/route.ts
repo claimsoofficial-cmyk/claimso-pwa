@@ -2,12 +2,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server'; // Our server client
-import { cookies } from 'next/headers';
+
 import { createEvent } from 'ics';
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+const supabase = createClient();
 
   try {
     // Get authenticated user session
