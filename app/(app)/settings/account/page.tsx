@@ -23,8 +23,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import { toast } from 'sonner';
+
 import { 
   updateUserProfile, 
   exportUserData, 
@@ -81,117 +81,79 @@ export default function AccountSettingsPage() {
   }, [supabase]);
 
   // Handle profile update
-  const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  
+  if (!fullName.trim()) {
+    toast.error("Name cannot be empty");
+    return; // Stop the function here
+  }
+
+  startUpdateTransition(async () => {
+    const formData = new FormData();
+    formData.append('full_name', fullName.trim());
     
-    if (!fullName.trim()) {
-      toast({
-        title: "Error",
-        description: "Name cannot be empty",
-        variant: "destructive"
+    const result = await updateUserProfile(formData);
+    
+    if (result.success) {
+      toast.success("Profile Updated", {
+        description: "Your name has been updated successfully."
       });
-      return;
-    }
-
-    startUpdateTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append('full_name', fullName.trim());
-        
-        const result = await updateUserProfile(formData);
-        
-        if (result.success) {
-          toast({
-            title: "Success",
-            description: "Your profile has been updated successfully"
-          });
-        } else {
-          throw new Error('Failed to update profile');
-        }
-  } catch {
-        toast({
-          title: "Error",
-          description: "Failed to update profile. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-  };
-
-  // Handle data export
-  const handleDataExport = () => {
-    startExportTransition(async () => {
-      try {
-        const result = await exportUserData();
-        
-        if (result.success && result.data) {
-          // Create downloadable JSON file
-          const blob = new Blob([result.data], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `account-data-${new Date().toISOString().split('T')[0]}.json`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
-          toast({
-            title: "Success",
-            description: "Your data has been exported and downloaded"
-          });
-        } else {
-          throw new Error('Failed to export data');
-        }
-      } catch {
-        toast({
-          title: "Error",
-          description: "Failed to export data. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-  };
-
-  // Handle account deletion
-  const handleAccountDeletion = () => {
-    const confirmed = window.confirm(
-      "Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete all your data, including products, warranties, and documents."
-    );
-    
-    if (!confirmed) return;
-
-    const doubleConfirmed = window.confirm(
-      "This is your final warning. Deleting your account will permanently remove all your data and cannot be reversed. Type 'DELETE' in the next prompt to confirm."
-    );
-    
-    if (!doubleConfirmed) return;
-
-    const finalConfirmation = window.prompt(
-      "Please type 'DELETE' (in capital letters) to confirm account deletion:"
-    );
-    
-    if (finalConfirmation !== 'DELETE') {
-      toast({
-        title: "Cancelled",
-        description: "Account deletion cancelled"
+    } else {
+      toast.error("Update Failed", {
+        description: result.error || "Please try again.",
       });
-      return;
     }
+  });
+};
 
-    startDeleteTransition(async () => {
-      try {
-        await deleteUserAccount();
-        // Note: deleteUserAccount handles the redirect, so this code may not execute
-    } catch {
-        toast({
-          title: "Error",
-          description: "Failed to delete account. Please try again or contact support.",
-          variant: "destructive"
-        });
-      }
-    });
-  };
+ // Handle data export
+const handleDataExport = () => {
+  startExportTransition(async () => {
+    const result = await exportUserData();
+    
+    if (result.success && result.data) {
+      const blob = new Blob([result.data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `claimso-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Data Exported", {
+        description: "Your account data has been successfully downloaded."
+      });
+    } else {
+      toast.error("Export Failed", {
+        description: result.error || "Please try again.",
+      });
+    }
+  });
+};
+
+// Handle account deletion
+const handleAccountDeletion = () => {
+  if (window.confirm("Are you absolutely sure? This will permanently delete all your data and cannot be undone.")) {
+    const finalConfirmation = window.prompt("To confirm, please type 'DELETE' in all capital letters.");
+    
+    if (finalConfirmation === 'DELETE') {
+      startDeleteTransition(async () => {
+        const result = await deleteUserAccount();
+        if (result?.error) {
+          toast.error("Deletion Failed", {
+            description: result.error,
+          });
+        }
+        // No success toast is needed as the page will redirect
+      });
+    } else {
+      toast.info("Account deletion cancelled.");
+    }
+  }
+};
 
   if (loading) {
     return (
