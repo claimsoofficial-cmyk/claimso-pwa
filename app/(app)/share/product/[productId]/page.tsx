@@ -104,8 +104,12 @@ async function getPublicProduct(productId: string): Promise<PublicProduct | null
  * Public Product Share Page
  * Displays a read-only, non-sensitive version of a product card
  */
-export default async function PublicProductSharePage({ params }: { params: { productId: string } }) {
-  const { productId } = params;
+export default async function PublicProductSharePage({ 
+  params 
+}: { 
+  params: Promise<{ productId: string }> 
+}) {
+  const { productId } = await params;
 
 
   // Validate productId format (basic UUID check)

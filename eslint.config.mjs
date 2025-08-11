@@ -1,7 +1,7 @@
 // file: eslint.config.mjs
 
 import tseslint from "typescript-eslint";
-import nextPlugin from "@next/eslint-plugin-next";
+import nextPlugin from '@next/eslint-plugin-next/dist/index.js';
 import reactPlugin from "eslint-plugin-react";
 import hooksPlugin from "eslint-plugin-react-hooks";
 import globals from "globals";
