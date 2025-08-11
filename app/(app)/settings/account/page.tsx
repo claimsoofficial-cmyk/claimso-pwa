@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 import type { User } from '@supabase/supabase-js';
+
 import { 
   User as UserIcon, 
   Download, 
@@ -36,8 +38,8 @@ export default function AccountSettingsPage() {
   const [isUpdatingProfile, startUpdateTransition] = useTransition();
   const [isExportingData, startExportTransition] = useTransition();
   const [isDeletingAccount, startDeleteTransition] = useTransition();
+  const supabase = createClient();
 
-  const supabase = createClientComponentClient();
 
   // Get user on component mount
   useEffect(() => {
