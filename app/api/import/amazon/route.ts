@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { chromium, Browser, Page } from 'playwright-core'
-import chromium_aws_lambda from 'chrome-aws-lambda'
+import { Browser, Page } from 'playwright-core'
+import playwright from 'playwright-aws-lambda'
+import chromium from '@sparticuz/chromium'
 import { createClient } from '@supabase/supabase-js'
 
 // Vercel configuration for extended execution
@@ -131,27 +132,12 @@ const USER_AGENTS = [
  * Launches a secure headless Chromium browser instance optimized for serverless
  */
 async function launchSecureBrowser(): Promise<Browser> {
-  // Use chrome-aws-lambda for serverless environments (Vercel/AWS Lambda)
-  const browser = await chromium.launch({
-    args: chromium_aws_lambda.args.concat([
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--single-process',
-      '--no-zygote',
-      '--incognito', // Use incognito mode for privacy
-      '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
-    ]),
-    defaultViewport: chromium_aws_lambda.defaultViewport,
-    executablePath: await chromium_aws_lambda.executablePath,
-    headless: chromium_aws_lambda.headless,
-    ignoreHTTPSErrors: true,
-    timeout: 30000
-  })
-  
-  return browser
+  const browser = await playwright.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
+  return browser;
 }
 
 /**
