@@ -51,6 +51,7 @@ const supabase = createClient();
 
     const event = {
       start: [ expirationDate.getFullYear(), expirationDate.getMonth() + 1, expirationDate.getDate() ] as [number, number, number],
+      duration: { hours: 1 }, // <--- ADD THIS LINE
       title: `Warranty Expiration: ${product.product_name}`,
       description: `Your warranty for ${product.product_name} expires today.`,
       alarms: [{
