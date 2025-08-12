@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@supabase/supabase-js';
 import { Metadata } from 'next';
 import { Shield, TrendingUp, Users, CheckCircle, Database, Globe } from 'lucide-react';
