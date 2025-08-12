@@ -1,3 +1,8 @@
+// Vercel configuration for extended execution
+export const maxDuration = 300 // 5 minutes
+export const dynamic = 'force-dynamic'
+
+
 import { NextRequest, NextResponse } from 'next/server'
 import playwright from 'playwright-aws-lambda'
 import chromium from '@sparticuz/chromium'
@@ -5,9 +10,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Browser, Page } from 'playwright-core';
 
 
-// Vercel configuration for extended execution
-export const maxDuration = 300 // 5 minutes
-export const dynamic = 'force-dynamic'
+
 
 // Export configuration object for Vercel
 export const config = {
