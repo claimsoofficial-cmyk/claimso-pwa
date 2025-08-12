@@ -2,12 +2,12 @@
   "name": "claimso-pwa",
   "version": "0.1.0",
   "private": true,
-      "scripts": {
-      "dev": "next dev --turbopack",
-      "build": "cross-env NODE_OPTIONS=--max-old-space-size=512 next build",
-      "start": "next start",
-      "lint": "next lint"
-    },
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096 --max-semi-space-size=128 --optimize-for-size' next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-avatar": "^1.1.10",

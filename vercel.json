@@ -1,6 +1,6 @@
 {
-  "buildCommand": "next build",
-  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
@@ -9,7 +9,11 @@
   },
   "build": {
     "env": {
-      "NEXT_TELEMETRY_DISABLED": "1"
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "NODE_OPTIONS": "--max-old-space-size=4096 --optimize-for-size",
+      "SKIP_ENV_VALIDATION": "1"
     }
-  }
-} 
+  },
+  "regions": ["iad1"],
+  "outputDirectory": ".next"
+}
