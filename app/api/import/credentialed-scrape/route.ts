@@ -1,13 +1,8 @@
 export const maxDuration = 300; // 5 minutes
 export const dynamic = 'force-dynamic';
 
-
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { importFromWalmart } from '@/lib/scrapers/walmart';
-// Import other scrapers as needed
-// import { importFromTarget } from '@/lib/scrapers/target';
 
 interface CredentialedScrapeRequest {
   retailer: string;
@@ -23,6 +18,16 @@ interface ScrapedProduct {
   image_url?: string;
   retailer: string;
   category?: string;
+}
+
+interface ScraperResponse {
+  success: boolean;
+  retailer: string;
+  products: ScrapedProduct[];
+  count: number;
+  error?: string;
+  type?: string;
+  recoverable?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
     let body: CredentialedScrapeRequest;
     try {
       body = await request.json();
-      } catch {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid request body. Expected JSON.' },
         { status: 400 }
@@ -75,23 +80,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get scraper service configuration
+    const scraperServiceUrl = process.env.SCRAPER_SERVICE_URL;
+    const scraperApiKey = process.env.SCRAPER_API_KEY;
+    
+    if (!scraperServiceUrl || !scraperApiKey) {
+      console.error('Missing scraper service configuration');
+      return NextResponse.json(
+        { error: 'Scraper service unavailable. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
     let scrapedProducts: ScrapedProduct[] = [];
 
-    // Call the appropriate scraper function based on retailer
+    // Call the scraper microservice
     try {
-      switch (retailer.toLowerCase()) {
-        case 'walmart':
-          scrapedProducts = await importFromWalmart(username, password);
-          break;
-        case 'target':
-          // scrapedProducts = await importFromTarget(username, password);
-          throw new Error('Target scraper not yet implemented');
-        case 'bestbuy':
-          // scrapedProducts = await importFromBestBuy(username, password);
-          throw new Error('Best Buy scraper not yet implemented');
-        default:
-          throw new Error(`No scraper available for ${retailer}`);
+      const scraperResponse = await fetch(scraperServiceUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${scraperApiKey}`
+        },
+        body: JSON.stringify({
+          retailer: retailer.toLowerCase(),
+          auth: {
+            type: 'credentials',
+            username: username,
+            password: password
+          }
+        })
+      });
+
+      if (!scraperResponse.ok) {
+        const errorData = await scraperResponse.json().catch(() => ({}));
+        
+        // Handle specific scraper service errors with user-friendly messages
+        if (scraperResponse.status === 401) {
+          return NextResponse.json(
+            { error: 'Login failed. Please check your username and password.' },
+            { status: 401 }
+          );
+        }
+        
+        if (scraperResponse.status === 422) {
+          return NextResponse.json(
+            { error: 'Two-factor authentication or CAPTCHA detected. Please try again later.' },
+            { status: 422 }
+          );
+        }
+
+        throw new Error(`Scraper service error: ${scraperResponse.status} - ${errorData.error || 'Unknown error'}`);
       }
+
+      const scraperData: ScraperResponse = await scraperResponse.json();
+      
+      if (!scraperData.success) {
+        throw new Error(scraperData.error || 'Unknown scraping error');
+      }
+
+      scrapedProducts = scraperData.products;
+
     } catch (scraperError) {
       console.error(`Scraper error for ${retailer}:`, scraperError);
       
@@ -112,6 +161,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (errorMessage.includes('Scraper service error')) {
+        return NextResponse.json(
+          { error: 'Scraper service unavailable. Please try again later.' },
+          { status: 503 }
+        );
+      }
+
       return NextResponse.json(
         { error: `Failed to import from ${retailer}. Please try again later.` },
         { status: 500 }
@@ -121,7 +177,16 @@ export async function POST(request: NextRequest) {
     // Insert scraped products into the database
     if (scrapedProducts.length > 0) {
       const productsToInsert = scrapedProducts.map((product) => ({
-        ...product,
+        external_id: product.external_id,
+        product_name: product.name,
+        brand: product.category || 'Unknown',
+        category: product.category || 'imported',
+        purchase_date: product.purchase_date,
+        purchase_price: product.price,
+        currency: 'USD',
+        purchase_location: product.retailer,
+        product_image: product.image_url || '',
+        notes: `Imported from ${product.retailer}`,
         user_id: userId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -130,7 +195,7 @@ export async function POST(request: NextRequest) {
       const { data: insertedProducts, error: insertError } = await supabase
         .from('products')
         .insert(productsToInsert)
-        .select('id, name, retailer');
+        .select('id, product_name, purchase_location');
 
       if (insertError) {
         console.error('Database insertion error:', insertError);
