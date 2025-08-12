@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096 --max-semi-space-size=128 --optimize-for-size' next build",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "next lint"
   },
