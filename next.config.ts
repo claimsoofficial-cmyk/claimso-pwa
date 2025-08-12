@@ -13,9 +13,6 @@ const nextConfig = {
       '@radix-ui/react-slot'
     ],
   },
-  
-  // Move heavy libraries to server-side only (updated for Next.js 15)
-  serverExternalPackages: ['pdf-lib', 'passkit-generator'],
 };
 
 export default nextConfig;
