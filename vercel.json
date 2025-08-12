@@ -10,7 +10,7 @@
   "build": {
     "env": {
       "NEXT_TELEMETRY_DISABLED": "1",
-      "NODE_OPTIONS": "--max-old-space-size=4096 --optimize-for-size",
+      "NODE_OPTIONS": "--max-old-space-size=4096 --max-semi-space-size=128",
       "SKIP_ENV_VALIDATION": "1"
     }
   },
