@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { createClient } from '@supabase/supabase-js';
+
 import { Metadata } from 'next';
 import { Shield, TrendingUp, Users, CheckCircle, Database, Globe } from 'lucide-react';
 import AnimatedCounter from '@/components/ui/animated-counter';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { supabaseAdmin } from '@/lib/supabase/admin'; // <-- IMPORT THE NEW CLIENT
 
 // ==============================================================================
 // METADATA & SEO
@@ -28,24 +29,12 @@ export const metadata: Metadata = {
 // ==============================================================================
 
 async function getVerifiedProductCount(): Promise<number> {
-  // Initialize Supabase service role client for server-side queries
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
-
   try {
-    // Query for verified products only - products imported via automated connectors
-    const { count, error } = await supabase
+    // Use the admin client which does not depend on user cookies
+    const { count, error } = await supabaseAdmin
       .from('products')
       .select('*', { count: 'exact', head: true })
-      .in('source', ['amazon_import', 'walmart_scrape', 'email_import', 'receipt_scan']);
+      .in('source', ['amazon_import', 'walmart_scrape', 'email_import']); // Example filter
 
     if (error) {
       console.error('Error fetching product count:', error);
