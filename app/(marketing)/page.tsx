@@ -1,5 +1,5 @@
 'use client'
-
+export const dynamic = 'force-dynamic'; // ADD THIS LINE
 import { useState } from 'react'
 import { Shield, Zap, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
