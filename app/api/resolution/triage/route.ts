@@ -1,5 +1,3 @@
-// file: app/api/resolution/triage/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -45,7 +43,7 @@ function getResolutionPath(
 
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // 1. Get the current user session

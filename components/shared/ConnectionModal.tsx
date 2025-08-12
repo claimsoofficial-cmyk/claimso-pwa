@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-
+import { createClient } from '@/lib/supabase/client';
 import { Mail, Chrome } from 'lucide-react';
 import {
   Dialog,
@@ -43,7 +43,7 @@ export default function ConnectionModal({
   description = "Connect securely to create your vault. We will never post without your permission."
 }: ConnectionModalProps) {
   // Initialize Supabase client for authentication
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   
   // State management for UI interactions
   const [showEmailForm, setShowEmailForm] = useState(false);

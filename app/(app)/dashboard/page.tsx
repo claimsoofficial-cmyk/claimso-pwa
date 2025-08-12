@@ -1,4 +1,3 @@
-
 import { redirect } from 'next/navigation';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
 import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
@@ -60,6 +59,44 @@ interface ProductWithRelations {
 }
 
 // ==============================================================================
+// UTILITY FUNCTIONS
+// ==============================================================================
+
+/**
+ * Converts null values to undefined to match ResolutionManager's Product type
+ */
+function mapProductForResolutionManager(product: ProductWithRelations) {
+  return {
+    ...product,
+    name: product.product_name, // Map product_name to name
+    brand: product.brand ?? undefined,
+    model: product.model ?? undefined,
+    category: product.category ?? undefined,
+    purchase_date: product.purchase_date ?? undefined,
+    purchase_price: product.purchase_price ?? undefined,
+    purchase_location: product.purchase_location ?? undefined,
+    serial_number: product.serial_number ?? undefined,
+    notes: product.notes ?? undefined,
+    warranties: product.warranties.map(warranty => ({
+      ...warranty,
+      warranty_start_date: warranty.warranty_start_date ?? undefined,
+      warranty_end_date: warranty.warranty_end_date ?? undefined,
+      warranty_duration_months: warranty.warranty_duration_months ?? undefined,
+      coverage_details: warranty.coverage_details ?? undefined,
+      claim_process: warranty.claim_process ?? undefined,
+      contact_info: warranty.contact_info ?? undefined,
+      ai_confidence_score: warranty.ai_confidence_score ?? undefined,
+      last_analyzed_at: warranty.last_analyzed_at ?? undefined,
+    })),
+    documents: product.documents.map(doc => ({
+      ...doc,
+      file_type: doc.file_type ?? undefined,
+      description: doc.description ?? undefined,
+    }))
+  };
+}
+
+// ==============================================================================
 // SERVER COMPONENT - DASHBOARD PAGE
 // ==============================================================================
 
@@ -80,7 +117,7 @@ export default async function DashboardPage() {
   // ==============================================================================
   
   // Create server-side Supabase client using centralized helper
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Check for authenticated user session
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -301,10 +338,7 @@ export default async function DashboardPage() {
               {typedProducts.map((product) => (
                 <ResolutionManager
                   key={product.id}
-                  product={{
-                    ...product,
-                    name: product.product_name // Map product_name to name for ResolutionManager
-                  }}
+                  product={mapProductForResolutionManager(product)}
                 />
               ))}
             </div>

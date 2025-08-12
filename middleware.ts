@@ -1,5 +1,19 @@
-
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import type { CookieOptions } from '@supabase/ssr'
+
+// Define public API routes that don't require authentication
+const PUBLIC_API_ROUTES = [
+  '/api/auth',
+  '/api/webhooks',
+  '/api/health',
+  // Add other public routes as needed
+]
+
+// Helper function to check if an API route is public
+function isPublicApiRoute(pathname: string): boolean {
+  return PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))
+}
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -14,8 +28,8 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, _options }) => request.cookies.set(name, value))
+        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -36,8 +50,6 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isLoggedIn = !!session && !error
 
- 
-
   // Handle dashboard routes - redirect to homepage if not authenticated
   if (pathname.startsWith('/dashboard')) {
     if (!isLoggedIn) {
@@ -57,7 +69,9 @@ export async function middleware(request: NextRequest) {
 
   // Handle API routes - return 401 for unauthenticated requests (except public routes)
   if (pathname.startsWith('/api/')) {
-    if (!isPublicApiRoute && !isLoggedIn) {
+    const isPublicRoute = isPublicApiRoute(pathname)
+    
+    if (!isPublicRoute && !isLoggedIn) {
       console.log('Unauthenticated API request blocked:', pathname)
       
       return NextResponse.json(
@@ -80,7 +94,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Log successful API access for monitoring
-    if (!isPublicApiRoute && isLoggedIn) {
+    if (!isPublicRoute && isLoggedIn) {
       console.log('Authenticated API request:', pathname, 'User ID:', session?.user?.id)
     }
   }

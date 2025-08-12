@@ -10,8 +10,8 @@ import {
   Sparkles,
   Apple,
   Chrome,
-  Skip,
-  Party
+  SkipForward,
+  PartyPopper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -76,7 +76,7 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
   // ==============================================================================
 
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('connect_retailers');
-  const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
+  // const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({ os: 'desktop', isMobile: false });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -90,9 +90,9 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
   // ==============================================================================
 
   const handleContinueFromMultiConnect = () => {
-    if (connectedAccounts.length > 0) {
-      setCurrentStep('enable_sync');
-    }
+    // For now, allow continuation regardless of connected accounts
+    // TODO: Integrate with actual MultiConnect component state
+    setCurrentStep('enable_sync');
   };
 
   const handleSkipSync = () => {
@@ -237,15 +237,13 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
         </p>
       </div>
 
-      <MultiConnect 
-        onAccountsChange={setConnectedAccounts}
-        className="max-w-2xl mx-auto"
-      />
+      <div className="max-w-2xl mx-auto">
+        <MultiConnect />
+      </div>
 
       <div className="flex justify-center pt-6">
         <Button
           onClick={handleContinueFromMultiConnect}
-          disabled={connectedAccounts.length === 0}
           size="lg"
           className="bg-blue-600 hover:bg-blue-700 text-white px-8"
         >
@@ -254,11 +252,9 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
         </Button>
       </div>
 
-      {connectedAccounts.length === 0 && (
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Connect at least one account to continue
-        </p>
-      )}
+      <p className="text-center text-sm text-gray-500 mt-4">
+        Connect your accounts to automatically import purchase history
+      </p>
     </div>
   );
 
@@ -344,7 +340,7 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
             className="px-8"
             disabled={isLoading}
           >
-            <Skip className="w-4 h-4 mr-2" />
+            <SkipForward className="w-4 h-4 mr-2" />
             Skip for now
           </Button>
         </div>
@@ -356,7 +352,7 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
     <div className="max-w-2xl mx-auto space-y-8 text-center">
       <div>
         <div className="mx-auto w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
-          <Party className="w-10 h-10 text-green-600" />
+          <PartyPopper className="w-10 h-10 text-green-600" />
         </div>
         
         <h2 className="text-2xl font-semibold text-gray-900 mb-3">

@@ -3,23 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 // ==============================================================================
-// CONFIGURATION & ENVIRONMENT VALIDATION
-// ==============================================================================
-
-const WEBHOOK_SECRET = process.env.EMAIL_WEBHOOK_SECRET;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!WEBHOOK_SECRET || !OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing required environment variables for email webhook');
-}
-
-// Initialize clients
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// ==============================================================================
 // TYPESCRIPT INTERFACES
 // ==============================================================================
 
@@ -55,6 +38,37 @@ interface OrderStatusUpdate {
   tracking_number?: string;
   estimated_delivery?: string;
   notes?: string;
+}
+
+interface ProductUpdateData {
+  updated_at: string;
+  shipping_status?: string;
+  tracking_number?: string;
+  estimated_delivery?: string;
+  delivery_date?: string;
+  return_status?: string;
+  return_date?: string;
+  notes?: string;
+}
+
+// ==============================================================================
+// CONFIGURATION & ENVIRONMENT VALIDATION (Moved to function)
+// ==============================================================================
+
+function initializeClients() {
+  const WEBHOOK_SECRET = process.env.EMAIL_WEBHOOK_SECRET;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!WEBHOOK_SECRET || !OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing required environment variables for email webhook');
+  }
+
+  const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  return { WEBHOOK_SECRET, openai, supabase };
 }
 
 // ==============================================================================
@@ -133,7 +147,7 @@ Email content to classify:`;
 /**
  * Calls OpenAI to classify email intent (Stage 1)
  */
-async function classifyEmailIntent(subject: string, text: string): Promise<EmailIntent | null> {
+async function classifyEmailIntent(openai: OpenAI, subject: string, text: string): Promise<EmailIntent | null> {
   try {
     const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
     
@@ -209,7 +223,7 @@ Email content to analyze:`;
 /**
  * Calls OpenAI to parse receipt content using AI (existing function)
  */
-async function parseReceiptWithAI(subject: string, text: string): Promise<AIProcessedProduct | null> {
+async function parseReceiptWithAI(openai: OpenAI, subject: string, text: string): Promise<AIProcessedProduct | null> {
   try {
     const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
     
@@ -280,7 +294,7 @@ Email content to analyze:`;
 /**
  * Calls OpenAI to parse status update content
  */
-async function parseStatusUpdateWithAI(subject: string, text: string): Promise<OrderStatusUpdate | null> {
+async function parseStatusUpdateWithAI(openai: OpenAI, subject: string, text: string): Promise<OrderStatusUpdate | null> {
   try {
     const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
     
@@ -369,7 +383,7 @@ function validateAndSanitizeProductData(data: AIProcessedProduct, userId: string
 /**
  * Creates a new product record in the database
  */
-async function createNewProduct(productData: AIProcessedProduct, userId: string): Promise<Record<string, unknown>> {
+async function createNewProduct(supabase: any, productData: AIProcessedProduct, userId: string): Promise<{ id: string; product_name: string }> {
   const sanitizedData = validateAndSanitizeProductData(productData, userId);
   
   const { data, error } = await supabase
@@ -382,13 +396,13 @@ async function createNewProduct(productData: AIProcessedProduct, userId: string)
     throw new Error(`Failed to create product: ${error.message}`);
   }
 
-  return data;
+  return data as { id: string; product_name: string };
 }
 
 /**
  * Updates an existing product record with status information
  */
-async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: string): Promise<Record<string, unknown>> {
+async function updateExistingProduct(supabase: any, statusUpdate: OrderStatusUpdate, userId: string): Promise<{ id: string; product_name: string }> {
   // First, find the product by order ID and user ID
   // This assumes we store order IDs in a field like 'order_id' or 'notes'
   const { data: existingProducts, error: searchError } = await supabase
@@ -409,8 +423,8 @@ async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: st
   // Use the first match (most likely candidate)
   const targetProduct = existingProducts[0];
 
-  // Prepare update data
-  const updateData: Record<string, unknown> = {
+  // Prepare update data with proper typing
+  const updateData: ProductUpdateData = {
     updated_at: new Date().toISOString(),
   };
 
@@ -447,10 +461,10 @@ async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: st
 
   // Add notes if provided
   if (statusUpdate.notes) {
-    const existingNotes = targetProduct.notes || '';
+    const existingNotes = (targetProduct.notes as string) || '';
     const newNote = `[${new Date().toISOString().split('T')[0]}] ${statusUpdate.notes}`;
-    updateData.notes = existingNotes ? `${existingNotes}\n${newNote}` : newNote;
-    updateData.notes = updateData.notes.substring(0, 1000); // Limit length
+    const combinedNotes = existingNotes ? `${existingNotes}\n${newNote}` : newNote;
+    updateData.notes = combinedNotes.substring(0, 1000); // Limit length
   }
 
   // Update the product
@@ -466,7 +480,7 @@ async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: st
     throw new Error(`Failed to update product: ${error.message}`);
   }
 
-  return data;
+  return data as { id: string; product_name: string };
 }
 
 // ==============================================================================
@@ -476,12 +490,12 @@ async function updateExistingProduct(statusUpdate: OrderStatusUpdate, userId: st
 /**
  * Background processing function with two-stage AI processing
  */
-async function processEmailInBackground(emailContent: ParsedEmailContent, userId: string): Promise<void> {
+async function processEmailInBackground(openai: OpenAI, supabase: any, emailContent: ParsedEmailContent, userId: string): Promise<void> {
   try {
     console.log(`Processing email for user ${userId}: ${emailContent.subject}`);
 
     // Stage 1: Classify Email Intent
-    const intentResult = await classifyEmailIntent(emailContent.subject, emailContent.text);
+    const intentResult = await classifyEmailIntent(openai, emailContent.subject, emailContent.text);
     
     if (!intentResult) {
       throw new Error('Failed to classify email intent');
@@ -490,27 +504,27 @@ async function processEmailInBackground(emailContent: ParsedEmailContent, userId
     console.log(`Email classified as: ${intentResult.intent}`);
 
     // Stage 2: Process Based on Intent
-    let result: Record<string, unknown>;
+    let result: { id: string; product_name: string };
 
     switch (intentResult.intent) {
       case 'PURCHASE':
         // Extract product data and create new record
-        const productData = await parseReceiptWithAI(emailContent.subject, emailContent.text);
+        const productData = await parseReceiptWithAI(openai, emailContent.subject, emailContent.text);
         if (!productData) {
           throw new Error('Failed to extract product data');
         }
-        result = await createNewProduct(productData, userId);
+        result = await createNewProduct(supabase, productData, userId);
         console.log(`Successfully created product ${result.id} for user ${userId}: ${result.product_name}`);
         break;
 
       case 'RETURN':
       case 'SHIPMENT_UPDATE':
         // Extract status update and update existing record
-        const statusUpdate = await parseStatusUpdateWithAI(emailContent.subject, emailContent.text);
+        const statusUpdate = await parseStatusUpdateWithAI(openai, emailContent.subject, emailContent.text);
         if (!statusUpdate) {
           throw new Error('Failed to extract status update data');
         }
-        result = await updateExistingProduct(statusUpdate, userId);
+        result = await updateExistingProduct(supabase, statusUpdate, userId);
         console.log(`Successfully updated product ${result.id} for user ${userId}: ${result.product_name}`);
         break;
 
@@ -543,7 +557,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
-    // Step 1: Security Validation
+    // Step 1: Initialize clients (moved from top-level)
+    const { WEBHOOK_SECRET, openai, supabase } = initializeClients();
+
+    // Step 2: Security Validation
     const { searchParams } = new URL(request.url);
     const providedSecret = searchParams.get('secret');
 
@@ -560,7 +577,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Step 2: Parse Email Content
+    // Step 3: Parse Email Content
     const emailContent = await parseMultipartFormData(request);
     
     if (!emailContent) {
@@ -571,7 +588,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Step 3: Extract and Validate User ID
+    // Step 4: Extract and Validate User ID
     const userId = extractUserIdFromEmail(emailContent.to);
     
     if (!userId) {
@@ -582,7 +599,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Step 4: Verify User Exists
+    // Step 5: Verify User Exists
     const { data: userExists } = await supabase
       .from('profiles')
       .select('id')
@@ -597,12 +614,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Step 5: Return Success Immediately (for SendGrid)
+    // Step 6: Return Success Immediately (for SendGrid)
     const responseTime = Date.now() - startTime;
     console.log(`Webhook processed successfully in ${responseTime}ms for user: ${userId}`);
 
-    // Step 6: Process Email in Background (fire-and-forget)
-    processEmailInBackground(emailContent, userId).catch(error => {
+    // Step 7: Process Email in Background (fire-and-forget)
+    processEmailInBackground(openai, supabase, emailContent, userId).catch(error => {
       console.error('Background processing failed:', error);
     });
 

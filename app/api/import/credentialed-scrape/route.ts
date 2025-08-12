@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { importFromWalmart } from '@/lib/scrapers/walmart';
 // Import other scrapers as needed
 // import { importFromTarget } from '@/lib/scrapers/target';
@@ -23,9 +22,8 @@ interface ScrapedProduct {
 
 export async function POST(request: NextRequest) {
   try {
-    // Initialize Supabase client with cookies
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    // Initialize Supabase client
+    const supabase = await createClient();
 
     // Get the current user session
     const {

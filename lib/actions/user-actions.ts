@@ -1,5 +1,3 @@
-// file: lib/actions/user-actions.ts
-
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
@@ -20,9 +18,9 @@ interface ExportResult extends ActionResult {
  * Updates a user's full name in their profile.
  */
 export async function updateUserProfile(formData: FormData): Promise<ActionResult> {
-const supabase = createClient();
-
   try {
+    const supabase = await createClient();
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -51,10 +49,9 @@ const supabase = createClient();
  * Exports all data for the currently authenticated user.
  */
 export async function exportUserData(): Promise<ExportResult> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
   try {
+    const supabase = await createClient();
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -86,15 +83,16 @@ export async function exportUserData(): Promise<ExportResult> {
  * PERMANENTLY deletes a user's account and all associated data.
  */
 export async function deleteUserAccount(): Promise<ActionResult> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  
   try {
+    const supabase = await createClient();
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // For this critical operation, we need an admin client to delete the auth user
-    const supabaseAdmin = createClient(
+    // Import createClient directly from supabase for admin operations
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+    const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );

@@ -47,13 +47,13 @@ export async function importFromWalmart(
       ],
     });
 
-    page = await browser.newPage();
+    // Create context with user agent and viewport settings
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      viewport: { width: 1366, height: 768 }
+    });
 
-    // Set realistic viewport and user agent
-    await page.setViewportSize({ width: 1366, height: 768 });
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
+    page = await context.newPage();
 
     // Step 1: Navigate to Walmart login page
     console.log('Navigating to Walmart login page...');

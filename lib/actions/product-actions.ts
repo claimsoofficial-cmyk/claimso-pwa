@@ -1,10 +1,8 @@
-// file: lib/actions/product-actions.ts
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server'; // Correct import for our server client
-import { cookies } from 'next/headers';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 interface UpdateProductResult {
   success: boolean;
@@ -16,11 +14,16 @@ interface UpdateProductResult {
 }
 
 export async function updateProductDetails(formData: FormData): Promise<UpdateProductResult> {
-  // Initialize Supabase client within the Server Action
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
   try {
+    // Initialize Supabase client within the Server Action
+    // Ensure we properly await the client creation
+    const supabase = await createClient();
+    
+    // Type assertion to help TypeScript (should not be needed, but helps with cache issues)
+    if (!supabase.auth) {
+      throw new Error('Failed to initialize Supabase client');
+    }
+
     // SECURITY CHECK: Get user session from Supabase
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
@@ -55,7 +58,7 @@ export async function updateProductDetails(formData: FormData): Promise<UpdatePr
 
     // CRITICAL SECURITY: Verify user owns the product using a service role client
     // We need the service role key to check ownership without being blocked by RLS
-    const supabaseAdmin = createClient(
+    const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { autoRefreshToken: false, persistSession: false } }

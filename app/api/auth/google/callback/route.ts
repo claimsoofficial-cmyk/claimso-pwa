@@ -1,5 +1,3 @@
-// file: app/api/auth/callback/route.ts
-
 import { createClient } from '@/lib/supabase/server'; // CORRECT: Import our new server client helper
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (code) {
     // By using our new helper, all the complex cookie handling is abstracted away.
     // This is much cleaner and less error-prone.
-    const supabase = createClient();
+    const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {

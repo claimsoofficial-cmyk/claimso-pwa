@@ -34,6 +34,31 @@ interface GeneratePacketResponse {
   }
 }
 
+// Type guard functions
+function isValidProduct(obj: unknown): obj is Product {
+  if (typeof obj !== 'object' || obj === null) {
+    return false
+  }
+  
+  const product = obj as Record<string, unknown>
+  return (
+    typeof product.id === 'string' &&
+    typeof product.name === 'string'
+  )
+}
+
+function isValidUser(obj: unknown): obj is { name: string; email: string } {
+  if (typeof obj !== 'object' || obj === null) {
+    return false
+  }
+  
+  const user = obj as Record<string, unknown>
+  return (
+    typeof user.name === 'string' &&
+    typeof user.email === 'string'
+  )
+}
+
 // Text sanitization function to prevent PDF injection
 function sanitizeText(text: string): string {
   if (!text || typeof text !== 'string') {
@@ -227,37 +252,43 @@ async function generateWarrantyClaimPacket(request: GeneratePacketRequest): Prom
 }
 
 // Validation helper function
-function validateGeneratePacketRequest(body: Record<string, unknown>): GeneratePacketRequest | null {
+function validateGeneratePacketRequest(body: unknown): GeneratePacketRequest | null {
   if (!body || typeof body !== 'object') {
     return null
   }
   
-  // Validate product object
-  if (!body.product || typeof body.product !== 'object' || !body.product.id || !body.product.name) {
+  const requestBody = body as Record<string, unknown>
+  
+  // Validate product object using type guard
+  if (!isValidProduct(requestBody.product)) {
     return null
   }
   
   // Validate problem description
-  if (!body.problemDescription || typeof body.problemDescription !== 'string') {
+  if (!requestBody.problemDescription || typeof requestBody.problemDescription !== 'string') {
     return null
   }
   
-  // Validate user object
-  if (!body.user || typeof body.user !== 'object' || !body.user.name || !body.user.email) {
+  // Validate user object using type guard
+  if (!isValidUser(requestBody.user)) {
     return null
   }
   
-  return body as GeneratePacketRequest
+  return {
+    product: requestBody.product,
+    problemDescription: requestBody.problemDescription,
+    user: requestBody.user
+  }
 }
 
 // POST handler
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    let body: Record<string, unknown>
+    let body: unknown
     try {
       body = await request.json()
-      } catch {
+    } catch {
       return NextResponse.json(
         {
           success: false,
@@ -284,8 +315,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
     
-   
-    
     console.log('Generating warranty claim packet for product:', validatedRequest.product.id)
     
     // Generate the PDF
@@ -301,7 +330,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
     
     // Return PDF response with proper headers
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(new Uint8Array(pdfBytes), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

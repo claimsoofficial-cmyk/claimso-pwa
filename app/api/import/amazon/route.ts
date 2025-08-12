@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Browser, Page } from 'playwright-core'
 import playwright from 'playwright-aws-lambda'
 import chromium from '@sparticuz/chromium'
 import { createClient } from '@supabase/supabase-js'
+import { Browser, Page } from 'playwright-core';
+
 
 // Vercel configuration for extended execution
 export const maxDuration = 300 // 5 minutes
@@ -65,12 +66,24 @@ export interface OrderItem {
   image_url?: string
 }
 
-// Internal interfaces for scraping implementation
-interface ImportError {
+// Internal classes for scraping implementation
+class ImportError extends Error {
   type: 'CAPTCHA' | 'AUTH_FAILED' | 'PARSE_ERROR' | 'RATE_LIMIT' | 'TIMEOUT'
-  message: string
   recoverable: boolean
   order_id?: string
+
+  constructor(
+    type: 'CAPTCHA' | 'AUTH_FAILED' | 'PARSE_ERROR' | 'RATE_LIMIT' | 'TIMEOUT',
+    message: string,
+    recoverable: boolean,
+    order_id?: string
+  ) {
+    super(message)
+    this.name = 'ImportError'
+    this.type = type
+    this.recoverable = recoverable
+    this.order_id = order_id
+  }
 }
 
 interface AmazonOrder {
@@ -132,11 +145,14 @@ const USER_AGENTS = [
  * Launches a secure headless Chromium browser instance optimized for serverless
  */
 async function launchSecureBrowser(): Promise<Browser> {
-  const browser = await playwright.launch({
+  const executablePath = await chromium.executablePath();
+
+  const browser = await playwright.launchChromium({
     args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
+    executablePath,
+    headless: true,
   });
+
   return browser;
 }
 
@@ -147,25 +163,14 @@ async function authenticateWithAmazon(page: Page, accessToken: string): Promise<
   try {
     // Set random user agent to avoid bot detection
     const userAgent = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]
-    await page.setUserAgent(userAgent)
+    await page.context().addInitScript(() => {
+      Object.defineProperty(navigator, 'userAgent', {
+        get: () => userAgent,
+      });
+    });
     
     // Set viewport to mimic real browser
     await page.setViewportSize({ width: 1280, height: 720 })
-    
-    // Navigate to Amazon homepage first
-    await page.goto('https://www.amazon.com', {
-      waitUntil: 'networkidle0',
-      timeout: 30000
-    })
-    
-    // Inject access token into browser session
-    await page.evaluateOnNewDocument((token) => {
-      // Store token in localStorage and sessionStorage for Amazon's auth system
-      localStorage.setItem('amazon_access_token', token)
-      sessionStorage.setItem('auth_state', 'authenticated')
-      // Set authorization cookie if Amazon uses it
-      document.cookie = `amazon_auth_token=${token}; domain=.amazon.com; path=/`
-    }, accessToken)
     
     // Add authentication headers
     await page.setExtraHTTPHeaders({
@@ -175,12 +180,28 @@ async function authenticateWithAmazon(page: Page, accessToken: string): Promise<
       'Accept-Encoding': 'gzip, deflate, br',
       'DNT': '1',
       'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1'
+      'Upgrade-Insecure-Requests': '1',
+      'User-Agent': userAgent
+    })
+    
+    // Inject access token into browser session before navigation
+    await page.addInitScript((token) => {
+      // Store token in localStorage and sessionStorage for Amazon's auth system
+      localStorage.setItem('amazon_access_token', token)
+      sessionStorage.setItem('auth_state', 'authenticated')
+      // Set authorization cookie if Amazon uses it
+      document.cookie = `amazon_auth_token=${token}; domain=.amazon.com; path=/`
+    }, accessToken)
+    
+    // Navigate to Amazon homepage first
+    await page.goto('https://www.amazon.com', {
+      waitUntil: 'networkidle',
+      timeout: 30000
     })
     
     // Navigate to account page to verify authentication
     await page.goto('https://www.amazon.com/gp/css/homepage.html', {
-      waitUntil: 'networkidle0',
+      waitUntil: 'networkidle',
       timeout: 30000
     })
     
@@ -223,7 +244,7 @@ async function authenticateWithAmazon(page: Page, accessToken: string): Promise<
 async function navigateToOrdersPage(page: Page): Promise<void> {
   try {
     await page.goto('https://www.amazon.com/gp/css/order-history', {
-      waitUntil: 'networkidle0',
+      waitUntil: 'networkidle',
       timeout: 30000
     })
     
@@ -309,14 +330,14 @@ async function extractOrdersWithPagination(
       
       // Process and sanitize the extracted data
       const processedOrders = pageOrders.map(order => ({
-        order_id: sanitizeString(order.order_id),
-        order_date: parseAmazonDate(order.order_date),
-        product_name: sanitizeString(order.product_name),
-        product_url: order.product_url,
-        product_image: order.product_image,
-        price: parsePrice(order.price_text),
-        currency: order.currency,
-        purchase_location: order.purchase_location
+        order_id: sanitizeString(order.order_id as string),
+        order_date: parseAmazonDate(order.order_date as string),
+        product_name: sanitizeString(order.product_name as string),
+        product_url: order.product_url as string,
+        product_image: order.product_image as string,
+        price: parsePrice(order.price_text as string),
+        currency: order.currency as string,
+        purchase_location: order.purchase_location as string
       }))
       
       allOrders.push(...processedOrders)
@@ -377,12 +398,12 @@ async function processAndStoreOrders(
       try {
         // Validate order data before processing
         if (!validateProductData(order, userId)) {
-          results.errors.push({
-            type: 'PARSE_ERROR',
-            message: `Invalid product data for ${order.product_name}`,
-            recoverable: true,
-            order_id: order.order_id
-          })
+          results.errors.push(new ImportError(
+            'PARSE_ERROR',
+            `Invalid product data for ${order.product_name}`,
+            true,
+            order.order_id
+          ))
           continue
         }
         
@@ -423,23 +444,23 @@ async function processAndStoreOrders(
           .insert([productData])
           
         if (error) {
-          results.errors.push({
-            type: 'PARSE_ERROR',
-            message: `Database insertion failed for ${order.product_name}: ${error.message}`,
-            recoverable: true,
-            order_id: order.order_id
-          })
+          results.errors.push(new ImportError(
+            'PARSE_ERROR',
+            `Database insertion failed for ${order.product_name}: ${error.message}`,
+            true,
+            order.order_id
+          ))
         } else {
           results.imported++
         }
         
       } catch (orderError) {
-        results.errors.push({
-          type: 'PARSE_ERROR',
-          message: `Error processing order: ${(orderError as Error).message}`,
-          recoverable: true,
-          order_id: order.order_id
-        })
+        results.errors.push(new ImportError(
+          'PARSE_ERROR',
+          `Error processing order: ${(orderError as Error).message}`,
+          true,
+          order.order_id
+        ))
       }
     }
     
@@ -747,21 +768,50 @@ function validateImportRequest(body: Record<string, unknown>): ImportRequest | n
     throw new Error('INVALID_TOKEN_FORMAT: Access token format is invalid')
   }
   
+  // Build the validated request object
+  const validatedRequest: ImportRequest = {
+    user_id: body.user_id,
+    access_token: body.access_token
+  }
+  
   // Validate optional date_range
   if (body.date_range) {
-    if (!body.date_range.start_date || !body.date_range.end_date) {
+    const dateRange = body.date_range as {
+      start_date: string;
+      end_date: string;
+    }
+    if (!dateRange.start_date || !dateRange.end_date) {
       return null
     }
     
     // Validate ISO date format
-    const startDate = new Date(body.date_range.start_date)
-    const endDate = new Date(body.date_range.end_date)
+    const startDate = new Date(dateRange.start_date)
+    const endDate = new Date(dateRange.end_date)
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return null
     }
+    
+    validatedRequest.date_range = {
+      start_date: dateRange.start_date,
+      end_date: dateRange.end_date
+    }
   }
   
-  return body as ImportRequest
+  // Add optional import_options if present
+  if (body.import_options) {
+    const options = body.import_options as {
+      include_returns?: boolean;
+      include_digital?: boolean;
+      include_subscriptions?: boolean;
+    }
+    validatedRequest.import_options = {
+      include_returns: Boolean(options.include_returns),
+      include_digital: Boolean(options.include_digital),
+      include_subscriptions: Boolean(options.include_subscriptions)
+    }
+  }
+  
+  return validatedRequest
 }
 
 // POST handler - SECURE OAuth2 version

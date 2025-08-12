@@ -1,9 +1,8 @@
-import { type CookieOptions } from '@supabase/ssr'
+import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { PKPass } from 'passkit-generator';
-
-
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ==============================================================================
 // CONFIGURATION & ENVIRONMENT VALIDATION
@@ -32,11 +31,48 @@ interface UserProfile {
 }
 
 interface PassAssets {
-  passJson: Record<string, unknown>;
+  passJson: PassTemplate;
   iconBuffer: Buffer;
   logoBuffer?: Buffer;
   icon2xBuffer?: Buffer;
   logo2xBuffer?: Buffer;
+}
+
+interface PassTemplate {
+  formatVersion: number;
+  passTypeIdentifier: string;
+  teamIdentifier: string;
+  organizationName: string;
+  description: string;
+  logoText: string;
+  foregroundColor: string;
+  backgroundColor: string;
+  labelColor: string;
+  generic: {
+    primaryFields: PassField[];
+    secondaryFields: PassField[];
+    auxiliaryFields: PassField[];
+    backFields: PassField[];
+  };
+  barcodes: PassBarcode[];
+  locations: unknown[];
+  maxDistance: number;
+  relevantDate: string;
+  expirationDate: string;
+  serialNumber?: string;
+  [key: string]: unknown; // Index signature for PKPass compatibility
+}
+
+interface PassField {
+  key: string;
+  label: string;
+  value: string;
+}
+
+interface PassBarcode {
+  message: string;
+  format: string;
+  messageEncoding: string;
 }
 
 // ==============================================================================
@@ -49,7 +85,7 @@ interface PassAssets {
 async function loadPassAssets(): Promise<PassAssets> {
   try {
     // Define the base pass template
-    const passJson = {
+    const passJson: PassTemplate = {
       formatVersion: 1,
       passTypeIdentifier: process.env.PASS_TYPE_IDENTIFIER || 'pass.com.claimso.smartpass',
       teamIdentifier: process.env.APPLE_TEAM_ID || 'YOUR_TEAM_ID',
@@ -157,7 +193,7 @@ async function generateDefaultIcon(): Promise<Buffer> {
 /**
  * Gets user's product count for display on pass
  */
-async function getUserProductCount(userId: string, supabase: Record<string, unknown>): Promise<number> {
+async function getUserProductCount(userId: string, supabase: SupabaseClient): Promise<number> {
   try {
     const { count } = await supabase
       .from('products')
@@ -191,7 +227,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     // ==============================================================================
 
     // Get cookies for session management
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
 
     // Create server-side Supabase client
     const supabase = createServerClient(
@@ -257,13 +293,13 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     const productCount = await getUserProductCount(userProfile.id, supabase);
 
     // Customize pass with user data
-    const customizedPassJson = {
+    const customizedPassJson: PassTemplate = {
       ...assets.passJson,
       serialNumber: userProfile.id, // Use user ID as serial number
       generic: {
         ...assets.passJson.generic,
         secondaryFields: [
-          ...assets.passJson.generic.secondaryFields.filter((field: Record<string, unknown>) => field.key !== 'products'),
+          ...assets.passJson.generic.secondaryFields.filter((field: PassField) => field.key !== 'products'),
           {
             key: 'products',
             label: 'Products Protected',
@@ -289,16 +325,14 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
 
     // Decode certificates from environment variables (base64 encoded)
     const certificates = {
-      signerCert: Buffer.from(PASSKIT_CERT, 'base64'),
-      signerKey: Buffer.from(PASSKIT_KEY, 'base64'),
+      signerCert: Buffer.from(PASSKIT_CERT!, 'base64'),
+      signerKey: Buffer.from(PASSKIT_KEY!, 'base64'),
       signerKeyPassphrase: PASSKIT_KEY_PASSPHRASE || '',
-      // Apple's WWDR certificate (if provided)
-      ...(WWDR_CERT && { wwdr: Buffer.from(WWDR_CERT, 'base64') })
+      wwdr: WWDR_CERT ? Buffer.from(WWDR_CERT, 'base64') : '',
     };
 
     // Create the pass
     const pass = new PKPass(
-      customizedPassJson,
       {
         'icon.png': assets.iconBuffer,
         // Add more assets as needed
@@ -306,7 +340,8 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
         ...(assets.icon2xBuffer && { 'icon@2x.png': assets.icon2xBuffer }),
         ...(assets.logo2xBuffer && { 'logo@2x.png': assets.logo2xBuffer }),
       },
-      certificates
+      certificates,
+      customizedPassJson as Record<string, unknown>
     );
 
     // Generate the pass buffer
@@ -320,7 +355,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     // ==============================================================================
 
     // Return the pass with proper headers for Apple Wallet
-    return new NextResponse(passBuffer, {
+    return new NextResponse(new Uint8Array(passBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.apple.pkpass',

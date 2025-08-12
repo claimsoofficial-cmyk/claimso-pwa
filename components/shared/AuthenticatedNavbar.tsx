@@ -1,6 +1,6 @@
-
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createServerClient } from '@supabase/ssr';
 import { Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +42,7 @@ interface AuthenticatedNavbarProps {
 async function logoutAction() {
   'use server';
   
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   
   // Create server-side Supabase client
   const supabase = createServerClient(
