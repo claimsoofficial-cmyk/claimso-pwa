@@ -12,19 +12,10 @@ const nextConfig = {
       '@radix-ui/react-separator',
       '@radix-ui/react-slot'
     ],
-    
-    // Move heavy libraries to server-side only
-    serverComponentsExternalPackages: ['pdf-lib', 'passkit-generator'],
   },
   
-  // Optimize bundle size
-  swcMinify: true,
-  
-  // Reduce static generation overhead
-  output: 'standalone',
-  
-  // Disable source maps in production for faster builds
-  productionBrowserSourceMaps: false,
+  // Move heavy libraries to server-side only (updated for Next.js 15)
+  serverExternalPackages: ['pdf-lib', 'passkit-generator'],
 };
 
 export default nextConfig;
