@@ -39,10 +39,9 @@ export default function AmazonConnectButton({
    */
   const constructAmazonAuthUrl = (): string => {
     const clientId = process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID
-    const redirectUri = process.env.NEXT_PUBLIC_AMAZON_REDIRECT_URI
     
-    if (!clientId || !redirectUri) {
-      console.error('Missing Amazon OAuth configuration:', { clientId: !!clientId, redirectUri: !!redirectUri })
+    if (!clientId) {
+      console.error('Missing Amazon OAuth configuration:', { clientId: !!clientId, redirectUri: true })
       throw new Error('Amazon OAuth not configured')
     }
 

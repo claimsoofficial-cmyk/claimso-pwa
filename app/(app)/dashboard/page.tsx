@@ -6,6 +6,8 @@ import ResolutionManager from '@/components/domain/resolution/ResolutionManager'
 import { Button } from '@/components/ui/button';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import CredentialConnectModal from '@/components/onboarding/CredentialConnectModal';
+import { createProduct } from '@/lib/actions/product-actions';
 import { createClient } from '@/lib/supabase/client';
 
 // ==============================================================================
@@ -78,6 +80,10 @@ export default function DashboardPage() {
   // ==============================================================================
   
   const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isCredModalOpen, setIsCredModalOpen] = useState(false);
+  const [credRetailer, setCredRetailer] = useState<string>('walmart');
+  const [isInstallingExt, setIsInstallingExt] = useState(false);
   const [products, setProducts] = useState<ProductWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState('there');
@@ -92,14 +98,49 @@ export default function DashboardPage() {
   };
 
   const handleAddProduct = () => {
-    // TODO: Implement add product modal
-    console.log('Add product clicked');
+    setIsAddProductOpen(true);
   };
 
   const handleOnboardingComplete = () => {
     setIsConnectionModalOpen(false);
     // Refresh products list after connection
     fetchProducts();
+  };
+
+  const handleInstallExtension = async () => {
+    setIsInstallingExt(true);
+    try {
+      window.open('https://chromewebstore.google.com/detail/claimso/placeholder', '_blank');
+    } finally {
+      setIsInstallingExt(false);
+    }
+  };
+
+  const handleCreateProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await createProduct(formData);
+    if (result.success) {
+      setIsAddProductOpen(false);
+      fetchProducts();
+    } else {
+      alert(result.error || 'Failed to create product');
+    }
+  };
+
+  const handleCredentialedConnect = async ({ username, password }: { username: string; password: string }) => {
+    const res = await fetch('/api/import/credentialed-scrape', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ retailer: credRetailer, username, password })
+    });
+    if (res.ok) {
+      setIsCredModalOpen(false);
+      fetchProducts();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to connect');
+    }
   };
 
   // ==============================================================================
@@ -208,6 +249,39 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Add Product Modal */}
+      <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogTitle>Add Product</DialogTitle>
+          <form onSubmit={handleCreateProduct} className="space-y-4 mt-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Product Name</label>
+              <input name="product_name" className="mt-1 w-full border rounded px-3 py-2" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Brand (optional)</label>
+              <input name="brand" className="mt-1 w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Category (optional)</label>
+              <input name="category" className="mt-1 w-full border rounded px-3 py-2" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setIsAddProductOpen(false)} className="border rounded px-4 py-2">Cancel</button>
+              <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2">Add</button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentialed Connect Modal (Walmart/Target/BestBuy) */}
+      <CredentialConnectModal
+        isOpen={isCredModalOpen}
+        onClose={() => setIsCredModalOpen(false)}
+        retailerName={credRetailer}
+        onConnect={handleCredentialedConnect}
+      />
+
       {/* Page Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -230,6 +304,7 @@ export default function DashboardPage() {
                 variant="outline" 
                 size="sm"
                 className="hidden sm:flex items-center gap-2"
+                onClick={handleInstallExtension}
               >
                 <Smartphone className="w-4 h-4" />
                 Install Extension

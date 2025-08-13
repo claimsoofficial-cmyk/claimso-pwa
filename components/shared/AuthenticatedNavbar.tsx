@@ -143,9 +143,11 @@ export default function AuthenticatedNavbar({ user, profile }: AuthenticatedNavb
                 <DropdownMenuSeparator />
                 
                 {/* Settings */}
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <a href="/settings/account" className="cursor-pointer flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </a>
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />

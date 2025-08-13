@@ -48,9 +48,9 @@ export default function AccountSettingsPage() {
       setUser(user);
       
       if (user) {
-        // Get user profile data
+        // Get user profile data (profiles table)
         const { data: profile } = await supabase
-          .from('users')
+          .from('profiles')
           .select('full_name')
           .eq('id', user.id)
           .single();

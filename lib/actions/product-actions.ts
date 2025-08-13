@@ -13,6 +13,15 @@ interface UpdateProductResult {
   error?: string;
 }
 
+interface CreateProductResult {
+  success: boolean;
+  product?: {
+    id: string;
+    product_name: string;
+  };
+  error?: string;
+}
+
 export async function updateProductDetails(formData: FormData): Promise<UpdateProductResult> {
   try {
     // Initialize Supabase client within the Server Action
@@ -110,6 +119,51 @@ export async function updateProductDetails(formData: FormData): Promise<UpdatePr
 
   } catch (error) {
     console.error('Unexpected error in updateProductDetails:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * Creates a new product for the authenticated user.
+ */
+export async function createProduct(formData: FormData): Promise<CreateProductResult> {
+  try {
+    const supabase = await createClient();
+
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      return { success: false, error: 'Unauthorized: Please log in to add a product' };
+    }
+
+    const userId = session.user.id;
+    const productName = (formData.get('product_name') as string | null)?.trim();
+    const category = (formData.get('category') as string | null)?.trim() || null;
+    const brand = (formData.get('brand') as string | null)?.trim() || null;
+
+    if (!productName) {
+      return { success: false, error: 'Product name is required' };
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        user_id: userId,
+        product_name: productName,
+        category,
+        brand,
+      })
+      .select('id, product_name')
+      .single();
+
+    if (error || !data) {
+      return { success: false, error: 'Failed to create product' };
+    }
+
+    revalidatePath('/dashboard');
+    return { success: true, product: data };
+
+  } catch (error) {
+    console.error('Unexpected error in createProduct:', error);
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }

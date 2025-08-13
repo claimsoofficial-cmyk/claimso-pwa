@@ -132,17 +132,23 @@ export default function OnboardingFlow({ onComplete, className = '', userId }: O
     setIsLoading(true);
     
     try {
-      // TODO: Call /api/passes/generate endpoint
-      const response = await fetch('/api/passes/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      // Call pass generation endpoint (returns a .pkpass binary)
+      const response = await fetch('/api/passes/generate', { method: 'GET' });
       
-      if (response.ok) {
-        const passData = await response.json();
-        // TODO: Trigger wallet app to open with pass
-        console.log('Pass generated:', passData);
+      if (!response.ok) {
+        throw new Error(`Pass generation failed: ${response.status}`);
       }
+
+      // Download/open the .pkpass file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'CLAIMSO-SmartPass.pkpass';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
       
     } catch (error) {
       console.error('Error generating pass:', error);

@@ -77,7 +77,7 @@ export default function CredentialConnectModal({
   };
 
   const retailerDisplayName = retailerName.charAt(0).toUpperCase() + retailerName.slice(1);
-  const logoSrc = RETAILER_LOGOS[retailerName.toLowerCase()] || '/logos/default.png';
+  const logoSrc = RETAILER_LOGOS[retailerName.toLowerCase()] || '/logos/default.svg';
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
