@@ -527,29 +527,11 @@ export default function ResolutionManager({
       {/* Main Living Card */}
       <LivingCard
         product={createLivingCardProduct()}
+        onReportProblem={() => handleProblemClick()}
+        onAddSerialNumber={() => handleEditClick()}
+        onAddDocuments={() => handleEditClick()}
+        onRequestRepairQuote={() => toast.success('Repair quote request initiated')}
       />
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 justify-center">
-        <Button 
-          onClick={handleProblemClick}
-          variant="default"
-          size="lg"
-          className="flex items-center gap-2"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          I have a problem
-        </Button>
-        <Button 
-          onClick={handleEditClick}
-          variant="outline"
-          size="lg"
-          className="flex items-center gap-2"
-        >
-          <FileText className="h-4 w-4" />
-          Edit Product
-        </Button>
-      </div>
 
       {/* Resolution Flow Modal */}
       <Dialog open={isResolutionFlowOpen} onOpenChange={setIsResolutionFlowOpen}>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
+import { toast } from 'sonner';
 import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
 import { Button } from '@/components/ui/button';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
@@ -84,6 +85,7 @@ export default function DashboardPage() {
   const [isCredModalOpen, setIsCredModalOpen] = useState(false);
   const [credRetailer, setCredRetailer] = useState<string>('walmart');
   const [isInstallingExt, setIsInstallingExt] = useState(false);
+  const [connections, setConnections] = useState<Array<{ retailer: string; status: string }>>([]);
   const [products, setProducts] = useState<ProductWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState('there');
@@ -129,17 +131,22 @@ export default function DashboardPage() {
   };
 
   const handleCredentialedConnect = async ({ username, password }: { username: string; password: string }) => {
-    const res = await fetch('/api/import/credentialed-scrape', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ retailer: credRetailer, username, password })
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch('/api/import/credentialed-scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ retailer: credRetailer, username, password })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to connect');
+      }
       setIsCredModalOpen(false);
+      toast.success(`${credRetailer.charAt(0).toUpperCase() + credRetailer.slice(1)} connected`, { description: 'We are importing your purchases now.' });
       fetchProducts();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Failed to connect');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to connect');
+      throw e;
     }
   };
 
@@ -228,6 +235,17 @@ export default function DashboardPage() {
       } else {
         setProducts(productsData || []);
       }
+
+      // Fetch user connections
+      const { data: connectionsData, error: connError } = await supabase
+        .from('user_connections')
+        .select('retailer, status')
+        .eq('user_id', user.id);
+      if (connError) {
+        console.error('Error fetching connections:', connError);
+      } else {
+        setConnections(connectionsData || []);
+      }
     } catch (error) {
       console.error('Error in fetchProducts:', error);
     } finally {
@@ -309,6 +327,7 @@ export default function DashboardPage() {
                 <Smartphone className="w-4 h-4" />
                 Install Extension
               </Button>
+              {/* Retailer connections quick actions moved to Connections section below */}
               <Button 
                 size="sm"
                 onClick={handleAddProduct}
@@ -324,6 +343,41 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Connections Section */}
+        <div className="mb-6">
+          <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-white border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">Connections</h3>
+              <span className="text-xs text-gray-500">Sync retailers to import purchases</span>
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+              {[
+                { id: 'amazon', label: 'Amazon', logo: '/logos/amazon.svg', type: 'oauth' },
+                { id: 'walmart', label: 'Walmart', logo: '/logos/walmart.svg', type: 'cred' },
+                { id: 'target', label: 'Target', logo: '/logos/target.svg', type: 'cred' },
+                { id: 'bestbuy', label: 'Best Buy', logo: '/logos/bestbuy.svg', type: 'cred' },
+              ].map(r => {
+                const isConnected = connections.some(c => c.retailer === r.id && c.status === 'connected');
+                const classes = `h-12 sm:h-14 rounded-xl border bg-white flex items-center justify-center transition-all ${isConnected ? 'shadow-sm' : 'opacity-40'}`;
+                if (r.type === 'oauth') {
+                  return (
+                    <button key={r.id} className={classes} onClick={() => {
+                      toast.message('Redirecting to Amazon...', { description: 'Complete the sign-in to connect.' });
+                      window.location.href = `https://www.amazon.com/ap/oa?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID || '')}&response_type=code&scope=profile&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/amazon/auth')}&state=${Math.random().toString(16).slice(2)}`;
+                    }} title={isConnected ? `${r.label} connected` : `Connect ${r.label}`}>
+                      <img src={r.logo} alt={`${r.label} logo`} className="h-6 w-6" />
+                    </button>
+                  );
+                }
+                return (
+                  <button key={r.id} className={classes} onClick={() => { setCredRetailer(r.id); setIsCredModalOpen(true); }} title={isConnected ? `${r.label} connected` : `Connect ${r.label}`}>
+                    <img src={r.logo} alt={`${r.label} logo`} className="h-6 w-6" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
         {/* Loading State */}
         {isLoading ? (
           <div className="text-center py-12">

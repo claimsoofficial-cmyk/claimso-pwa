@@ -10,7 +10,8 @@ import {
   Download, 
   AlertTriangle,
   Save,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 import {
   Card,
@@ -178,6 +179,11 @@ const handleAccountDeletion = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <a href="/dashboard" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+        </a>
+      </div>
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
         <p className="text-gray-600">
