@@ -1,21 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-interface WarrantyAnalysisRequest {
-  productId: string;
-}
 
-interface WarrantyAnalysisResponse {
-  success: boolean;
-  snapshot_data?: {
-    covers: string[];
-    does_not_cover: string[];
-    key_terms: string[];
-    claim_requirements: string[];
-  };
-  ai_confidence_score?: number;
-  error?: string;
-}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -249,7 +235,7 @@ async function lookupManufacturerWarranty(product: any): Promise<any> {
 /**
  * Gets warranty data from retailer purchase history
  */
-async function getRetailerWarrantyData(product: any): Promise<any> {
+async function getRetailerWarrantyData(_product: any): Promise<any> {
   // This would integrate with retailer APIs (Amazon, Best Buy, etc.)
   // For now, return null to indicate no retailer data
   return null;
@@ -258,7 +244,7 @@ async function getRetailerWarrantyData(product: any): Promise<any> {
 /**
  * Analyzes purchase history for warranty patterns
  */
-async function analyzePurchaseHistory(product: any, supabase: any): Promise<any> {
+async function analyzePurchaseHistory(_product: any, _supabase: any): Promise<any> {
   // Analyze user's purchase history for warranty patterns
   // For now, return null to indicate no purchase history analysis
   return null;
@@ -325,7 +311,7 @@ async function analyzeWarrantyData(warrantyData: WarrantyDataSources, product: a
 /**
  * Analyzes user-uploaded warranty documents
  */
-async function analyzeUserDocuments(documents: any[]): Promise<any> {
+async function analyzeUserDocuments(_documents: any[]): Promise<any> {
   // This would use OCR and AI to extract warranty information from PDFs/images
   // For now, return a basic structure
   return {
@@ -336,7 +322,7 @@ async function analyzeUserDocuments(documents: any[]): Promise<any> {
   };
 }
 
-function generateMockWarrantyAnalysis(category: string, brand: string) {
+function generateMockWarrantyAnalysis(_category: string, _brand: string) {
   const baseCovers = [
     'Manufacturing defects',
     'Parts and labor',
@@ -356,25 +342,25 @@ function generateMockWarrantyAnalysis(category: string, brand: string) {
   ];
 
   // Category-specific additions
-  if (category.includes('electronics') || category.includes('phone')) {
+  if (_category.includes('electronics') || _category.includes('phone')) {
     baseCovers.push('Hardware malfunctions', 'Software defects');
     baseExclusions.push('Water damage', 'Unauthorized modifications');
     baseTerms.push('Return to manufacturer', 'Authorized service only');
-  } else if (category.includes('appliance')) {
+  } else if (_category.includes('appliance')) {
     baseCovers.push('Mechanical failures', 'Electrical components');
     baseExclusions.push('Improper installation', 'Commercial use');
     baseTerms.push('Professional installation required', 'Annual maintenance recommended');
-  } else if (category.includes('computer') || category.includes('laptop')) {
+  } else if (_category.includes('computer') || _category.includes('laptop')) {
     baseCovers.push('System failures', 'Component defects');
     baseExclusions.push('Virus damage', 'Data loss');
     baseTerms.push('Backup recommended', 'Technical support included');
   }
 
   // Brand-specific additions
-  if (brand.includes('apple')) {
+  if (_brand.includes('apple')) {
     baseCovers.push('AppleCare coverage', 'Genius Bar support');
     baseTerms.push('Apple ID required', 'Apple Store service');
-  } else if (brand.includes('samsung')) {
+  } else if (_brand.includes('samsung')) {
     baseCovers.push('Samsung Care+', 'Remote diagnostics');
     baseTerms.push('Samsung account required', 'Authorized Samsung service');
   }

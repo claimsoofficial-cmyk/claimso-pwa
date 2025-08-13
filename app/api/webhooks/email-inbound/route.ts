@@ -148,7 +148,7 @@ async function parseEmailWithService(emailContent: ParsedEmailContent, servicesU
 /**
  * Triggers warranty analysis for a newly created product
  */
-async function triggerWarrantyAnalysis(supabase: any, productId: string, userId: string): Promise<void> {
+async function triggerWarrantyAnalysis(supabase: any, productId: string, _userId: string): Promise<void> {
   try {
     // Check if the product has any warranty documents
     const { data: documents } = await supabase
@@ -164,7 +164,7 @@ async function triggerWarrantyAnalysis(supabase: any, productId: string, userId:
     }
 
     // Create a basic warranty record for analysis
-    const { data: warranty, error: warrantyError } = await supabase
+          const { data: _warranty, error: warrantyError } = await supabase
       .from('warranties')
       .insert({
         product_id: productId,

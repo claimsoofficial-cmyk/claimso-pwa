@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 import { 
   CheckCircle2, 
@@ -233,9 +234,11 @@ export default function MultiConnect({ onContinue, userId }: MultiConnectProps) 
         <div className="flex flex-col items-center space-y-3">
           <div className="w-16 h-16 relative bg-white rounded-lg flex items-center justify-center border">
             {/* Use actual logo SVGs */}
-            <img
+            <Image
               src={retailer.logo}
               alt={`${retailer.name} logo`}
+              width={48}
+              height={48}
               className="w-12 h-12 object-contain"
               onError={(e) => {
                 // Fallback to text if image fails to load

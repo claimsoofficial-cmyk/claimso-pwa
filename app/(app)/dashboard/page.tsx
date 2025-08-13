@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { createProduct } from '@/lib/actions/product-actions';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { 
@@ -18,13 +19,9 @@ import {
   Download, 
   Settings, 
   CheckCircle, 
-  Clock, 
-  AlertCircle,
   ChevronDown,
   ChevronRight,
-  Upload,
-  FileText,
-  Hash
+  Upload
 } from 'lucide-react';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import CredentialConnectModal from '@/components/onboarding/CredentialConnectModal';
@@ -109,27 +106,6 @@ export default function DashboardPage() {
   // ==============================================================================
   // DATA FETCHING
   // ==============================================================================
-
-  useEffect(() => {
-    const initializeData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch all data in parallel for better performance
-        await Promise.all([
-          fetchUserData(),
-          fetchProducts(),
-          fetchUserConnections(),
-          fetchEmailScrapeStatus()
-        ]);
-      } catch (error) {
-        console.error('Error initializing data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeData();
-  }, []);
 
   const fetchUserData = async () => {
     try {
@@ -232,27 +208,7 @@ export default function DashboardPage() {
   // HELPER FUNCTIONS
   // ==============================================================================
 
-  // Helper function to format last synced timestamp
-  const formatLastSynced = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
-  };
 
-  // Group products by category
-  const groupedProducts = products.reduce((acc, product) => {
-    const category = product.category || 'Uncategorized';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(product);
-    return acc;
-  }, {} as Record<string, ProductWithRelations[]>);
 
   // Memoize bundled products to prevent recalculation on every render
   const bundledProducts = useMemo(() => {
@@ -425,6 +381,31 @@ export default function DashboardPage() {
   };
 
   // ==============================================================================
+  // INITIALIZATION
+  // ==============================================================================
+
+  useEffect(() => {
+    const initializeData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch all data in parallel for better performance
+        await Promise.all([
+          fetchUserData(),
+          fetchProducts(),
+          fetchUserConnections(),
+          fetchEmailScrapeStatus()
+        ]);
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+  }, []);
+
+  // ==============================================================================
   // RENDER
   // ==============================================================================
 
@@ -500,7 +481,7 @@ export default function DashboardPage() {
                     }}
                     title={`${isConnected ? 'Connected' : 'Connect'} ${r.label}`}
                   >
-                    <img src={r.logo} alt={r.label} className="w-5 h-5" />
+                    <Image src={r.logo} alt={r.label} width={20} height={20} className="w-5 h-5" />
                     {isConnected && (
                       <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
                     )}
@@ -639,7 +620,7 @@ export default function DashboardPage() {
                 {expandedCategories.has('non-warranty') && (
                   <div className="border-t border-gray-200 p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {Object.values(groupedNonWarrantyProducts).flat().map((bundle: any, index: number) => (
+                      {Object.values(groupedNonWarrantyProducts).flat().map((bundle: any, _index: number) => (
                         <div key={bundle.mainProduct.id} className="opacity-75">
                           <LivingCard
                             product={bundle.mainProduct as any}

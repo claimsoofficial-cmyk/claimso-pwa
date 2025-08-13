@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
+
 import { 
   Shield, 
   CheckCircle2, 
@@ -199,7 +199,6 @@ function getSmartIssueOptions(product: Product): Array<{
   priority: number;
 }> {
   const category = product.category?.toLowerCase() || '';
-  const price = product.purchase_price || 0;
   
   // Base issue types for all products
   const baseIssues = [
@@ -406,34 +405,7 @@ function getResaleOptions(product: Product): Array<{
   ];
 }
 
-/**
- * Helper function to determine if product is warranty-worthy
- */
-function isWarrantyWorthy(product: Product): boolean {
-  const category = product.category?.toLowerCase() || '';
-  const price = product.purchase_price || 0;
-  
-  // Non-warranty categories
-  const nonWarrantyCategories = [
-    'clothing', 'apparel', 'fashion', 'shoes', 'accessories',
-    'bedding', 'linens', 'towels', 'curtains', 'home decor',
-    'food', 'beverages', 'groceries', 'consumables',
-    'books', 'magazines', 'media', 'digital content',
-    'cosmetics', 'beauty', 'personal care', 'hygiene'
-  ];
-  
-  // Check if category is non-warranty
-  if (nonWarrantyCategories.some(cat => category.includes(cat))) {
-    return false;
-  }
-  
-  // Low-value items typically don't need warranty
-  if (price < 25) {
-    return false;
-  }
-  
-  return true;
-}
+
 
 /**
  * Helper function to get extended warranty options
@@ -1303,7 +1275,7 @@ export default function LivingCard({
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              Protect your {product.product_name} with extended warranty coverage. We've ranked the best options for you:
+              Protect your {product.product_name} with extended warranty coverage. We&apos;ve ranked the best options for you:
             </p>
             
             <div className="grid gap-3">
@@ -1353,10 +1325,10 @@ export default function LivingCard({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-blue-600" />
-              What's the issue with your {product.product_name}?
+                                  What&apos;s the issue with your {product.product_name}?
             </DialogTitle>
             <DialogDescription>
-              Select the problem you're experiencing and we'll get you the right help immediately.
+              Select the problem you&apos;re experiencing and we&apos;ll get you the right help immediately.
             </DialogDescription>
           </DialogHeader>
           
@@ -1399,7 +1371,7 @@ export default function LivingCard({
                         {getSmartIssueOptions(product).find(opt => opt.type === selectedIssueType)?.label}
                       </h4>
                       <p className="text-sm text-blue-800">
-                        We've identified the best resolution for your issue.
+                        We&apos;ve identified the best resolution for your issue.
                       </p>
                     </div>
                   </div>
