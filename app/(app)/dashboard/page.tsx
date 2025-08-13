@@ -5,7 +5,7 @@ import { Package, Plus, Shield, Smartphone } from 'lucide-react';
 import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
 import { Button } from '@/components/ui/button';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { createClient } from '@/lib/supabase/client';
 
 // ==============================================================================
@@ -203,6 +203,7 @@ export default function DashboardPage() {
       {/* Connection Modal */}
       <Dialog open={isConnectionModalOpen} onOpenChange={setIsConnectionModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="sr-only">Connect Your Accounts</DialogTitle>
           <OnboardingFlow onComplete={handleOnboardingComplete} userId={userId} />
         </DialogContent>
       </Dialog>

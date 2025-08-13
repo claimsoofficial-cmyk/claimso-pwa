@@ -56,7 +56,7 @@ export default function AmazonConnectButton({
       client_id: clientId,
       response_type: 'code',
       scope: 'profile', // Minimal scope for now, can be expanded for order history access
-      redirect_uri: redirectUri,
+      redirect_uri: `${window.location.origin}/api/auth/amazon/auth`,
       state: state
     })
 

@@ -232,8 +232,21 @@ export default function MultiConnect({ onContinue, userId }: MultiConnectProps) 
         {/* Retailer logo and name */}
         <div className="flex flex-col items-center space-y-3">
           <div className="w-16 h-16 relative bg-white rounded-lg flex items-center justify-center border">
-            {/* Placeholder for actual logos */}
-            <div className="text-xs font-semibold text-gray-600 text-center px-2">
+            {/* Use actual logo SVGs */}
+            <img
+              src={retailer.logo}
+              alt={`${retailer.name} logo`}
+              className="w-12 h-12 object-contain"
+              onError={(e) => {
+                // Fallback to text if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+            {/* Fallback text */}
+            <div className="text-xs font-semibold text-gray-600 text-center px-2 hidden">
               {retailer.name}
             </div>
           </div>
