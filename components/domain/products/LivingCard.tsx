@@ -375,7 +375,7 @@ function needsExtendedWarranty(product: Product): boolean {
 }
 
 /**
- * Helper function to get resale options
+ * Helper function to get resale options using Quick Cash Partner Network
  */
 function getResaleOptions(product: Product): Array<{
   name: string;
@@ -383,24 +383,43 @@ function getResaleOptions(product: Product): Array<{
   estimatedValue: string;
   affiliateUrl: string;
   rating: number;
+  instantQuote: boolean;
 }> {
   const price = product.purchase_price || 0;
   const estimatedResaleValue = Math.round(price * 0.6); // 60% of original price
   
   return [
     {
-      name: 'eBay',
-      description: 'Sell to millions of buyers worldwide',
-      estimatedValue: `$${estimatedResaleValue}`,
-      affiliateUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(product.product_name)}&_sacat=0&ref=claimso`,
-      rating: 4.7
+      name: 'Gazelle',
+      description: 'Instant cash for electronics',
+      estimatedValue: `$${Math.round(estimatedResaleValue * 0.7)}`,
+      affiliateUrl: `https://www.gazelle.com/trade-in/${encodeURIComponent(product.product_name)}?ref=claimso`,
+      rating: 4.5,
+      instantQuote: true
     },
     {
-      name: 'Facebook Marketplace',
-      description: 'Sell locally to people in your area',
-      estimatedValue: `$${estimatedResaleValue}`,
-      affiliateUrl: `https://www.facebook.com/marketplace/search?query=${encodeURIComponent(product.product_name)}&ref=claimso`,
-      rating: 4.5
+      name: 'Decluttr',
+      description: 'Quick cash for tech items',
+      estimatedValue: `$${Math.round(estimatedResaleValue * 0.6)}`,
+      affiliateUrl: `https://www.decluttr.com/sell/${encodeURIComponent(product.product_name)}?ref=claimso`,
+      rating: 4.3,
+      instantQuote: true
+    },
+    {
+      name: 'Swappa',
+      description: 'Peer-to-peer marketplace',
+      estimatedValue: `$${Math.round(estimatedResaleValue * 0.85)}`,
+      affiliateUrl: `https://swappa.com/sell/${encodeURIComponent(product.product_name)}?ref=claimso`,
+      rating: 4.7,
+      instantQuote: false
+    },
+    {
+      name: 'Amazon Trade-In',
+      description: 'Amazon gift cards',
+      estimatedValue: `$${Math.round(estimatedResaleValue * 0.75)}`,
+      affiliateUrl: `https://www.amazon.com/tradein/${encodeURIComponent(product.product_name)}?ref=claimso`,
+      rating: 4.6,
+      instantQuote: true
     }
   ];
 }
@@ -475,6 +494,7 @@ export default function LivingCard({
   // Internal state for warranty analysis and modals
   const [isAnalyzingWarranty, setIsAnalyzingWarranty] = useState(false);
   const [showExtendedWarrantyModal, setShowExtendedWarrantyModal] = useState(false);
+  const [showQuickCashModal, setShowQuickCashModal] = useState(false);
   const [showResolutionOptions, setShowResolutionOptions] = useState(false);
   const [selectedIssueType, setSelectedIssueType] = useState<string | null>(null);
   
@@ -773,18 +793,14 @@ export default function LivingCard({
             </button>
           )}
 
-          {/* Resale Button */}
+          {/* Quick Cash Button */}
           <button
-            onClick={() => {
-              const resaleOptions = getResaleOptions(product);
-              const bestOption = resaleOptions[0];
-              window.open(bestOption.affiliateUrl, '_blank');
-            }}
+            onClick={() => setShowQuickCashModal(true)}
             className="inline-flex items-center gap-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-full transition-colors"
-            title="Sell this item"
+            title="Get instant cash for this item"
           >
             <DollarSign className="h-3 w-3" />
-            Sell
+            Get Cash
           </button>
 
           {/* Archive Button */}
@@ -1420,6 +1436,89 @@ export default function LivingCard({
                 </Button>
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+
+    {/* Quick Cash Partner Network Modal */}
+    {showQuickCashModal && (
+      <Dialog open={showQuickCashModal} onOpenChange={setShowQuickCashModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              Get Instant Cash for Your {product.product_name}
+            </DialogTitle>
+            <DialogDescription>
+              Choose from our trusted partners to get the best cash offer for your item.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {getResaleOptions(product).map((option, index) => (
+              <div
+                key={option.name}
+                className={`p-4 border rounded-lg transition-all duration-200 hover:shadow-md ${
+                  index === 0 ? 'border-green-300 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-semibold text-gray-900">{option.name}</h4>
+                      {option.instantQuote && (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                          Instant Quote
+                        </Badge>
+                      )}
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <CheckCircle
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < Math.floor(option.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className="text-xs text-gray-500 ml-1">({option.rating})</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{option.description}</p>
+                    <div className="text-lg font-bold text-green-600">
+                      {option.estimatedValue}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      window.open(option.affiliateUrl, '_blank');
+                      setShowQuickCashModal(false);
+                      toast.success('Redirecting to partner', {
+                        description: `Opening ${option.name}...`
+                      });
+                    }}
+                    className={`ml-4 ${
+                      index === 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
+                    } text-white`}
+                  >
+                    Get Cash
+                  </Button>
+                </div>
+              </div>
+            ))}
+            
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="h-4 w-4 text-blue-600" />
+                <h5 className="font-medium text-blue-900">How it works</h5>
+              </div>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Get instant quotes from trusted partners</li>
+                <li>• Free shipping labels provided</li>
+                <li>• Payment within 24-48 hours</li>
+                <li>• No hidden fees or charges</li>
+              </ul>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
