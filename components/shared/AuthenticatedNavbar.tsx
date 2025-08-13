@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -141,6 +141,14 @@ export default function AuthenticatedNavbar({ user, profile }: AuthenticatedNavb
                 </div>
                 
                 <DropdownMenuSeparator />
+                
+                {/* Census */}
+                <DropdownMenuItem asChild>
+                  <a href="/census" className="cursor-pointer flex items-center">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span>Census</span>
+                  </a>
+                </DropdownMenuItem>
                 
                 {/* Settings */}
                 <DropdownMenuItem asChild>

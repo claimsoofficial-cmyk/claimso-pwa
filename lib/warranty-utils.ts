@@ -1,10 +1,3 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 // ==============================================================================
 // WARRANTY LINKAGE UTILITIES
 // ==============================================================================
@@ -29,6 +22,7 @@ export interface ProductWithWarranties {
   id: string;
   product_name: string;
   brand: string | null;
+  category: string | null;
   serial_number: string | null;
   purchase_date: string | null;
   warranties?: WarrantyData[];
@@ -79,26 +73,6 @@ export function getWarrantyPair(warranties: WarrantyData[] = []): {
 }
 
 /**
- * Calculates total warranty coverage duration
- */
-export function getTotalWarrantyDuration(warranties: WarrantyData[] = []): {
-  totalMonths: number;
-  primaryMonths: number;
-  extendedMonths: number;
-} {
-  const { primary, extended } = getWarrantyPair(warranties);
-  
-  const primaryMonths = primary?.warranty_duration_months || 0;
-  const extendedMonths = extended?.warranty_duration_months || 0;
-  
-  return {
-    totalMonths: primaryMonths + extendedMonths,
-    primaryMonths,
-    extendedMonths
-  };
-}
-
-/**
  * Detects warranty linkages between products based on common identifiers
  */
 export function detectWarrantyLinkages(products: ProductWithWarranties[]): Map<string, string[]> {
@@ -111,10 +85,8 @@ export function detectWarrantyLinkages(products: ProductWithWarranties[]): Map<s
     for (let j = i + 1; j < products.length; j++) {
       const productB = products[j];
       
-      // Check for common identifiers that suggest warranty linkage
       if (isWarrantyLinked(productA, productB)) {
         linkedProducts.push(productB.id);
-        // Also add reverse linkage
         const existingLinks = linkages.get(productB.id) || [];
         linkages.set(productB.id, [...existingLinks, productA.id]);
       }
@@ -235,4 +207,4 @@ export function bundleLinkedProducts(
   }
   
   return bundles;
-}
+} 

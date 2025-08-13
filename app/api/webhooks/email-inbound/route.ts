@@ -145,6 +145,64 @@ async function parseEmailWithService(emailContent: ParsedEmailContent, servicesU
   }
 }
 
+/**
+ * Triggers warranty analysis for a newly created product
+ */
+async function triggerWarrantyAnalysis(supabase: any, productId: string, userId: string): Promise<void> {
+  try {
+    // Check if the product has any warranty documents
+    const { data: documents } = await supabase
+      .from('documents')
+      .select('id, document_type')
+      .eq('product_id', productId)
+      .in('document_type', ['warranty_pdf', 'insurance']);
+
+    // Only proceed with warranty analysis if there are actual warranty documents
+    if (!documents || documents.length === 0) {
+      console.log(`No warranty documents found for product ${productId}, skipping warranty analysis`);
+      return;
+    }
+
+    // Create a basic warranty record for analysis
+    const { data: warranty, error: warrantyError } = await supabase
+      .from('warranties')
+      .insert({
+        product_id: productId,
+        warranty_type: 'manufacturer',
+        warranty_start_date: new Date().toISOString().split('T')[0],
+        warranty_duration_months: 12,
+        ai_confidence_score: null,
+        last_analyzed_at: null
+      })
+      .select('id')
+      .single();
+
+    if (warrantyError) {
+      console.warn('Failed to create warranty record:', warrantyError);
+      return;
+    }
+
+    // Call the warranty analysis API
+    const analysisResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/warranty/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_API_KEY || 'internal-key'}`,
+      },
+      body: JSON.stringify({ productId }),
+    });
+
+    if (!analysisResponse.ok) {
+      throw new Error(`Warranty analysis API responded with status: ${analysisResponse.status}`);
+    }
+
+    console.log(`Warranty analysis triggered for product ${productId}`);
+  } catch (error) {
+    console.error('Error triggering warranty analysis:', error);
+    throw error;
+  }
+}
+
 // ==============================================================================
 // DATABASE OPERATIONS
 // ==============================================================================
@@ -207,6 +265,14 @@ async function createNewProduct(supabase: any, productData: AIProcessedProduct, 
 
   if (error) {
     throw new Error(`Failed to create product: ${error.message}`);
+  }
+
+  // Trigger warranty analysis for the new product
+  try {
+    await triggerWarrantyAnalysis(supabase, data.id, userId);
+  } catch (analysisError) {
+    console.warn(`Warranty analysis failed for product ${data.id}:`, analysisError);
+    // Don't fail the product creation if warranty analysis fails
   }
 
   return data as { id: string; product_name: string };
