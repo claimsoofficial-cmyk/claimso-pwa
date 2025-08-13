@@ -55,6 +55,8 @@ export default function ConnectionModal({
    * Uses Supabase's signInWithOAuth method for secure authentication
    */
   const handleGoogleSignIn = async () => {
+  console.log("Attempting to sign in with Google...");
+  console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
     try {
       setIsLoading(true);
       setErrorMessage(null);
