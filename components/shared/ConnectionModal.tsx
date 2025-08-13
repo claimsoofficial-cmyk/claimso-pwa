@@ -65,8 +65,8 @@ export default function ConnectionModal({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Redirect to current page after successful authentication
-          redirectTo: `${window.location.origin}/auth/callback`
+          // Redirect to our OAuth callback route
+          redirectTo: `${window.location.origin}/api/auth/google/callback`
         }
       });
 
