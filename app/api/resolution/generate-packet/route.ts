@@ -181,7 +181,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Step 4: Verify product ownership
     const { data: product, error: productError } = await supabase
       .from('products')
-      .select('id, product_name as name, brand, serial_number, purchase_date, retailer, purchase_price as price, currency, category, user_id')
+      .select('id, product_name, brand, serial_number, purchase_date, retailer, purchase_price, currency, category, user_id')
       .eq('id', validatedRequest.product.id)
       .single()
 
@@ -211,12 +211,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const serviceRequest: GeneratePacketRequest = {
       product: {
         id: product.id,
-        name: product.name,
+        name: product.product_name,
         brand: product.brand,
         serial_number: product.serial_number,
         purchase_date: product.purchase_date,
         retailer: product.retailer,
-        price: product.price,
+        price: product.purchase_price,
         currency: product.currency,
         category: product.category,
         user_id: product.user_id
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     
     // Step 7: Get PDF data and generate filename
     const pdfBuffer = await pdfResponse.arrayBuffer()
-    const safeProductName = product.name.replace(/[^a-zA-Z0-9\-_]/g, '_')
+    const safeProductName = product.product_name.replace(/[^a-zA-Z0-9\-_]/g, '_')
     const filename = `Claimso-Packet-${safeProductName}.pdf`
 
     console.log('Successfully generated PDF packet:', {
