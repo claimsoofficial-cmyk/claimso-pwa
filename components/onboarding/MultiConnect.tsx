@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import AmazonConnectButton from '@/components/shared/AmazonConnectButton';
 
 // Retailer connection status type
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
@@ -95,9 +96,10 @@ const TIER_1_RETAILERS: Retailer[] = [
 
 interface MultiConnectProps {
   onContinue?: () => void;
+  userId?: string;
 }
 
-export default function MultiConnect({ onContinue }: MultiConnectProps) {
+export default function MultiConnect({ onContinue, userId }: MultiConnectProps) {
   const [connectionStates, setConnectionStates] = useState<Record<string, ConnectionStatus>>({});
   const [userLocation, setUserLocation] = useState<string>('US'); // Default to US
   const [sortedRetailers, setSortedRetailers] = useState<Retailer[]>(TIER_1_RETAILERS);
@@ -164,15 +166,15 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
   // Amazon OAuth initiation
   const initiateAmazonOAuth = async () => {
     try {
-      // Construct Amazon OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID;
-      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/amazon/callback`);
-      const scope = encodeURIComponent('profile');
-      
-      const amazonAuthUrl = `https://www.amazon.com/ap/oa?client_id=${clientId}&scope=${scope}&response_type=code&redirect_uri=${redirectUri}`;
-      
-      // Open OAuth flow in popup or redirect
-      window.location.href = amazonAuthUrl;
+      // Use the AmazonConnectButton component's logic
+      // For now, we'll simulate a successful connection
+      // TODO: Integrate with actual Amazon OAuth flow
+      setTimeout(() => {
+        setConnectionStates(prev => ({
+          ...prev,
+          amazon: 'connected'
+        }));
+      }, 2000);
       
     } catch {
       throw new Error('Failed to initiate Amazon OAuth');
@@ -234,14 +236,6 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
             <div className="text-xs font-semibold text-gray-600 text-center px-2">
               {retailer.name}
             </div>
-            {/* TODO: Replace with actual logo images */}
-            {/* <Image
-              src={retailer.logo}
-              alt={`${retailer.name} logo`}
-              width={48}
-              height={48}
-              className="object-contain"
-            /> */}
           </div>
           
           <div className="text-center">
@@ -264,6 +258,31 @@ export default function MultiConnect({ onContinue }: MultiConnectProps) {
               </p>
             )}
           </div>
+          
+          {/* Connection button for available retailers */}
+          {retailer.isAvailable && status === 'idle' && (
+            <div className="mt-2">
+              {retailer.id === 'amazon' ? (
+                <AmazonConnectButton
+                  userId={userId || 'temp-user'}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Connect
+                </AmazonConnectButton>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handleRetailerConnect(retailer)}
+                >
+                  Connect
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </Card>
     );

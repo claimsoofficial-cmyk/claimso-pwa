@@ -1,8 +1,12 @@
-import { redirect } from 'next/navigation';
+'use client'
+
+import { useState, useEffect } from 'react';
 import { Package, Plus, Shield, Smartphone } from 'lucide-react';
 import ResolutionManager from '@/components/domain/resolution/ResolutionManager';
 import { Button } from '@/components/ui/button';
-import { createClient } from '@/lib/supabase/server';
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { createClient } from '@/lib/supabase/client';
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
@@ -59,140 +63,136 @@ interface ProductWithRelations {
 }
 
 // ==============================================================================
-// UTILITY FUNCTIONS
-// ==============================================================================
-
-/**
- * Converts null values to undefined to match ResolutionManager's Product type
- */
-function mapProductForResolutionManager(product: ProductWithRelations) {
-  return {
-    ...product,
-    name: product.product_name, // Map product_name to name
-    brand: product.brand ?? undefined,
-    model: product.model ?? undefined,
-    category: product.category ?? undefined,
-    purchase_date: product.purchase_date ?? undefined,
-    purchase_price: product.purchase_price ?? undefined,
-    purchase_location: product.purchase_location ?? undefined,
-    serial_number: product.serial_number ?? undefined,
-    notes: product.notes ?? undefined,
-    warranties: product.warranties.map(warranty => ({
-      ...warranty,
-      warranty_start_date: warranty.warranty_start_date ?? undefined,
-      warranty_end_date: warranty.warranty_end_date ?? undefined,
-      warranty_duration_months: warranty.warranty_duration_months ?? undefined,
-      coverage_details: warranty.coverage_details ?? undefined,
-      claim_process: warranty.claim_process ?? undefined,
-      contact_info: warranty.contact_info ?? undefined,
-      ai_confidence_score: warranty.ai_confidence_score ?? undefined,
-      last_analyzed_at: warranty.last_analyzed_at ?? undefined,
-    })),
-    documents: product.documents.map(doc => ({
-      ...doc,
-      file_type: doc.file_type ?? undefined,
-      description: doc.description ?? undefined,
-    }))
-  };
-}
-
-// ==============================================================================
-// SERVER COMPONENT - DASHBOARD PAGE
+// CLIENT COMPONENT - DASHBOARD PAGE
 // ==============================================================================
 
 /**
  * Dashboard Page - Main authenticated user interface
  * 
- * This Server Component securely fetches user products with their warranties
- * and documents, then renders them using ResolutionManager components.
- * 
- * Security: 
- * - Server-side authentication check
- * - RLS policies ensure data isolation
- * - Automatic redirect for unauthenticated users
+ * This Client Component manages connection modals and renders user products
+ * with their warranties and documents using ResolutionManager components.
  */
-export default async function DashboardPage() {
+export default function DashboardPage() {
   // ==============================================================================
-  // SERVER-SIDE AUTHENTICATION & DATA FETCHING
+  // STATE MANAGEMENT
   // ==============================================================================
   
-  // Create server-side Supabase client using centralized helper
-  const supabase = await createClient();
+  const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
+  const [products, setProducts] = useState<ProductWithRelations[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [displayName, setDisplayName] = useState('there');
+  const [userId, setUserId] = useState<string>('');
 
-  // Check for authenticated user session
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  // ==============================================================================
+  // EVENT HANDLERS
+  // ==============================================================================
 
-  // Redirect unauthenticated users to homepage
-  if (authError || !user) {
-    redirect('/');
-  }
+  const handleConnectAccount = () => {
+    setIsConnectionModalOpen(true);
+  };
 
-  // Fetch user profile for display name
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single();
+  const handleAddProduct = () => {
+    // TODO: Implement add product modal
+    console.log('Add product clicked');
+  };
 
-  // Fetch products with nested warranties and documents in a single query
-  const { data: products, error: productsError } = await supabase
-    .from('products')
-    .select(`
-      id,
-      user_id,
-      product_name,
-      brand,
-      model,
-      category,
-      purchase_date,
-      purchase_price,
-      currency,
-      purchase_location,
-      serial_number,
-      condition,
-      notes,
-      is_archived,
-      created_at,
-      updated_at,
-      warranties (
-        id,
-        warranty_start_date,
-        warranty_end_date,
-        warranty_duration_months,
-        warranty_type,
-        coverage_details,
-        claim_process,
-        contact_info,
-        snapshot_data,
-        ai_confidence_score,
-        last_analyzed_at
-      ),
-      documents (
-        id,
-        file_name,
-        file_url,
-        file_type,
-        document_type,
-        description,
-        is_primary,
-        upload_date
-      )
-    `)
-    .eq('user_id', user.id)
-    .eq('is_archived', false)
-    .order('created_at', { ascending: false });
+  const handleOnboardingComplete = () => {
+    setIsConnectionModalOpen(false);
+    // Refresh products list after connection
+    fetchProducts();
+  };
 
-  // Handle database query errors
-  if (productsError) {
-    console.error('Error fetching products:', productsError);
-    // In production, you might want to show an error page instead
-  }
+  // ==============================================================================
+  // DATA FETCHING
+  // ==============================================================================
 
-  // Get user display name with fallback
-  const displayName = profile?.full_name || user.email?.split('@')[0] || 'there';
-  
-  // Cast products to our typed interface
-  const typedProducts = (products || []) as ProductWithRelations[];
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const supabase = createClient();
+      
+      // Get user session
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      setUserId(user.id);
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.full_name) {
+        setDisplayName(profile.full_name);
+      } else if (user.email) {
+        setDisplayName(user.email.split('@')[0]);
+      }
+
+      // Fetch products
+      const { data: productsData, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          user_id,
+          product_name,
+          brand,
+          model,
+          category,
+          purchase_date,
+          purchase_price,
+          currency,
+          purchase_location,
+          serial_number,
+          condition,
+          notes,
+          is_archived,
+          created_at,
+          updated_at,
+          warranties (
+            id,
+            warranty_start_date,
+            warranty_end_date,
+            warranty_duration_months,
+            warranty_type,
+            coverage_details,
+            claim_process,
+            contact_info,
+            snapshot_data,
+            ai_confidence_score,
+            last_analyzed_at
+          ),
+          documents (
+            id,
+            file_name,
+            file_url,
+            file_type,
+            document_type,
+            description,
+            is_primary,
+            upload_date
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching products:', error);
+      } else {
+        setProducts(productsData || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchProducts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // ==============================================================================
   // RENDER DASHBOARD UI
@@ -200,6 +200,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Connection Modal */}
+      <Dialog open={isConnectionModalOpen} onOpenChange={setIsConnectionModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <OnboardingFlow onComplete={handleOnboardingComplete} userId={userId} />
+        </DialogContent>
+      </Dialog>
+
       {/* Page Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -209,9 +216,9 @@ export default async function DashboardPage() {
                 Welcome back, {displayName}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                {typedProducts.length === 0 
+                {products.length === 0 
                   ? "Let's get started by adding your first product"
-                  : `Managing ${typedProducts.length} product${typedProducts.length !== 1 ? 's' : ''}`
+                  : `Managing ${products.length} product${products.length !== 1 ? 's' : ''}`
                 }
               </p>
             </div>
@@ -228,6 +235,7 @@ export default async function DashboardPage() {
               </Button>
               <Button 
                 size="sm"
+                onClick={handleAddProduct}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -240,8 +248,20 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* No Products State */}
-        {typedProducts.length === 0 ? (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="mx-auto w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Loading your vault...
+            </h3>
+            <p className="text-gray-600">
+              Please wait while we fetch your products and warranties.
+            </p>
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-12">
             <div className="mx-auto w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
               <Package className="w-12 h-12 text-blue-500" />
@@ -258,6 +278,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 size="lg"
+                onClick={handleConnectAccount}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8"
               >
                 <Shield className="w-5 h-5 mr-2" />
@@ -275,7 +296,11 @@ export default async function DashboardPage() {
             
             <div className="mt-8 pt-8 border-t border-gray-200">
               <p className="text-sm text-gray-500 mb-4">Or add your first product manually</p>
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleAddProduct}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Product Manually
               </Button>
@@ -293,7 +318,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className="text-sm text-gray-600">Total Products</p>
                       <p className="text-xl font-semibold text-gray-900">
-                        {typedProducts.length}
+                        {products.length}
                       </p>
                     </div>
                   </div>
@@ -305,7 +330,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className="text-sm text-gray-600">Active Warranties</p>
                       <p className="text-xl font-semibold text-gray-900">
-                        {typedProducts.filter(product => 
+                        {products.filter(product => 
                           product.warranties.some(warranty => 
                             warranty.warranty_end_date && 
                             new Date(warranty.warranty_end_date) > new Date()
@@ -322,7 +347,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className="text-sm text-gray-600">Total Value</p>
                       <p className="text-xl font-semibold text-gray-900">
-                        ${typedProducts
+                        ${products
                           .reduce((sum, product) => sum + (product.purchase_price || 0), 0)
                           .toLocaleString()
                         }
@@ -335,16 +360,43 @@ export default async function DashboardPage() {
 
             {/* Products Grid using ResolutionManager */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {typedProducts.map((product) => (
+              {products.map((product) => (
                 <ResolutionManager
                   key={product.id}
-                  product={mapProductForResolutionManager(product)}
+                  product={{
+                    ...product,
+                    name: product.product_name,
+                    brand: product.brand ?? undefined,
+                    model: product.model ?? undefined,
+                    category: product.category ?? undefined,
+                    purchase_date: product.purchase_date ?? undefined,
+                    purchase_price: product.purchase_price ?? undefined,
+                    purchase_location: product.purchase_location ?? undefined,
+                    serial_number: product.serial_number ?? undefined,
+                    notes: product.notes ?? undefined,
+                    warranties: product.warranties.map(warranty => ({
+                      ...warranty,
+                      warranty_start_date: warranty.warranty_start_date ?? undefined,
+                      warranty_end_date: warranty.warranty_end_date ?? undefined,
+                      warranty_duration_months: warranty.warranty_duration_months ?? undefined,
+                      coverage_details: warranty.coverage_details ?? undefined,
+                      claim_process: warranty.claim_process ?? undefined,
+                      contact_info: warranty.contact_info ?? undefined,
+                      ai_confidence_score: warranty.ai_confidence_score ?? undefined,
+                      last_analyzed_at: warranty.last_analyzed_at ?? undefined,
+                    })),
+                    documents: product.documents.map(doc => ({
+                      ...doc,
+                      file_type: doc.file_type ?? undefined,
+                      description: doc.description ?? undefined,
+                    }))
+                  }}
                 />
               ))}
             </div>
 
             {/* Load More Section (for pagination in the future) */}
-            {typedProducts.length >= 12 && (
+            {products.length >= 12 && (
               <div className="text-center mt-12">
                 <Button variant="outline" size="lg">
                   Load More Products
@@ -352,7 +404,7 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

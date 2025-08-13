@@ -27,6 +27,7 @@ type OnboardingStep = 'connect_retailers' | 'enable_sync' | 'get_smart_pass';
 interface OnboardingFlowProps {
   onComplete?: () => void;
   className?: string;
+  userId?: string;
 }
 
 interface DeviceInfo {
@@ -70,7 +71,7 @@ function detectDevice(): DeviceInfo {
  * 2. Enabling universal email capture 
  * 3. Adding Smart Pass to wallet
  */
-export default function OnboardingFlow({ onComplete, className = '' }: OnboardingFlowProps) {
+export default function OnboardingFlow({ onComplete, className = '', userId }: OnboardingFlowProps) {
   // ==============================================================================
   // STATE MANAGEMENT
   // ==============================================================================
@@ -238,7 +239,7 @@ export default function OnboardingFlow({ onComplete, className = '' }: Onboardin
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <MultiConnect />
+        <MultiConnect userId={userId} />
       </div>
 
       <div className="flex justify-center pt-6">
