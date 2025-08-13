@@ -407,7 +407,7 @@ export default function DashboardPage() {
                       <p className="text-sm text-gray-600">Active Warranties</p>
                       <p className="text-xl font-semibold text-gray-900">
                         {products.filter(product => 
-                          product.warranties.some(warranty => 
+                          (Array.isArray(product.warranties) ? product.warranties : []).some(warranty => 
                             warranty.warranty_end_date && 
                             new Date(warranty.warranty_end_date) > new Date()
                           )
@@ -450,7 +450,7 @@ export default function DashboardPage() {
                     purchase_location: product.purchase_location ?? undefined,
                     serial_number: product.serial_number ?? undefined,
                     notes: product.notes ?? undefined,
-                    warranties: product.warranties.map(warranty => ({
+                    warranties: (Array.isArray(product.warranties) ? product.warranties : []).map(warranty => ({
                       ...warranty,
                       warranty_start_date: warranty.warranty_start_date ?? undefined,
                       warranty_end_date: warranty.warranty_end_date ?? undefined,
