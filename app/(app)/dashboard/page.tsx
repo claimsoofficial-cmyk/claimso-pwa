@@ -124,9 +124,10 @@ export default function DashboardPage() {
     const result = await createProduct(formData);
     if (result.success) {
       setIsAddProductOpen(false);
+      toast.success('Product added', { description: `${result.product?.product_name || 'New product'} created.` });
       fetchProducts();
     } else {
-      alert(result.error || 'Failed to create product');
+      toast.error(result.error || 'Failed to create product');
     }
   };
 
@@ -345,10 +346,10 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Connections Section */}
         <div className="mb-6">
-          <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-white border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900">Connections</h3>
-              <span className="text-xs text-gray-500">Sync retailers to import purchases</span>
+          <div className="rounded-xl p-3 sm:p-4 bg-gradient-to-br from-gray-50 to-white border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Retailers Purchases Synced</h3>
+              <span className="text-[11px] text-gray-500">Tap a retailer to connect</span>
             </div>
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
               {[
@@ -358,7 +359,7 @@ export default function DashboardPage() {
                 { id: 'bestbuy', label: 'Best Buy', logo: '/logos/bestbuy.svg', type: 'cred' },
               ].map(r => {
                 const isConnected = connections.some(c => c.retailer === r.id && c.status === 'connected');
-                const classes = `h-12 sm:h-14 rounded-xl border bg-white flex items-center justify-center transition-all ${isConnected ? 'shadow-sm' : 'opacity-40'}`;
+                const classes = `relative h-12 sm:h-14 rounded-xl border bg-white flex items-center justify-center transition-all ${isConnected ? 'shadow-sm' : 'opacity-40'}`;
                 if (r.type === 'oauth') {
                   return (
                     <button key={r.id} className={classes} onClick={() => {
@@ -366,12 +367,18 @@ export default function DashboardPage() {
                       window.location.href = `https://www.amazon.com/ap/oa?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID || '')}&response_type=code&scope=profile&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/amazon/auth')}&state=${Math.random().toString(16).slice(2)}`;
                     }} title={isConnected ? `${r.label} connected` : `Connect ${r.label}`}>
                       <img src={r.logo} alt={`${r.label} logo`} className="h-6 w-6" />
+                      {isConnected && (
+                        <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-white text-[10px]">✓</span>
+                      )}
                     </button>
                   );
                 }
                 return (
                   <button key={r.id} className={classes} onClick={() => { setCredRetailer(r.id); setIsCredModalOpen(true); }} title={isConnected ? `${r.label} connected` : `Connect ${r.label}`}>
                     <img src={r.logo} alt={`${r.label} logo`} className="h-6 w-6" />
+                    {isConnected && (
+                      <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-white text-[10px]">✓</span>
+                    )}
                   </button>
                 );
               })}
