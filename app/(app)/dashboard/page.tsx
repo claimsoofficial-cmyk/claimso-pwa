@@ -254,8 +254,7 @@ export default function DashboardPage() {
     return acc;
   }, {} as Record<string, ProductWithRelations[]>);
 
-  // Detect warranty linkages and bundle products
-  const warrantyLinkages = detectWarrantyLinkages(products);
+  // Memoize bundled products to prevent recalculation on every render
   const bundledProducts = useMemo(() => {
     if (!products.length) return [];
     const warrantyLinkages = detectWarrantyLinkages(products);
@@ -272,19 +271,7 @@ export default function DashboardPage() {
     }
   }, [bundledProducts]);
 
-  // Group bundled products by category
-  const groupedBundledProducts = bundledProducts.reduce((acc, bundle) => {
-    const category = bundle.mainProduct.category || 'Uncategorized';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(bundle);
-    return acc;
-  }, {} as Record<string, typeof bundledProducts>);
 
-  // Separate warranty-worthy items from non-warranty items
-  const warrantyWorthyProducts = bundledProducts.filter(bundle => isWarrantyWorthy(bundle.mainProduct));
-  const nonWarrantyProducts = bundledProducts.filter(bundle => !isWarrantyWorthy(bundle.mainProduct));
 
   // Group warranty-worthy products by category
   const groupedWarrantyProducts = useMemo(() => {
@@ -628,50 +615,50 @@ export default function DashboardPage() {
             </div>
           ))}
 
-          {/* Non-Warranty Items Section */}
-          {Object.keys(groupedNonWarrantyProducts).length > 0 && (
-            <div className="bg-gray-50 rounded-lg border border-gray-200">
-              <button
-                onClick={() => toggleCategory('non-warranty')}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-gray-700">Other Items</h3>
-                  <Badge variant="outline" className="text-gray-600">
-                    {nonWarrantyProducts.length} items
-                  </Badge>
-                  <span className="text-sm text-gray-500">(Low warranty priority)</span>
-                </div>
-                {expandedCategories.has('non-warranty') ? (
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-              
-              {expandedCategories.has('non-warranty') && (
-                <div className="border-t border-gray-200 p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {nonWarrantyProducts.map((bundle, index) => (
-                      <div key={bundle.mainProduct.id} className="opacity-75">
-                        <LivingCard
-                          product={bundle.mainProduct as any}
-                          onAddSerialNumber={(productId) => {
-                            setSelectedProductId(productId);
-                            setIsAddDetailsModalOpen(true);
-                          }}
-                          onAddDocuments={(productId) => {
-                            setSelectedProductId(productId);
-                            setIsAddDetailsModalOpen(true);
-                          }}
-                        />
-                      </div>
-                    ))}
+                      {/* Non-Warranty Items Section */}
+            {Object.keys(groupedNonWarrantyProducts).length > 0 && (
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleCategory('non-warranty')}
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-700">Other Items</h3>
+                    <Badge variant="outline" className="text-gray-600">
+                      {Object.values(groupedNonWarrantyProducts).flat().length} items
+                    </Badge>
+                    <span className="text-sm text-gray-500">(Low warranty priority)</span>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                  {expandedCategories.has('non-warranty') ? (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                
+                {expandedCategories.has('non-warranty') && (
+                  <div className="border-t border-gray-200 p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {Object.values(groupedNonWarrantyProducts).flat().map((bundle: any, index: number) => (
+                        <div key={bundle.mainProduct.id} className="opacity-75">
+                          <LivingCard
+                            product={bundle.mainProduct as any}
+                            onAddSerialNumber={(productId) => {
+                              setSelectedProductId(productId);
+                              setIsAddDetailsModalOpen(true);
+                            }}
+                            onAddDocuments={(productId) => {
+                              setSelectedProductId(productId);
+                              setIsAddDetailsModalOpen(true);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       </div>
 

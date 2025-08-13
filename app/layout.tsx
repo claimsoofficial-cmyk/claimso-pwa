@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import './globals.css';
+import '../styles/globals.css';
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -50,6 +50,19 @@ export default function RootLayout({
                     }
                   });
                   observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
+                }
+                
+                // Register Service Worker
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                      .then((registration) => {
+                        console.log('SW registered: ', registration);
+                      })
+                      .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                      });
+                  });
                 }
               }
             `,
