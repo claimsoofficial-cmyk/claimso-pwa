@@ -384,12 +384,8 @@ export default function DashboardPage() {
                       contact_info: warranty.contact_info ?? undefined,
                       ai_confidence_score: warranty.ai_confidence_score ?? undefined,
                       last_analyzed_at: warranty.last_analyzed_at ?? undefined,
-                    })),
-                    documents: product.documents.map(doc => ({
-                      ...doc,
-                      file_type: doc.file_type ?? undefined,
-                      description: doc.description ?? undefined,
                     }))
+                    // Note: documents are not included as ResolutionManager doesn't expect them
                   }}
                 />
               ))}
