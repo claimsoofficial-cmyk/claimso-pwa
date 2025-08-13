@@ -3,62 +3,7 @@ export const dynamic = 'force-dynamic'; // ADD THIS LINE
 import { useState } from 'react'
 import { Shield, Zap, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-// Modal component for connection flow
-function ConnectionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-blue-600" />
-          </div>
-          
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            Get Started with Claimso
-          </h3>
-          
-          <p className="text-gray-600 mb-6">
-            Connect your accounts and start building your smart purchase vault
-          </p>
-          
-          <div className="space-y-3">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-              Sign Up Free
-            </button>
-            
-            <button className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors">
-              Sign In
-            </button>
-          </div>
-          
-          <p className="text-xs text-gray-500 mt-4">
-            No credit card required • Free forever
-          </p>
-        </div>
-        
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )
-}
+import ConnectionModal from '@/components/shared/ConnectionModal'
 
 // Feature card component
 function FeatureCard({ 
