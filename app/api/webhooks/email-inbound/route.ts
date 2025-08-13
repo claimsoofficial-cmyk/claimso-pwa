@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
@@ -28,10 +27,6 @@ interface AIProcessedProduct {
   notes?: string;
 }
 
-interface EmailIntent {
-  intent: 'PURCHASE' | 'RETURN' | 'SHIPMENT_UPDATE';
-}
-
 interface OrderStatusUpdate {
   order_id: string;
   status: string;
@@ -51,24 +46,29 @@ interface ProductUpdateData {
   notes?: string;
 }
 
+interface EmailParseResponse {
+  intent: 'PURCHASE' | 'RETURN' | 'SHIPMENT_UPDATE';
+  data: AIProcessedProduct | OrderStatusUpdate;
+}
+
 // ==============================================================================
-// CONFIGURATION & ENVIRONMENT VALIDATION (Moved to function)
+// CONFIGURATION & ENVIRONMENT VALIDATION
 // ==============================================================================
 
 function initializeClients() {
   const WEBHOOK_SECRET = process.env.EMAIL_WEBHOOK_SECRET;
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const SERVICES_URL = process.env.SERVICES_URL;
+  const SERVICES_API_KEY = process.env.SERVICES_API_KEY;
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!WEBHOOK_SECRET || !OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!WEBHOOK_SECRET || !SERVICES_URL || !SERVICES_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('Missing required environment variables for email webhook');
   }
 
-  const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  return { WEBHOOK_SECRET, openai, supabase };
+  return { WEBHOOK_SECRET, SERVICES_URL, SERVICES_API_KEY, supabase };
 }
 
 // ==============================================================================
@@ -107,7 +107,6 @@ async function parseMultipartFormData(request: NextRequest): Promise<ParsedEmail
     const text = formData.get('text') as string;
     const html = formData.get('html') as string;
 
-    // Validate required fields
     if (!to || !from || !subject || !text) {
       console.error('Missing required email fields:', { to: !!to, from: !!from, subject: !!subject, text: !!text });
       return null;
@@ -120,214 +119,28 @@ async function parseMultipartFormData(request: NextRequest): Promise<ParsedEmail
   }
 }
 
-// ==============================================================================
-// AI PROCESSING FUNCTIONS - STAGE 1: CLASSIFICATION
-// ==============================================================================
-
 /**
- * AI prompt for email intent classification
+ * Calls the microservice to parse email content
  */
-const EMAIL_CLASSIFICATION_PROMPT = `You are an expert at classifying email types from retailers and e-commerce platforms.
-
-Your task is to analyze the provided email content and determine the intent. Return ONLY a valid JSON object with this structure:
-
-{
-  "intent": "PURCHASE" | "RETURN" | "SHIPMENT_UPDATE"
-}
-
-Classification rules:
-- PURCHASE: New purchase confirmations, order confirmations, receipts for new purchases
-- RETURN: Return confirmations, refund notifications, return shipping labels
-- SHIPMENT_UPDATE: Shipping notifications, delivery updates, tracking information, "your order has shipped" emails
-
-Return only the JSON object with the intent field. Do not include any other text or explanation.
-
-Email content to classify:`;
-
-/**
- * Calls OpenAI to classify email intent (Stage 1)
- */
-async function classifyEmailIntent(openai: OpenAI, subject: string, text: string): Promise<EmailIntent | null> {
+async function parseEmailWithService(emailContent: ParsedEmailContent, servicesUrl: string, apiKey: string): Promise<EmailParseResponse | null> {
   try {
-    const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
-    
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: EMAIL_CLASSIFICATION_PROMPT
-        },
-        {
-          role: 'user',
-          content: emailContent
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 50,
+    const response = await fetch(`${servicesUrl}/email-parser`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(emailContent),
     });
 
-    const responseText = completion.choices[0]?.message?.content?.trim();
-    if (!responseText) {
-      throw new Error('No response from OpenAI classification');
+    if (!response.ok) {
+      throw new Error(`Service responded with status: ${response.status}`);
     }
 
-    const parsed = JSON.parse(responseText) as EmailIntent;
-    
-    // Validate intent field
-    if (!parsed.intent || !['PURCHASE', 'RETURN', 'SHIPMENT_UPDATE'].includes(parsed.intent)) {
-      throw new Error('Invalid intent in classification response');
-    }
-
-    return parsed;
+    const result = await response.json() as EmailParseResponse;
+    return result;
   } catch (error) {
-    console.error('Email classification error:', error);
-    return null;
-  }
-}
-
-// ==============================================================================
-// AI PROCESSING FUNCTIONS - STAGE 2A: PURCHASE EXTRACTION
-// ==============================================================================
-
-/**
- * AI parsing prompt for receipt data extraction (existing function)
- */
-const RECEIPT_PARSING_PROMPT = `You are an expert at parsing receipt and purchase confirmation emails. 
-
-Your task is to analyze the provided email content and extract product purchase information. Return ONLY a valid JSON object with the following structure:
-
-{
-  "product_name": "string (required - the main product name)",
-  "brand": "string (optional - brand/manufacturer)",
-  "model": "string (optional - specific model number)",
-  "category": "string (optional - product category like 'Electronics', 'Clothing', etc.)",
-  "purchase_date": "string (optional - ISO date format YYYY-MM-DD)",
-  "purchase_price": "number (optional - price as number without currency symbols)",
-  "currency": "string (optional - currency code like 'USD', 'EUR')",
-  "purchase_location": "string (optional - store name or website)",
-  "serial_number": "string (optional - if mentioned in email)",
-  "condition": "string (optional - 'new', 'used', 'refurbished')",
-  "notes": "string (optional - any additional relevant details)"
-}
-
-Rules:
-- If you cannot identify a clear product purchase, return: {"product_name": "Unknown Purchase"}
-- Only include fields where you have confidence in the data
-- For purchase_price, extract only the numeric value (e.g., 29.99 not "$29.99")
-- For purchase_date, convert to YYYY-MM-DD format if possible
-- Be conservative - don't guess if you're not confident about a field
-
-Email content to analyze:`;
-
-/**
- * Calls OpenAI to parse receipt content using AI (existing function)
- */
-async function parseReceiptWithAI(openai: OpenAI, subject: string, text: string): Promise<AIProcessedProduct | null> {
-  try {
-    const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
-    
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: RECEIPT_PARSING_PROMPT
-        },
-        {
-          role: 'user',
-          content: emailContent
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 500,
-    });
-
-    const responseText = completion.choices[0]?.message?.content?.trim();
-    if (!responseText) {
-      throw new Error('No response from OpenAI');
-    }
-
-    const parsed = JSON.parse(responseText) as AIProcessedProduct;
-    
-    if (!parsed.product_name) {
-      throw new Error('No product_name in AI response');
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error('AI parsing error:', error);
-    return {
-      product_name: `Email Purchase: ${subject}`,
-      notes: `Automated extraction failed. Original content: ${text.substring(0, 500)}...`,
-    };
-  }
-}
-
-// ==============================================================================
-// AI PROCESSING FUNCTIONS - STAGE 2B: STATUS UPDATE EXTRACTION
-// ==============================================================================
-
-/**
- * AI prompt for order status update extraction
- */
-const STATUS_UPDATE_PARSING_PROMPT = `You are an expert at parsing shipping and return status emails from retailers.
-
-Your task is to analyze the provided email content and extract order status information. Return ONLY a valid JSON object with the following structure:
-
-{
-  "order_id": "string (required - order number, confirmation number, or return ID)",
-  "status": "string (required - current status like 'shipped', 'delivered', 'returned', 'refunded')",
-  "tracking_number": "string (optional - tracking/reference number if provided)",
-  "estimated_delivery": "string (optional - delivery date in YYYY-MM-DD format)",
-  "notes": "string (optional - additional status details)"
-}
-
-Rules:
-- Extract the most specific order identifier available (order number, confirmation code, etc.)
-- For status, use clear terms like: 'shipped', 'delivered', 'out_for_delivery', 'returned', 'refunded', 'processing'
-- Only include fields where you have confidence in the data
-- Be conservative - don't guess if you're not confident about a field
-
-Email content to analyze:`;
-
-/**
- * Calls OpenAI to parse status update content
- */
-async function parseStatusUpdateWithAI(openai: OpenAI, subject: string, text: string): Promise<OrderStatusUpdate | null> {
-  try {
-    const emailContent = `Subject: ${subject}\n\nBody:\n${text}`;
-    
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: STATUS_UPDATE_PARSING_PROMPT
-        },
-        {
-          role: 'user',
-          content: emailContent
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 300,
-    });
-
-    const responseText = completion.choices[0]?.message?.content?.trim();
-    if (!responseText) {
-      throw new Error('No response from OpenAI status parsing');
-    }
-
-    const parsed = JSON.parse(responseText) as OrderStatusUpdate;
-    
-    if (!parsed.order_id || !parsed.status) {
-      throw new Error('Missing required fields in status update response');
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error('AI status parsing error:', error);
+    console.error('Service call error:', error);
     return null;
   }
 }
@@ -337,7 +150,7 @@ async function parseStatusUpdateWithAI(openai: OpenAI, subject: string, text: st
 // ==============================================================================
 
 /**
- * Validates and sanitizes AI-processed product data (existing function)
+ * Validates and sanitizes AI-processed product data
  */
 function validateAndSanitizeProductData(data: AIProcessedProduct, userId: string): Record<string, unknown> {
   const sanitized: Record<string, unknown> = {
@@ -403,8 +216,6 @@ async function createNewProduct(supabase: any, productData: AIProcessedProduct, 
  * Updates an existing product record with status information
  */
 async function updateExistingProduct(supabase: any, statusUpdate: OrderStatusUpdate, userId: string): Promise<{ id: string; product_name: string }> {
-  // First, find the product by order ID and user ID
-  // This assumes we store order IDs in a field like 'order_id' or 'notes'
   const { data: existingProducts, error: searchError } = await supabase
     .from('products')
     .select('id, product_name, notes')
@@ -420,15 +231,12 @@ async function updateExistingProduct(supabase: any, statusUpdate: OrderStatusUpd
     throw new Error(`No existing product found for order ID: ${statusUpdate.order_id}`);
   }
 
-  // Use the first match (most likely candidate)
   const targetProduct = existingProducts[0];
 
-  // Prepare update data with proper typing
   const updateData: ProductUpdateData = {
     updated_at: new Date().toISOString(),
   };
 
-  // Map status to appropriate fields
   switch (statusUpdate.status.toLowerCase()) {
     case 'shipped':
     case 'out_for_delivery':
@@ -459,15 +267,13 @@ async function updateExistingProduct(supabase: any, statusUpdate: OrderStatusUpd
       updateData.shipping_status = statusUpdate.status;
   }
 
-  // Add notes if provided
   if (statusUpdate.notes) {
     const existingNotes = (targetProduct.notes as string) || '';
     const newNote = `[${new Date().toISOString().split('T')[0]}] ${statusUpdate.notes}`;
     const combinedNotes = existingNotes ? `${existingNotes}\n${newNote}` : newNote;
-    updateData.notes = combinedNotes.substring(0, 1000); // Limit length
+    updateData.notes = combinedNotes.substring(0, 1000);
   }
 
-  // Update the product
   const { data, error } = await supabase
     .from('products')
     .update(updateData)
@@ -488,57 +294,43 @@ async function updateExistingProduct(supabase: any, statusUpdate: OrderStatusUpd
 // ==============================================================================
 
 /**
- * Background processing function with two-stage AI processing
+ * Background processing function
  */
-async function processEmailInBackground(openai: OpenAI, supabase: any, emailContent: ParsedEmailContent, userId: string): Promise<void> {
+async function processEmailInBackground(supabase: any, emailContent: ParsedEmailContent, userId: string, servicesUrl: string, apiKey: string): Promise<void> {
   try {
     console.log(`Processing email for user ${userId}: ${emailContent.subject}`);
 
-    // Stage 1: Classify Email Intent
-    const intentResult = await classifyEmailIntent(openai, emailContent.subject, emailContent.text);
+    // Call microservice to parse email
+    const parseResult = await parseEmailWithService(emailContent, servicesUrl, apiKey);
     
-    if (!intentResult) {
-      throw new Error('Failed to classify email intent');
+    if (!parseResult) {
+      throw new Error('Failed to parse email with service');
     }
 
-    console.log(`Email classified as: ${intentResult.intent}`);
+    console.log(`Email classified as: ${parseResult.intent}`);
 
-    // Stage 2: Process Based on Intent
     let result: { id: string; product_name: string };
 
-    switch (intentResult.intent) {
+    switch (parseResult.intent) {
       case 'PURCHASE':
-        // Extract product data and create new record
-        const productData = await parseReceiptWithAI(openai, emailContent.subject, emailContent.text);
-        if (!productData) {
-          throw new Error('Failed to extract product data');
-        }
+        const productData = parseResult.data as AIProcessedProduct;
         result = await createNewProduct(supabase, productData, userId);
         console.log(`Successfully created product ${result.id} for user ${userId}: ${result.product_name}`);
         break;
 
       case 'RETURN':
       case 'SHIPMENT_UPDATE':
-        // Extract status update and update existing record
-        const statusUpdate = await parseStatusUpdateWithAI(openai, emailContent.subject, emailContent.text);
-        if (!statusUpdate) {
-          throw new Error('Failed to extract status update data');
-        }
+        const statusUpdate = parseResult.data as OrderStatusUpdate;
         result = await updateExistingProduct(supabase, statusUpdate, userId);
         console.log(`Successfully updated product ${result.id} for user ${userId}: ${result.product_name}`);
         break;
 
       default:
-        throw new Error(`Unsupported email intent: ${intentResult.intent}`);
+        throw new Error(`Unsupported email intent: ${parseResult.intent}`);
     }
-
-    // TODO: Trigger Smart Pass push notification based on action type
-    // await sendPushNotification(userId, `Email processed: ${intentResult.intent}`);
 
   } catch (error) {
     console.error('Background processing error:', error);
-    // TODO: Log to error monitoring service (Sentry, etc.)
-    // TODO: Store failed processing attempts for retry
   }
 }
 
@@ -548,17 +340,13 @@ async function processEmailInBackground(openai: OpenAI, supabase: any, emailCont
 
 /**
  * POST handler for SendGrid inbound email webhook
- * 
- * Security: Protected by secret query parameter
- * Performance: Returns 200 immediately, processes in background
- * Error handling: Comprehensive logging and graceful failures
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
-    // Step 1: Initialize clients (moved from top-level)
-    const { WEBHOOK_SECRET, openai, supabase } = initializeClients();
+    // Step 1: Initialize clients
+    const { WEBHOOK_SECRET, SERVICES_URL, SERVICES_API_KEY, supabase } = initializeClients();
 
     // Step 2: Security Validation
     const { searchParams } = new URL(request.url);
@@ -619,7 +407,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.log(`Webhook processed successfully in ${responseTime}ms for user: ${userId}`);
 
     // Step 7: Process Email in Background (fire-and-forget)
-    processEmailInBackground(openai, supabase, emailContent, userId).catch(error => {
+    processEmailInBackground(supabase, emailContent, userId, SERVICES_URL, SERVICES_API_KEY).catch(error => {
       console.error('Background processing failed:', error);
     });
 
@@ -655,8 +443,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   return NextResponse.json(
     { 
       status: 'healthy', 
-      service: 'email-inbound-webhook-v2',
-      features: ['two-stage-ai-processing', 'intent-classification', 'status-updates'],
+      service: 'email-inbound-webhook-refactored',
       timestamp: new Date().toISOString()
     }, 
     { status: 200 }

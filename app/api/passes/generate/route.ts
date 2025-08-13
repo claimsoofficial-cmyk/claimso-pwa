@@ -1,24 +1,7 @@
 import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PKPass } from 'passkit-generator';
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-// ==============================================================================
-// CONFIGURATION & ENVIRONMENT VALIDATION
-// ==============================================================================
-
-const PASSKIT_CERT = process.env.PASSKIT_CERT;
-const PASSKIT_KEY = process.env.PASSKIT_KEY;
-const PASSKIT_KEY_PASSPHRASE = process.env.PASSKIT_KEY_PASSPHRASE;
-const WWDR_CERT = process.env.WWDR_CERT; // Apple's WWDR intermediate certificate
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Validate required environment variables
-if (!PASSKIT_CERT || !PASSKIT_KEY || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing required environment variables for pass generation');
-}
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
@@ -28,167 +11,29 @@ interface UserProfile {
   id: string;
   full_name: string | null;
   email: string;
+  productCount: number;
 }
 
-interface PassAssets {
-  passJson: PassTemplate;
-  iconBuffer: Buffer;
-  logoBuffer?: Buffer;
-  icon2xBuffer?: Buffer;
-  logo2xBuffer?: Buffer;
-}
+// ==============================================================================
+// CONFIGURATION & ENVIRONMENT VALIDATION
+// ==============================================================================
 
-interface PassTemplate {
-  formatVersion: number;
-  passTypeIdentifier: string;
-  teamIdentifier: string;
-  organizationName: string;
-  description: string;
-  logoText: string;
-  foregroundColor: string;
-  backgroundColor: string;
-  labelColor: string;
-  generic: {
-    primaryFields: PassField[];
-    secondaryFields: PassField[];
-    auxiliaryFields: PassField[];
-    backFields: PassField[];
-  };
-  barcodes: PassBarcode[];
-  locations: unknown[];
-  maxDistance: number;
-  relevantDate: string;
-  expirationDate: string;
-  serialNumber?: string;
-  [key: string]: unknown; // Index signature for PKPass compatibility
-}
+function getRequiredConfig() {
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const SERVICES_URL = process.env.SERVICES_URL;
+  const SERVICES_API_KEY = process.env.SERVICES_API_KEY;
 
-interface PassField {
-  key: string;
-  label: string;
-  value: string;
-}
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SERVICES_URL || !SERVICES_API_KEY) {
+    throw new Error('Missing required environment variables for pass generation');
+  }
 
-interface PassBarcode {
-  message: string;
-  format: string;
-  messageEncoding: string;
+  return { SUPABASE_URL, SUPABASE_ANON_KEY, SERVICES_URL, SERVICES_API_KEY };
 }
 
 // ==============================================================================
 // UTILITY FUNCTIONS
 // ==============================================================================
-
-/**
- * Loads pass template and assets from file system or environment
- */
-async function loadPassAssets(): Promise<PassAssets> {
-  try {
-    // Define the base pass template
-    const passJson: PassTemplate = {
-      formatVersion: 1,
-      passTypeIdentifier: process.env.PASS_TYPE_IDENTIFIER || 'pass.com.claimso.smartpass',
-      teamIdentifier: process.env.APPLE_TEAM_ID || 'YOUR_TEAM_ID',
-      organizationName: 'CLAIMSO',
-      description: 'CLAIMSO Smart Pass - Personal Warranty Assistant',
-      logoText: 'CLAIMSO',
-      foregroundColor: 'rgb(255, 255, 255)',
-      backgroundColor: 'rgb(37, 99, 235)', // Blue-600
-      labelColor: 'rgb(255, 255, 255)',
-      generic: {
-        primaryFields: [
-          {
-            key: 'title',
-            label: 'Smart Pass',
-            value: 'Personal Warranty Assistant'
-          }
-        ],
-        secondaryFields: [
-          {
-            key: 'status',
-            label: 'Status',
-            value: 'Active'
-          },
-          {
-            key: 'products',
-            label: 'Products Protected',
-            value: 'Loading...'
-          }
-        ],
-        auxiliaryFields: [
-          {
-            key: 'member-since',
-            label: 'Member Since',
-            value: new Date().getFullYear().toString()
-          }
-        ],
-        backFields: [
-          {
-            key: 'description',
-            label: 'About CLAIMSO Smart Pass',
-            value: 'Your personal warranty assistant that helps you track purchases, manage warranties, and file claims with confidence.'
-          },
-          {
-            key: 'features',
-            label: 'Features',
-            value: '• Real-time warranty notifications\n• Automatic receipt processing\n• Smart claim assistance\n• Universal product tracking'
-          },
-          {
-            key: 'support',
-            label: 'Support',
-            value: 'Need help? Visit claimso.com/support or email hello@claimso.com'
-          }
-        ]
-      },
-      barcodes: [
-        {
-          message: '', // Will be populated with user ID
-          format: 'PKBarcodeFormatQR',
-          messageEncoding: 'iso-8859-1'
-        }
-      ],
-      locations: [], // Could add relevant locations in the future
-      maxDistance: 1000,
-      relevantDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toISOString(), // Valid for 1 year
-      expirationDate: new Date(Date.now() + (2 * 365 * 24 * 60 * 60 * 1000)).toISOString(), // Expires in 2 years
-    };
-
-    // Load or generate icon (in production, these should be proper image files)
-    // For now, we'll create a simple SVG-based icon as fallback
-    const iconBuffer = await generateDefaultIcon();
-    
-    return {
-      passJson,
-      iconBuffer,
-      // Additional assets can be added here
-      // logoBuffer: await fs.promises.readFile(path.join(process.cwd(), 'assets/pass/logo.png')),
-      // icon2xBuffer: await fs.promises.readFile(path.join(process.cwd(), 'assets/pass/icon@2x.png')),
-    };
-  } catch (error) {
-    console.error('Error loading pass assets:', error);
-    throw new Error('Failed to load pass assets');
-  }
-}
-
-/**
- * Generates a simple default icon as a fallback
- * In production, this should be replaced with proper branded assets
- */
-async function generateDefaultIcon(): Promise<Buffer> {
-  // Simple SVG icon as base64 encoded PNG would be better in production
-  const svgIcon = `
-    <svg width="29" height="29" viewBox="0 0 29 29" xmlns="http://www.w3.org/2000/svg">
-      <rect width="29" height="29" rx="6" fill="#2563eb"/>
-      <path d="M14.5 7L19 11.5L14.5 16L10 11.5L14.5 7Z" fill="white"/>
-      <rect x="10" y="17" width="9" height="2" rx="1" fill="white"/>
-      <rect x="12" y="20" width="5" height="1.5" rx="0.75" fill="white"/>
-    </svg>
-  `;
-  
-  // In production, you'd convert SVG to PNG buffer or use actual PNG files
-  // For now, return the SVG as a buffer (this is a simplified approach)
-  return Buffer.from(svgIcon, 'utf-8');
-}
 
 /**
  * Gets user's product count for display on pass
@@ -208,6 +53,26 @@ async function getUserProductCount(userId: string, supabase: SupabaseClient): Pr
   }
 }
 
+/**
+ * Calls the microservice to generate Apple Wallet pass
+ */
+async function generatePassWithService(userProfile: UserProfile, servicesUrl: string, apiKey: string): Promise<Response> {
+  const response = await fetch(`${servicesUrl}/pass-generator`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(userProfile),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Service responded with status: ${response.status}`);
+  }
+
+  return response;
+}
+
 // ==============================================================================
 // MAIN API HANDLER
 // ==============================================================================
@@ -222,17 +87,15 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
-    // ==============================================================================
-    // AUTHENTICATION & USER VALIDATION
-    // ==============================================================================
+    // Step 1: Initialize configuration
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SERVICES_URL, SERVICES_API_KEY } = getRequiredConfig();
 
-    // Get cookies for session management
+    // Step 2: Set up Supabase client for authentication
     const cookieStore = await cookies();
 
-    // Create server-side Supabase client
     const supabase = createServerClient(
-      SUPABASE_URL!,
-      SUPABASE_ANON_KEY!,
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
       {
         cookies: {
           get(name: string) {
@@ -248,7 +111,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       }
     );
 
-    // Check for authenticated user session
+    // Step 3: Check for authenticated user session
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -259,7 +122,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Fetch user profile
+    // Step 4: Fetch user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, full_name')
@@ -274,93 +137,34 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Step 5: Get user's product count
+    const productCount = await getUserProductCount(profile.id, supabase);
+
     const userProfile: UserProfile = {
       id: profile.id,
       full_name: profile.full_name,
       email: user.email || '',
+      productCount
     };
 
     console.log(`Generating pass for user: ${userProfile.id}`);
 
-    // ==============================================================================
-    // PASS GENERATION
-    // ==============================================================================
-
-    // Load pass assets and template
-    const assets = await loadPassAssets();
+    // Step 6: Call microservice to generate pass
+    const passResponse = await generatePassWithService(userProfile, SERVICES_URL, SERVICES_API_KEY);
     
-    // Get user's product count for display
-    const productCount = await getUserProductCount(userProfile.id, supabase);
-
-    // Customize pass with user data
-    const customizedPassJson: PassTemplate = {
-      ...assets.passJson,
-      serialNumber: userProfile.id, // Use user ID as serial number
-      generic: {
-        ...assets.passJson.generic,
-        secondaryFields: [
-          ...assets.passJson.generic.secondaryFields.filter((field: PassField) => field.key !== 'products'),
-          {
-            key: 'products',
-            label: 'Products Protected',
-            value: productCount.toString()
-          }
-        ],
-        backFields: [
-          ...assets.passJson.generic.backFields,
-          {
-            key: 'user-info',
-            label: 'Vault Owner',
-            value: `${userProfile.full_name || 'User'}\n${userProfile.email}`
-          }
-        ]
-      },
-      barcodes: [
-        {
-          ...assets.passJson.barcodes[0],
-          message: userProfile.id // QR code contains user ID
-        }
-      ]
-    };
-
-    // Decode certificates from environment variables (base64 encoded)
-    const certificates = {
-      signerCert: Buffer.from(PASSKIT_CERT!, 'base64'),
-      signerKey: Buffer.from(PASSKIT_KEY!, 'base64'),
-      signerKeyPassphrase: PASSKIT_KEY_PASSPHRASE || '',
-      wwdr: WWDR_CERT ? Buffer.from(WWDR_CERT, 'base64') : '',
-    };
-
-    // Create the pass
-    const pass = new PKPass(
-      {
-        'icon.png': assets.iconBuffer,
-        // Add more assets as needed
-        ...(assets.logoBuffer && { 'logo.png': assets.logoBuffer }),
-        ...(assets.icon2xBuffer && { 'icon@2x.png': assets.icon2xBuffer }),
-        ...(assets.logo2xBuffer && { 'logo@2x.png': assets.logo2xBuffer }),
-      },
-      certificates,
-      customizedPassJson as Record<string, unknown>
-    );
-
-    // Generate the pass buffer
-    const passBuffer = pass.getAsBuffer();
+    // Step 7: Get pass data
+    const passBuffer = await passResponse.arrayBuffer();
 
     const processingTime = Date.now() - startTime;
     console.log(`Pass generated successfully in ${processingTime}ms for user: ${userProfile.id}`);
 
-    // ==============================================================================
-    // RESPONSE WITH PROPER HEADERS
-    // ==============================================================================
-
-    // Return the pass with proper headers for Apple Wallet
+    // Step 8: Return the pass with proper headers for Apple Wallet
     return new NextResponse(new Uint8Array(passBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.apple.pkpass',
         'Content-Disposition': 'attachment; filename="CLAIMSO-SmartPass.pkpass"',
-        'Content-Length': passBuffer.length.toString(),
+        'Content-Length': passBuffer.byteLength.toString(),
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
@@ -378,6 +182,17 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
         stack: error.stack,
         processingTime
       });
+    }
+
+    // Check if it's a service communication error
+    if (error instanceof Error && error.message.includes('Service responded with status:')) {
+      return NextResponse.json(
+        { 
+          error: 'Pass generation service temporarily unavailable',
+          message: 'Please try again later or contact support if the issue persists.'
+        },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
