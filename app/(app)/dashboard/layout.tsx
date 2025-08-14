@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import TopNavigation from '@/components/shared/TopNavigation';
-import Breadcrumbs from '@/components/shared/Breadcrumbs';
 
 
 export default async function AppLayout({
