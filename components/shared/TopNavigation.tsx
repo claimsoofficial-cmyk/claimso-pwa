@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import SearchBar from './SearchBar';
+import NotificationDropdown from './NotificationDropdown';
 
 interface TopNavigationProps {
   user: {
@@ -54,6 +55,8 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(stats?.notifications || 0);
 
   // Get user display information
   const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
@@ -134,18 +137,26 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
                    <div className="flex items-center gap-3">
 
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-              >
-                <Bell className="w-5 h-5" />
-                {stats?.notifications && stats.notifications > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-                    {stats.notifications > 9 ? '9+' : stats.notifications}
-                  </Badge>
-                )}
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadNotificationCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
+                      {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                    </Badge>
+                  )}
+                </Button>
+                
+                <NotificationDropdown
+                  isOpen={isNotificationDropdownOpen}
+                  onClose={() => setIsNotificationDropdownOpen(false)}
+                />
+              </div>
 
               {/* User Menu */}
               <div className="relative">
