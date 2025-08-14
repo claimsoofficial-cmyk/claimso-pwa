@@ -131,7 +131,8 @@ export default function ProductsPage() {
   };
 
   const getPrimaryImage = (product: Product) => {
-    return product.documents?.find(doc => 
+    const documents = product.documents || [];
+    return documents.find(doc => 
       doc.document_type === 'photo' && doc.is_primary
     )?.file_url;
   };

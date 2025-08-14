@@ -127,7 +127,8 @@ export default async function PublicProductSharePage({
 
   // Extract public-safe data
   const primaryWarranty = product.warranties?.[0];
-  const primaryImage = product.documents?.find(doc => 
+  const documents = product.documents || [];
+  const primaryImage = documents.find(doc => 
     doc.document_type === 'photo' && doc.is_primary
   );
 
