@@ -156,11 +156,14 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         console.error('Error fetching products:', error);
       } else {
         // Ensure warranties is always an array for each product
-        const processedProducts = (productsData || []).map(product => ({
-          ...product,
-          warranties: Array.isArray(product.warranties) ? product.warranties : [],
-          documents: Array.isArray(product.documents) ? product.documents : []
-        }));
+        const processedProducts = (productsData || []).map(product => {
+          console.log('Processing product:', product.product_name, 'warranties:', product.warranties);
+          return {
+            ...product,
+            warranties: Array.isArray(product.warranties) ? product.warranties : [],
+            documents: Array.isArray(product.documents) ? product.documents : []
+          };
+        });
         
         console.log('Processed products:', processedProducts.length);
         setProducts(processedProducts);
@@ -178,11 +181,13 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   // ==============================================================================
 
   const getWarrantyStatus = (product: Product) => {
-    const warranties = Array.isArray(product.warranties) ? product.warranties : [];
-    const activeWarranties = warranties.filter(w => {
-      if (!w || !w.warranty_end_date) return true;
-      return new Date(w.warranty_end_date) > new Date();
-    });
+    try {
+      console.log('getWarrantyStatus called for:', product.product_name, 'warranties:', product.warranties);
+      const warranties = Array.isArray(product.warranties) ? product.warranties : [];
+      const activeWarranties = warranties.filter(w => {
+        if (!w || !w.warranty_end_date) return true;
+        return new Date(w.warranty_end_date) > new Date();
+      });
 
     if (activeWarranties.length === 0) {
       return { label: 'No Warranty', color: 'gray' };
@@ -199,6 +204,10 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
     }
 
     return { label: 'Active', color: 'green' };
+    } catch (error) {
+      console.error('Error in getWarrantyStatus:', error);
+      return { label: 'Error', color: 'gray' };
+    }
   };
 
   const getDaysUntilExpiry = (product: Product) => {
