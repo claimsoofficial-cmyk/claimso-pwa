@@ -71,13 +71,13 @@ DECLARE
     serial_number TEXT;
     purchase_date DATE;
     warranty_count INTEGER;
-    user_id UUID;
+    current_user_id UUID;
     
 BEGIN
     -- Generate 1000+ sample products
     FOR i IN 1..1000 LOOP
         -- Randomly select user
-        user_id := CASE WHEN i % 2 = 0 THEN 
+        current_user_id := CASE WHEN i % 2 = 0 THEN 
             '00000000-0000-0000-0000-000000000001'::UUID 
         ELSE 
             '00000000-0000-0000-0000-000000000002'::UUID 
@@ -190,7 +190,7 @@ BEGIN
             affiliate_id
         ) VALUES (
             gen_random_uuid(),
-            user_id,
+            current_user_id,
             current_product_name,
             brand,
             category,
@@ -243,7 +243,7 @@ BEGIN
                 NOW()
             FROM products p 
             WHERE p.product_name = current_product_name 
-            AND p.user_id = user_id
+            AND p.user_id = current_user_id
             LIMIT 1;
         END IF;
         
@@ -275,20 +275,20 @@ SELECT
     gen_random_uuid(),
     p.id,
     p.purchase_date + INTERVAL '6 months',
-    CASE (i % 5)
+    CASE (ROW_NUMBER() OVER (ORDER BY p.id) % 5)
         WHEN 0 THEN 'routine'
         WHEN 1 THEN 'repair'
         WHEN 2 THEN 'upgrade'
         WHEN 3 THEN 'cleaning'
         ELSE 'inspection'
     END,
-    CASE (i % 3)
+    CASE (ROW_NUMBER() OVER (ORDER BY p.id) % 3)
         WHEN 0 THEN 'AutoCare Pro'
         WHEN 1 THEN 'QuickFix Mobile'
         ELSE 'Premium Service Center'
     END,
-    '(555) ' || LPAD((i % 999)::TEXT, 3, '0') || '-' || LPAD((i % 9999)::TEXT, 4, '0'),
-    50 + (i % 300),
+    '(555) ' || LPAD((ROW_NUMBER() OVER (ORDER BY p.id) % 999)::TEXT, 3, '0') || '-' || LPAD((ROW_NUMBER() OVER (ORDER BY p.id) % 9999)::TEXT, 4, '0'),
+    50 + (ROW_NUMBER() OVER (ORDER BY p.id) % 300),
     'USD',
     'Regular maintenance service for ' || p.product_name,
     p.purchase_date + INTERVAL '12 months',
@@ -296,7 +296,7 @@ SELECT
     NOW()
 FROM products p 
 WHERE p.category = 'Automotive' 
-AND i < 100;
+LIMIT 100;
 
 -- ==============================================================================
 -- SAMPLE USER CONNECTIONS
