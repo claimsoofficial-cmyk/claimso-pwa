@@ -30,6 +30,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types/common';
 import RetailerConnect from './RetailerConnect';
+import QuickCashModal from './QuickCashModal';
 
 interface LivingCardProps {
   className?: string;
@@ -48,6 +49,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isQuickCashModalOpen, setIsQuickCashModalOpen] = useState(false);
+  const [quickCashProduct, setQuickCashProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
 
@@ -233,7 +236,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   // ==============================================================================
 
   return (
-    <Card className={cn("w-full", className)}>
+    <div>
+      <Card className={cn("w-full", className)}>
                    <CardHeader>
                <div className="flex items-center justify-between mb-4">
                  <CardTitle className="flex items-center gap-2">
@@ -392,32 +396,45 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                         </div>
                       </div>
                       
-                      <div className="flex gap-2 mt-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `/products/${product.id}`;
-                          }}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle claim filing
-                          }}
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Claim
-                        </Button>
-                      </div>
+                                                   <div className="flex gap-2 mt-4">
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="flex-1"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   window.location.href = `/products/${product.id}`;
+                                 }}
+                               >
+                                 <Edit className="w-3 h-3 mr-1" />
+                                 Edit
+                               </Button>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="flex-1"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   // Handle claim filing
+                                 }}
+                               >
+                                 <FileText className="w-3 h-3 mr-1" />
+                                 Claim
+                               </Button>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="flex-1"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setQuickCashProduct(product);
+                                   setIsQuickCashModalOpen(true);
+                                 }}
+                               >
+                                 <DollarSign className="w-3 h-3 mr-1" />
+                                 Get Cash
+                               </Button>
+                             </div>
                     </CardContent>
                   </Card>
                 );
@@ -626,5 +643,16 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         </Tabs>
       </CardContent>
     </Card>
+
+    {/* Quick Cash Modal */}
+    <QuickCashModal
+      isOpen={isQuickCashModalOpen}
+      onClose={() => {
+        setIsQuickCashModalOpen(false);
+        setQuickCashProduct(null);
+      }}
+      product={quickCashProduct}
+    />
+  </div>
   );
 }
