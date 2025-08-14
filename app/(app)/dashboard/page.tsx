@@ -73,47 +73,50 @@ export default function DashboardPage() {
       }
 
       console.log('📦 Fetching products for user:', user.id);
-      // Fetch all products with warranties
-      const { data: productsData, error } = await supabase
+      
+      // First, fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select(`
-          *,
-          warranties (
-            id,
-            warranty_type,
-            warranty_start_date,
-            warranty_end_date,
-            warranty_duration_months,
-            coverage_details,
-            claim_process,
-            contact_info,
-            snapshot_data,
-            ai_confidence_score,
-            last_analyzed_at,
-            created_at,
-            updated_at
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_archived', false)
         .order('created_at', { ascending: false });
 
-      console.log('📊 Products query result:', { data: productsData?.length, error });
-
-      if (error) {
-        console.error('❌ Error fetching products:', error);
-        setError('Failed to fetch products: ' + error.message);
-      } else {
-              console.log('✅ Products fetched successfully:', productsData?.length);
-      
-      // Ensure warranties is always an array for each product
-      const sanitizedProducts = (productsData || []).map(product => ({
-        ...product,
-        warranties: Array.isArray(product.warranties) ? product.warranties : []
-      }));
-      
-      setProducts(sanitizedProducts);
+      if (productsError) {
+        console.error('❌ Error fetching products:', productsError);
+        setError('Failed to fetch products: ' + productsError.message);
+        return;
       }
+
+      console.log('✅ Products fetched successfully:', productsData?.length);
+
+      // Then, fetch warranties separately and merge them
+      const { data: warrantiesData, error: warrantiesError } = await supabase
+        .from('warranties')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (warrantiesError) {
+        console.error('❌ Error fetching warranties:', warrantiesError);
+      } else {
+        console.log('✅ Warranties fetched successfully:', warrantiesData?.length);
+      }
+
+      // Merge products with their warranties
+      const productsWithWarranties = (productsData || []).map(product => {
+        const productWarranties = (warrantiesData || []).filter(w => w.product_id === product.id);
+        return {
+          ...product,
+          warranties: productWarranties
+        };
+      });
+
+      console.log('📊 Final products with warranties:', productsWithWarranties.map(p => ({
+        name: p.product_name,
+        warranties: p.warranties.length
+      })));
+      
+      setProducts(productsWithWarranties);
     } catch (error) {
       console.error('💥 Exception in fetchProducts:', error);
       setError('Failed to fetch products: ' + (error as Error).message);
@@ -150,8 +153,23 @@ export default function DashboardPage() {
   const stats = {
     totalProducts: products.length,
     totalValue: products.reduce((sum, p) => sum + (p.purchase_price || 0), 0),
-    activeWarranties: 0, // Simplified for now
-    expiringWarranties: 0, // Simplified for now
+    activeWarranties: products.filter(p => {
+      if (!p.warranties || !Array.isArray(p.warranties)) return false;
+      return p.warranties.some(w => {
+        if (!w.warranty_end_date) return true;
+        return new Date(w.warranty_end_date) > new Date();
+      });
+    }).length,
+    expiringWarranties: products.filter(p => {
+      if (!p.warranties || !Array.isArray(p.warranties)) return false;
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      return p.warranties.some(w => {
+        if (!w.warranty_end_date) return false;
+        const endDate = new Date(w.warranty_end_date);
+        return endDate > new Date() && endDate <= thirtyDaysFromNow;
+      });
+    }).length,
     connectedRetailers: userConnections.filter(c => c.status === 'connected').length
   };
 
@@ -220,6 +238,57 @@ export default function DashboardPage() {
 
     initializeData();
   }, [fetchUserData, fetchProducts, fetchUserConnections]);
+
+  // Real-time updates
+  useEffect(() => {
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Subscribe to products changes
+      const productsSubscription = supabase
+        .channel('products-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('🔄 Products changed, refreshing...');
+            fetchProducts();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to warranties changes
+      const warrantiesSubscription = supabase
+        .channel('warranties-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'warranties',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('🔄 Warranties changed, refreshing...');
+            fetchProducts();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        productsSubscription.unsubscribe();
+        warrantiesSubscription.unsubscribe();
+      };
+    };
+
+    setupRealtime();
+  }, [supabase, fetchProducts]);
 
   // ==============================================================================
   // ERROR STATE
