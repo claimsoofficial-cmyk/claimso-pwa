@@ -56,5 +56,12 @@ WHERE table_name = 'products'
 AND column_name IN ('payment_method', 'purchase_location', 'retailer_url', 'affiliate_id')
 ORDER BY column_name;
 
--- Show table structure
-\d products;
+-- Show all columns in products table
+SELECT 
+    column_name, 
+    data_type, 
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_name = 'products' 
+ORDER BY ordinal_position;
