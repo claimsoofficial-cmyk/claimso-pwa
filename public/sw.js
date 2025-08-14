@@ -1,15 +1,14 @@
 // Service Worker for Claimso PWA
-const CACHE_NAME = 'claimso-v1.0.0';
-const STATIC_CACHE = 'claimso-static-v1.0.0';
-const DYNAMIC_CACHE = 'claimso-dynamic-v1.0.0';
+const CACHE_VERSION = 'v2.0.0';
+const CACHE_NAME = `claimso-${CACHE_VERSION}`;
+const STATIC_CACHE = `claimso-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `claimso-dynamic-${CACHE_VERSION}`;
 
 // Files to cache immediately
 const STATIC_FILES = [
   '/',
   '/dashboard',
   '/products',
-  '/warranties',
-  '/analytics',
   '/settings/account',
   '/manifest.json',
   '/offline.html'
@@ -51,7 +50,8 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            // Delete all old caches that don't match current version
+            if (!cacheName.includes(CACHE_VERSION)) {
               console.log('Service Worker: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
@@ -59,7 +59,7 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('Service Worker: Activated');
+        console.log('Service Worker: Activated with version', CACHE_VERSION);
         return self.clients.claim();
       })
   );
@@ -128,16 +128,10 @@ async function handleApiRequest(request) {
   }
 }
 
-// Handle navigation requests with cache-first strategy
+// Handle navigation requests with network-first strategy for fresh content
 async function handleNavigationRequest(request) {
   try {
-    // Try cache first
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Fallback to network
+    // Try network first for fresh content
     const networkResponse = await fetch(request);
     
     // Cache successful responses
@@ -148,7 +142,13 @@ async function handleNavigationRequest(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('Service Worker: Navigation failed, showing offline page', error);
+    console.log('Service Worker: Network failed, trying cache', error);
+    
+    // Fallback to cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
     
     // Show offline page
     const offlineResponse = await caches.match('/offline.html');
