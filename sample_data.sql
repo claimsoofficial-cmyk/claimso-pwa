@@ -209,11 +209,12 @@ BEGIN
             'claimso-' || (i % 20 + 1)
         );
         
-        -- Add warranties for some products
+        -- Add warranties for some products (only if no warranty exists)
         IF warranty_count > 0 THEN
             INSERT INTO warranties (
                 id,
                 product_id,
+                user_id,
                 warranty_start_date,
                 warranty_end_date,
                 warranty_duration_months,
@@ -227,6 +228,7 @@ BEGIN
             SELECT 
                 gen_random_uuid(),
                 p.id,
+                p.user_id,
                 p.purchase_date,
                 p.purchase_date + INTERVAL '1 year',
                 12,
@@ -244,6 +246,9 @@ BEGIN
             FROM products p 
             WHERE p.product_name = current_product_name 
             AND p.user_id = current_user_id
+            AND NOT EXISTS (
+                SELECT 1 FROM warranties w WHERE w.product_id = p.id
+            )
             LIMIT 1;
         END IF;
         
@@ -325,18 +330,18 @@ ON CONFLICT (user_id, retailer) DO NOTHING;
 -- Check the data
 SELECT 
     'Total Products' as metric,
-    COUNT(*) as count
+    COUNT(*)::TEXT as count
 FROM products
 UNION ALL
 SELECT 
     'Products by Category' as metric,
-    category || ': ' || COUNT(*) as count
+    category || ': ' || COUNT(*)::TEXT as count
 FROM products 
 GROUP BY category
 UNION ALL
 SELECT 
     'Products by Brand' as metric,
-    brand || ': ' || COUNT(*) as count
+    brand || ': ' || COUNT(*)::TEXT as count
 FROM products 
 GROUP BY brand
 ORDER BY metric, count DESC;
