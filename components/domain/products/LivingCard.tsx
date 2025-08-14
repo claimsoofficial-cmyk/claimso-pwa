@@ -25,13 +25,16 @@ import {
   Filter,
   Search,
   SortAsc,
-  SortDesc
+  SortDesc,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types/common';
 import RetailerConnect from './RetailerConnect';
 import QuickCashModal from './QuickCashModal';
 import ClaimFilingModal from './ClaimFilingModal';
+import WarrantyDatabaseModal from './WarrantyDatabaseModal';
+import ResolutionFlow from '../resolution/ResolutionFlow';
 
 interface LivingCardProps {
   className?: string;
@@ -54,6 +57,10 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [quickCashProduct, setQuickCashProduct] = useState<Product | null>(null);
   const [isClaimFilingModalOpen, setIsClaimFilingModalOpen] = useState(false);
   const [claimFilingProduct, setClaimFilingProduct] = useState<Product | null>(null);
+  const [isWarrantyDatabaseModalOpen, setIsWarrantyDatabaseModalOpen] = useState(false);
+  const [warrantyDatabaseProduct, setWarrantyDatabaseProduct] = useState<Product | null>(null);
+  const [isResolutionFlowOpen, setIsResolutionFlowOpen] = useState(false);
+  const [resolutionFlowProduct, setResolutionFlowProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
 
@@ -438,6 +445,32 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                                  <DollarSign className="w-3 h-3 mr-1" />
                                  Get Cash
                                </Button>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="flex-1"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setWarrantyDatabaseProduct(product);
+                                   setIsWarrantyDatabaseModalOpen(true);
+                                 }}
+                               >
+                                 <Shield className="w-3 h-3 mr-1" />
+                                 Warranty
+                               </Button>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="flex-1"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setResolutionFlowProduct(product);
+                                   setIsResolutionFlowOpen(true);
+                                 }}
+                               >
+                                 <HelpCircle className="w-3 h-3 mr-1" />
+                                 Need Help?
+                               </Button>
                              </div>
                     </CardContent>
                   </Card>
@@ -666,6 +699,26 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         setClaimFilingProduct(null);
       }}
       product={claimFilingProduct}
+    />
+
+    {/* Warranty Database Modal */}
+    <WarrantyDatabaseModal
+      isOpen={isWarrantyDatabaseModalOpen}
+      onClose={() => {
+        setIsWarrantyDatabaseModalOpen(false);
+        setWarrantyDatabaseProduct(null);
+      }}
+      product={warrantyDatabaseProduct}
+    />
+
+    {/* Resolution Flow Modal */}
+    <ResolutionFlow
+      isOpen={isResolutionFlowOpen}
+      onClose={() => {
+        setIsResolutionFlowOpen(false);
+        setResolutionFlowProduct(null);
+      }}
+      product={resolutionFlowProduct}
     />
   </div>
   );

@@ -11,9 +11,10 @@ import LivingCard from '@/components/domain/products/LivingCard';
 import ResolutionFlow from '@/components/domain/resolution/ResolutionFlow';
 import CallAssistant from '@/components/domain/resolution/CallAssistant';
 import EditProductModal from '@/components/domain/products/EditProductModal';
+import type { Product, Document } from '@/lib/types/common';
 
-// Base Product interface that accommodates all component requirements
-interface Product {
+// Local product interface for component compatibility
+interface LocalProduct {
   id: string;
   name: string;
   category?: string;
@@ -26,6 +27,7 @@ interface Product {
   retailer?: string;
   price?: number;
   warranties?: Record<string, unknown>[];
+  documents?: Record<string, unknown>[];
   // Additional fields for component compatibility
   user_id?: string;
   product_name?: string;
@@ -119,7 +121,7 @@ interface TriageResponse {
 }
 
 interface ResolutionManagerProps {
-  product: Product;
+  product: LocalProduct;
   onProductUpdate?: () => void;
 }
 
@@ -193,25 +195,45 @@ export default function ResolutionManager({
 
   // Create a compatible product object for ResolutionFlow
   const createResolutionFlowProduct = (): Product => ({
-    ...product,
+    id: product.id,
+    product_name: product.product_name || product.name || 'Unknown Product',
+    brand: product.brand || null,
+    category: product.category || null,
+    purchase_date: product.purchase_date || null,
+    purchase_price: product.purchase_price || product.price || null,
+    currency: product.currency || 'USD',
+    serial_number: product.serial_number || null,
+    condition: (product.condition as 'new' | 'used' | 'refurbished' | 'damaged') || 'used',
+    notes: product.notes || null,
+    created_at: product.created_at || new Date().toISOString(),
+    updated_at: product.updated_at,
     user_id: product.user_id || product.id,
-    product_name: product.product_name || product.name,
-    brand: product.brand || 'Unknown',
-    model: product.model || 'Unknown',
-    category: product.category || 'General',
-    serial_number: product.serial_number || undefined,
+    is_archived: product.is_archived || false,
+    warranties: product.warranties as Warranty[] | undefined,
+    documents: product.documents as Document[] | undefined,
   });
 
   // Create a compatible product object for EditProductModal
-  const createEditModalProduct = (): Product & { category: string } => ({
-    ...product,
-    // Ensure category is required (not optional) for EditProductModal
+  const createEditModalProduct = () => ({
+    id: product.id,
+    name: product.product_name || product.name || 'Unknown Product',
     category: product.category || 'General',
-    user_id: product.user_id || product.id,
-    product_name: product.product_name || product.name,
-    brand: product.brand || 'Unknown',
-    model: product.model || 'Unknown',
-    serial_number: product.serial_number || undefined,
+    serial_number: product.serial_number,
+    order_number: product.order_number,
+    notes: product.notes,
+  });
+
+  // Create a compatible product object for CallAssistant
+  const createCallAssistantProduct = () => ({
+    id: product.id,
+    name: product.product_name || product.name || 'Unknown Product',
+    brand: product.brand,
+    serial_number: product.serial_number,
+    purchase_date: product.purchase_date,
+    order_number: product.order_number,
+    retailer: product.retailer,
+    imageUrl: product.product_image_url,
+    category: product.category,
   });
 
   // Handle "I have a problem" click from LivingCard
@@ -345,7 +367,7 @@ export default function ResolutionManager({
     
     return (
       <CallAssistant 
-        product={createResolutionFlowProduct()}
+        product={createCallAssistantProduct()}
         problemDescription={resolutionData.problemDescription}
       />
     );

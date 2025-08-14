@@ -1,259 +1,434 @@
-'use client'
-import Image from 'next/image'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Wrench, 
-  AlertTriangle, 
-  MonitorSpeaker, 
-  HelpCircle,
-  ArrowRight 
-} from 'lucide-react'
+'use client';
 
-// TypeScript interfaces
-interface Product {
-  id: string
-  name: string
-  imageUrl?: string
-  brand?: string
-  category?: string
-}
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  HelpCircle, 
+  Wrench, 
+  DollarSign, 
+  Phone, 
+  MessageCircle, 
+  FileText,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Shield,
+  Zap,
+  TrendingUp,
+  Settings,
+  ExternalLink
+} from 'lucide-react';
+import { toast } from 'sonner';
+import type { Product } from '@/lib/types/common';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ResolutionFlowProps {
-  product: Product
-  onComplete?: (issueType: IssueType, description: string) => void
-  onCancel?: () => void
+  isOpen?: boolean;
+  onClose?: () => void;
+  product: Product | null;
+  onComplete?: (issueType: string, description: string) => void;
+  onCancel?: () => void;
 }
 
-type FlowStep = 'select_issue_type' | 'describe_problem'
-
-type IssueType = 'hardware_malfunction' | 'physical_damage' | 'software_issue' | 'other'
-
-interface IssueTypeOption {
-  type: IssueType
-  label: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
+interface ResolutionOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  category: 'hardware' | 'software' | 'warranty' | 'cash' | 'support';
+  priority: 'low' | 'medium' | 'high';
+  estimatedTime: string;
+  cost: string;
+  action: () => void;
 }
 
-export default function ResolutionFlow({ product, onComplete, onCancel }: ResolutionFlowProps) {
-  const [currentStep, setCurrentStep] = useState<FlowStep>('select_issue_type')
-  const [selectedIssueType, setSelectedIssueType] = useState<IssueType | null>(null)
-  const [problemDescription, setProblemDescription] = useState('')
+export default function ResolutionFlow({ isOpen, onClose, product, onComplete, onCancel }: ResolutionFlowProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<ResolutionOption | null>(null);
+  const [issueType, setIssueType] = useState<string>('');
+  const [problemDescription, setProblemDescription] = useState<string>('');
 
-  // Issue type options with icons and descriptions
-  const issueTypeOptions: IssueTypeOption[] = [
+  const resolutionOptions: ResolutionOption[] = [
     {
-      type: 'hardware_malfunction',
-      label: 'Hardware Malfunction',
-      description: 'Device not working as expected',
-      icon: Wrench,
-      color: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-800'
+      id: 'hardware-repair',
+      title: 'Hardware Problem',
+      description: 'Screen, battery, camera, or other physical issues',
+      icon: <Wrench className="w-5 h-5" />,
+      category: 'hardware',
+      priority: 'high',
+      estimatedTime: '1-3 days',
+      cost: '$50-300',
+      action: () => {
+        toast.success('Opening hardware repair options...');
+        // Navigate to claim filing or warranty database
+        window.location.href = '/dashboard';
+      }
     },
     {
-      type: 'physical_damage',
-      label: 'Physical Damage',
-      description: 'Cracks, dents, or visible damage',
-      icon: AlertTriangle,
-      color: 'bg-red-50 hover:bg-red-100 border-red-200 text-red-800'
+      id: 'software-issue',
+      title: 'Software Problem',
+      description: 'Apps, updates, performance, or system issues',
+      icon: <Settings className="w-5 h-5" />,
+      category: 'software',
+      priority: 'medium',
+      estimatedTime: '30 min - 2 hours',
+      cost: '$0-50',
+      action: () => {
+        toast.success('Opening software troubleshooting...');
+        // Show software troubleshooting steps
+      }
     },
     {
-      type: 'software_issue',
-      label: 'Software Issue',
-      description: 'App crashes, freezing, or updates',
-      icon: MonitorSpeaker,
-      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-800'
+      id: 'warranty-claim',
+      title: 'Warranty Claim',
+      description: 'File a warranty claim or check coverage',
+      icon: <Shield className="w-5 h-5" />,
+      category: 'warranty',
+      priority: 'high',
+      estimatedTime: '5-7 days',
+      cost: '$0',
+      action: () => {
+        toast.success('Opening warranty claim...');
+        // Navigate to claim filing
+        window.location.href = '/dashboard';
+      }
     },
     {
-      type: 'other',
-      label: 'Other',
-      description: 'Something else not listed above',
-      icon: HelpCircle,
-      color: 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
+      id: 'get-cash',
+      title: 'Get Cash for Device',
+      description: 'Sell or trade-in your device for cash',
+      icon: <DollarSign className="w-5 h-5" />,
+      category: 'cash',
+      priority: 'low',
+      estimatedTime: '1-3 days',
+      cost: 'Get $100-500',
+      action: () => {
+        toast.success('Opening cash offers...');
+        // Navigate to Quick Cash
+        window.location.href = '/dashboard';
+      }
+    },
+    {
+      id: 'upgrade-opportunity',
+      title: 'Upgrade Opportunity',
+      description: 'Check for upgrade deals and trade-in offers',
+      icon: <TrendingUp className="w-5 h-5" />,
+      category: 'cash',
+      priority: 'low',
+      estimatedTime: '1-2 days',
+      cost: 'Save $200-800',
+      action: () => {
+        toast.success('Opening upgrade options...');
+        // Show upgrade opportunities
+      }
+    },
+    {
+      id: 'expert-support',
+      title: 'Talk to Expert',
+      description: 'Get personalized help from our support team',
+      icon: <Phone className="w-5 h-5" />,
+      category: 'support',
+      priority: 'medium',
+      estimatedTime: '15-30 min',
+      cost: '$0',
+      action: () => {
+        toast.success('Connecting you to support...');
+        // Open support chat or call
+        window.open('tel:1-800-CLAIMSO', '_blank');
+      }
+    },
+    {
+      id: 'live-chat',
+      title: 'Live Chat Support',
+      description: 'Chat with our support team in real-time',
+      icon: <MessageCircle className="w-5 h-5" />,
+      category: 'support',
+      priority: 'medium',
+      estimatedTime: '5-15 min',
+      cost: '$0',
+      action: () => {
+        toast.success('Opening live chat...');
+        // Open chat widget
+        window.open('https://claimso.com/support', '_blank');
+      }
+    },
+    {
+      id: 'self-help',
+      title: 'Self-Help Resources',
+      description: 'Browse troubleshooting guides and FAQs',
+      icon: <FileText className="w-5 h-5" />,
+      category: 'software',
+      priority: 'low',
+      estimatedTime: '10-30 min',
+      cost: '$0',
+      action: () => {
+        toast.success('Opening help resources...');
+        // Navigate to help center
+        window.open('https://help.claimso.com', '_blank');
+      }
     }
-  ]
+  ];
 
-  // Handle issue type selection
-  const handleIssueTypeSelect = (issueType: IssueType) => {
-    setSelectedIssueType(issueType)
-    setCurrentStep('describe_problem')
-  }
+  const categories = [
+    { id: 'hardware', name: 'Hardware Issues', icon: <Wrench className="w-4 h-4" />, color: 'bg-red-100 text-red-800' },
+    { id: 'software', name: 'Software Issues', icon: <Settings className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800' },
+    { id: 'warranty', name: 'Warranty & Claims', icon: <Shield className="w-4 h-4" />, color: 'bg-green-100 text-green-800' },
+    { id: 'cash', name: 'Cash & Upgrades', icon: <DollarSign className="w-4 h-4" />, color: 'bg-yellow-100 text-yellow-800' },
+    { id: 'support', name: 'Support & Help', icon: <Phone className="w-4 h-4" />, color: 'bg-purple-100 text-purple-800' }
+  ];
 
-  // Handle continue from description step
-  const handleContinue = () => {
-    if (selectedIssueType && problemDescription.trim()) {
-      onComplete?.(selectedIssueType, problemDescription.trim())
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
-  // Handle back navigation
-  const handleBack = () => {
-    if (currentStep === 'describe_problem') {
-      setCurrentStep('select_issue_type')
-      setProblemDescription('')
-    }
-  }
+  const handleOptionSelect = (option: ResolutionOption) => {
+    setSelectedOption(option);
+    option.action();
+    setTimeout(() => onClose?.(), 1000);
+  };
+
+  const filteredOptions = selectedCategory 
+    ? resolutionOptions.filter(option => option.category === selectedCategory)
+    : resolutionOptions;
+
+  if (!product) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Product Context Header */}
-      <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        {product.imageUrl ? (
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-white shadow-sm flex-shrink-0">
-            <Image src={product.imageUrl} alt={product.name} width={200} height={150}/>
-          </div>
-        ) : (
-          <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
-            <MonitorSpeaker className="w-8 h-8 text-gray-400" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
-          {product.brand && (
-            <p className="text-sm text-gray-600">{product.brand}</p>
-          )}
-          {product.category && (
-            <Badge variant="secondary" className="mt-1">
-              {product.category}
-            </Badge>
-          )}
-        </div>
-      </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HelpCircle className="w-6 h-6 text-blue-600" />
+            How can we help?
+          </DialogTitle>
+        </DialogHeader>
 
-      {/* Step 1: Issue Type Selection */}
-      {currentStep === 'select_issue_type' && (
         <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">
-              What kind of issue are you having?
-            </h2>
-            <p className="text-gray-600">
-              Select the option that best describes your problem
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {issueTypeOptions.map((option) => {
-              const IconComponent = option.icon
-              return (
-                <Button
-                  key={option.type}
-                  variant="outline"
-                  size="lg"
-                  onClick={() => handleIssueTypeSelect(option.type)}
-                  className={`h-auto p-4 justify-start text-left transition-all duration-200 ${option.color}`}
-                >
-                  <div className="flex items-center gap-4 w-full">
-                    <IconComponent className="w-6 h-6 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-sm opacity-80 mt-1">
-                        {option.description}
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 flex-shrink-0 opacity-60" />
-                  </div>
-                </Button>
-              )
-            })}
-          </div>
-
-          {/* Cancel Button */}
-          {onCancel && (
-            <div className="flex justify-center pt-4">
-              <Button 
-                variant="ghost" 
-                onClick={onCancel}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 2: Problem Description */}
-      {currentStep === 'describe_problem' && selectedIssueType && (
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Tell us more about the problem
-            </h2>
-            <p className="text-gray-600">
-              Please describe the issue in one clear sentence
-            </p>
-            
-            {/* Show selected issue type */}
-            <div className="inline-flex items-center gap-2 mt-3">
-              <Badge variant="outline" className="bg-blue-50 text-blue-800">
-                {issueTypeOptions.find(opt => opt.type === selectedIssueType)?.label}
-              </Badge>
-            </div>
-          </div>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <label 
-                  htmlFor="problem-description"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Problem Description
-                </label>
-                <Textarea
-                  id="problem-description"
-                  placeholder="For example: The screen is flickering when I turn it on..."
-                  value={problemDescription}
-                  onChange={(e) => setProblemDescription(e.target.value)}
-                  className="min-h-[100px] resize-none"
-                  maxLength={500}
-                />
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>Be as specific as possible</span>
-                  <span>{problemDescription.length}/500</span>
+          {/* Product Info */}
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-900">
+                    {product.product_name}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {product.brand} • {product.category}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">What&apos;s the issue?</p>
+                  <p className="text-sm font-medium">Choose an option below</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-between">
-            <Button 
-              variant="outline" 
-              onClick={handleBack}
-              className="flex-1"
-            >
-              Back
-            </Button>
-            <Button 
-              onClick={handleContinue}
-              disabled={!problemDescription.trim()}
-              className="flex-1"
-            >
-              Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+          {/* Issue Form - Only show when onComplete is provided */}
+          {onComplete && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="issueType" className="text-sm font-medium">
+                      What type of issue are you experiencing?
+                    </Label>
+                    <select
+                      id="issueType"
+                      value={issueType}
+                      onChange={(e) => setIssueType(e.target.value)}
+                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select an issue type...</option>
+                      <option value="hardware_malfunction">Hardware Malfunction</option>
+                      <option value="physical_damage">Physical Damage</option>
+                      <option value="software_issue">Software Issue</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="problemDescription" className="text-sm font-medium">
+                      Describe the problem in detail
+                    </Label>
+                    <textarea
+                      id="problemDescription"
+                      value={problemDescription}
+                      onChange={(e) => setProblemDescription(e.target.value)}
+                      rows={3}
+                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Please describe what's happening with your device..."
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        if (issueType && problemDescription.trim()) {
+                          onComplete(issueType, problemDescription.trim());
+                        } else {
+                          toast.error('Please fill in all required fields');
+                        }
+                      }}
+                      disabled={!issueType || !problemDescription.trim()}
+                    >
+                      Submit Issue
+                    </Button>
+                    {onCancel && (
+                      <Button variant="outline" onClick={onCancel}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Category Filter */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Filter by Category</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={!selectedCategory ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+              >
+                All Options
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className="flex items-center gap-2"
+                >
+                  {category.icon}
+                  {category.name}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          {/* Cancel Option */}
-          {onCancel && (
-            <div className="flex justify-center">
-              <Button 
-                variant="ghost" 
-                onClick={onCancel}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </Button>
+          {/* Resolution Options */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">
+              {selectedCategory 
+                ? `${categories.find(c => c.id === selectedCategory)?.name} (${filteredOptions.length})`
+                : `All Resolution Options (${filteredOptions.length})`
+              }
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredOptions.map((option) => (
+                <Card 
+                  key={option.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => handleOptionSelect(option)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        {option.icon}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-semibold text-gray-900">{option.title}</h4>
+                          <Badge className={getPriorityColor(option.priority)}>
+                            {option.priority}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-3">
+                          {option.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-3 h-3" />
+                            <span>{option.estimatedTime}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-3 h-3" />
+                            <span>{option.cost}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* Quick Actions */}
+          <Card className="bg-gray-50">
+            <CardContent className="p-4">
+              <h4 className="font-semibold mb-3">Quick Actions</h4>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    toast.success('Opening warranty database...');
+                    onClose?.();
+                  }}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Check Warranty
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    toast.success('Opening cash offers...');
+                    onClose?.();
+                  }}
+                >
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Get Cash Offers
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    toast.success('Opening claim filing...');
+                    onClose?.();
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  File Claim
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    window.open('tel:1-800-CLAIMSO', '_blank');
+                    onClose?.();
+                  }}
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Call Support
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      )}
-    </div>
-  )
+      </DialogContent>
+    </Dialog>
+  );
 }
