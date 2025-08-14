@@ -245,6 +245,7 @@ export default function LivingCard({ className = '', products: passedProducts }:
   };
 
   const handleFilterChange = (filter: FilterType) => {
+    console.log('handleFilterChange called with filter:', filter, 'products count:', products.length);
     setActiveFilter(filter);
     let filtered = [...products];
     
@@ -265,6 +266,7 @@ export default function LivingCard({ className = '', products: passedProducts }:
         filtered = products;
     }
     
+    console.log('Filtered products count:', filtered.length);
     setFilteredProducts(filtered);
   };
 
@@ -405,6 +407,7 @@ export default function LivingCard({ className = '', products: passedProducts }:
   useEffect(() => {
     if (passedProducts && passedProducts.length > 0) {
       console.log('Using passed products:', passedProducts.length);
+      console.log('Passed products:', passedProducts.map(p => p.product_name));
       setProducts(passedProducts);
       setFilteredProducts(passedProducts);
       setIsLoading(false);
@@ -442,6 +445,8 @@ export default function LivingCard({ className = '', products: passedProducts }:
   }
 
   const analyticsData = getAnalyticsData();
+  
+  console.log('LivingCard render - products:', products.length, 'filteredProducts:', filteredProducts.length, 'isLoading:', isLoading);
 
   return (
       <Card className={cn("w-full", className)}>
