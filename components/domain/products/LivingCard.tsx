@@ -47,16 +47,17 @@ import ResolutionFlow from '../resolution/ResolutionFlow';
 
 interface LivingCardProps {
   className?: string;
+  products?: Product[];
 }
 
 type FilterType = 'all' | 'active-warranties' | 'expiring-soon' | 'expired' | 'no-warranty';
 type SortType = 'name' | 'date' | 'value' | 'warranty';
 
-export default function LivingCard({ className = '' }: LivingCardProps) {
+export default function LivingCard({ className = '', products: passedProducts }: LivingCardProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!passedProducts || passedProducts.length === 0);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -402,8 +403,15 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   // ==============================================================================
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    if (passedProducts && passedProducts.length > 0) {
+      console.log('Using passed products:', passedProducts.length);
+      setProducts(passedProducts);
+      setFilteredProducts(passedProducts);
+      setIsLoading(false);
+    } else {
+      fetchProducts();
+    }
+  }, [fetchProducts, passedProducts]);
 
   useEffect(() => {
     handleSort(sortBy);

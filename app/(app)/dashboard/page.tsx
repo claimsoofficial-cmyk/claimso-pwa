@@ -416,7 +416,7 @@ export default function DashboardPage() {
               }}
             />
           ) : (
-            <LivingCard />
+            <LivingCard products={products} />
           )}
         </CardContent>
       </Card>
