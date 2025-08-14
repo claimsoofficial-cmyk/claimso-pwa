@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types/common';
+import RetailerConnect from './RetailerConnect';
 
 interface LivingCardProps {
   className?: string;
@@ -38,6 +39,7 @@ type FilterType = 'all' | 'active-warranties' | 'expiring-soon' | 'expired' | 'n
 type SortType = 'name' | 'date' | 'value' | 'warranty';
 
 export default function LivingCard({ className = '' }: LivingCardProps) {
+  const [userId, setUserId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +59,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      setUserId(user.id);
 
       const { data: productsData, error } = await supabase
         .from('products')
@@ -236,14 +240,23 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                    <Package className="w-5 h-5 text-blue-600" />
                    Product Vault
                  </CardTitle>
-                 <Button
-                   variant="gradient"
-                   size="sm"
-                   onClick={() => window.location.href = '/products/add'}
-                 >
-                   <Plus className="w-4 h-4 mr-2" />
-                   Add Product
-                 </Button>
+                 <div className="flex items-center gap-2">
+                   <RetailerConnect 
+                     userId={userId || undefined}
+                     onProductsImported={(count) => {
+                       // Refresh products after import
+                       fetchProducts();
+                     }} 
+                   />
+                   <Button
+                     variant="gradient"
+                     size="sm"
+                     onClick={() => window.location.href = '/products/add'}
+                   >
+                     <Plus className="w-4 h-4 mr-2" />
+                     Add Product
+                   </Button>
+                 </div>
                </div>
                
                {/* Search and Filters Row */}
