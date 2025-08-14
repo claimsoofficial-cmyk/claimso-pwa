@@ -1,356 +1,171 @@
 -- ==============================================================================
--- CLAIMSO SAMPLE DATA SCRIPT FOR SUPABASE
+-- COMPREHENSIVE SAMPLE DATA FOR CLAIMSO DASHBOARD
 -- ==============================================================================
--- This script creates 1000+ sample products across various categories
--- Run this in your Supabase SQL editor to populate your database
+-- This script creates realistic sample data with various warranty scenarios
 
--- First, let's create some sample users if they don't exist
-INSERT INTO auth.users (id, email, created_at, updated_at)
-VALUES 
-  ('00000000-0000-0000-0000-000000000001', 'demo@claimso.com', NOW(), NOW()),
-  ('00000000-0000-0000-0000-000000000002', 'test@claimso.com', NOW(), NOW())
-ON CONFLICT (id) DO NOTHING;
+-- Clear existing data for user
+DELETE FROM warranties WHERE user_id = '5cbd0756-963e-4777-96d7-629edf66e0ca';
+DELETE FROM products WHERE user_id = '5cbd0756-963e-4777-96d7-629edf66e0ca';
 
 -- ==============================================================================
--- SAMPLE PRODUCTS DATA
+-- ELECTRONICS (High-value items with various warranty scenarios)
 -- ==============================================================================
 
--- Clear existing sample data (optional - comment out if you want to keep existing data)
--- DELETE FROM products WHERE user_id IN ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002');
+-- iPhone 15 Pro (Active warranty, expiring soon)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-iphone-15-pro', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'iPhone 15 Pro', 'Apple', 'Electronics', '2024-01-15', 999.00, 'USD', 'IP15P123456789', 'new', '256GB, Natural Titanium', NOW(), NOW(), false, 'credit_card', 'Apple Store');
 
--- Sample data arrays for generating varied products
-DO $$
-DECLARE
-    -- Car brands and models
-    car_brands TEXT[] := ARRAY['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Tesla', 'Nissan', 'Hyundai', 'Kia', 'Volkswagen', 'Chevrolet', 'Dodge', 'Jeep', 'Subaru'];
-    car_models TEXT[] := ARRAY['Camry', 'Civic', 'F-150', '3 Series', 'C-Class', 'A4', 'Model 3', 'Altima', 'Sonata', 'Optima', 'Golf', 'Malibu', 'Charger', 'Wrangler', 'Outback'];
-    
-    -- Car parts
-    car_parts TEXT[] := ARRAY['Brake Pads', 'Oil Filter', 'Air Filter', 'Spark Plugs', 'Battery', 'Tires', 'Windshield Wipers', 'Headlights', 'Taillights', 'Mirrors', 'Seat Covers', 'Floor Mats', 'Steering Wheel', 'Gear Shift', 'Dashboard'];
-    
-    -- Phone brands and models
-    phone_brands TEXT[] := ARRAY['Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Huawei', 'Sony', 'LG', 'Motorola', 'Nokia', 'ASUS', 'OPPO', 'Vivo', 'Realme', 'Nothing'];
-    phone_models TEXT[] := ARRAY['iPhone 15 Pro', 'Galaxy S24', 'Pixel 8', 'OnePlus 12', 'Redmi Note 13', 'P50 Pro', 'Xperia 1 V', 'G8 ThinQ', 'Edge 40', 'G50', 'ROG Phone 8', 'Find X7', 'X100 Pro', 'GT Neo 5', 'Phone 2'];
-    
-    -- Clothing brands and items
-    clothing_brands TEXT[] := ARRAY['Nike', 'Adidas', 'Under Armour', 'Puma', 'Reebok', 'New Balance', 'Converse', 'Vans', 'Levi''s', 'Gap', 'H&M', 'Zara', 'Uniqlo', 'Lululemon', 'Patagonia'];
-    clothing_items TEXT[] := ARRAY['T-Shirt', 'Hoodie', 'Sweatshirt', 'Jeans', 'Shorts', 'Jacket', 'Sweater', 'Polo Shirt', 'Tank Top', 'Long Sleeve', 'Crop Top', 'Dress Shirt', 'Blazer', 'Cardigan', 'Windbreaker'];
-    
-    -- Electronics
-    electronics TEXT[] := ARRAY['Laptop', 'Tablet', 'Smartwatch', 'Headphones', 'Speaker', 'Camera', 'Gaming Console', 'TV', 'Monitor', 'Keyboard', 'Mouse', 'Webcam', 'Microphone', 'Router', 'Power Bank'];
-    electronics_brands TEXT[] := ARRAY['Apple', 'Samsung', 'Dell', 'HP', 'Lenovo', 'ASUS', 'Acer', 'Sony', 'LG', 'Bose', 'JBL', 'Canon', 'Nikon', 'Microsoft', 'Logitech'];
-    
-    -- Home & Garden
-    home_items TEXT[] := ARRAY['Coffee Maker', 'Blender', 'Toaster', 'Microwave', 'Refrigerator', 'Dishwasher', 'Washing Machine', 'Dryer', 'Vacuum Cleaner', 'Air Purifier', 'Fan', 'Heater', 'Garden Tools', 'Grill', 'Furniture'];
-    home_brands TEXT[] := ARRAY['KitchenAid', 'Ninja', 'Cuisinart', 'Breville', 'Samsung', 'LG', 'Whirlpool', 'Maytag', 'Dyson', 'Shark', 'Honeywell', 'DeLonghi', 'Black+Decker', 'Weber', 'IKEA'];
-    
-    -- Sports & Fitness
-    sports_items TEXT[] := ARRAY['Treadmill', 'Exercise Bike', 'Dumbbells', 'Yoga Mat', 'Resistance Bands', 'Foam Roller', 'Jump Rope', 'Medicine Ball', 'Kettlebell', 'Bench Press', 'Pull-up Bar', 'Tennis Racket', 'Golf Clubs', 'Basketball', 'Soccer Ball'];
-    sports_brands TEXT[] := ARRAY['Bowflex', 'Peloton', 'NordicTrack', 'Life Fitness', 'Precor', 'Concept2', 'Rogue Fitness', 'CAP Barbell', 'Lululemon', 'Manduka', 'TriggerPoint', 'Crossrope', 'Wilson', 'Callaway', 'Spalding'];
-    
-    -- Payment methods
-    payment_methods TEXT[] := ARRAY['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay', 'amazon_pay', 'cash', 'bank_transfer'];
-    
-    -- Retailers
-    retailers TEXT[] := ARRAY['Amazon', 'Best Buy', 'Walmart', 'Target', 'Home Depot', 'Lowes', 'Costco', 'Sam''s Club', 'Apple Store', 'Samsung Store', 'Nike Store', 'Adidas Store', 'Car Dealership', 'AutoZone', 'O''Reilly'];
-    
-    -- Conditions
-    conditions TEXT[] := ARRAY['new', 'used', 'refurbished', 'damaged'];
-    
-    -- Categories
-    categories TEXT[] := ARRAY['Automotive', 'Electronics', 'Clothing', 'Home & Garden', 'Sports & Fitness', 'Books', 'Toys', 'Health & Beauty', 'Food & Beverage', 'Tools'];
-    
-    i INTEGER;
-    current_product_name TEXT;
-    brand TEXT;
-    category TEXT;
-    purchase_price DECIMAL(10,2);
-    condition TEXT;
-    payment_method TEXT;
-    retailer TEXT;
-    serial_number TEXT;
-    purchase_date DATE;
-    warranty_count INTEGER;
-    current_user_id UUID;
-    
-BEGIN
-    -- Generate 1000+ sample products
-    FOR i IN 1..1000 LOOP
-        -- Use your specific user ID
-        current_user_id := '5cbd0756-963e-4777-96d7-629edf66e0ca'::UUID;
-        
-        -- Generate product based on category
-        CASE (i % 10)
-            WHEN 0 THEN -- Cars (10%)
-                brand := car_brands[1 + (i % array_length(car_brands, 1))];
-                current_product_name := brand || ' ' || car_models[1 + (i % array_length(car_models, 1))];
-                category := 'Automotive';
-                purchase_price := 15000 + (i % 50000);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 1 THEN -- Car Parts (10%)
-                brand := car_brands[1 + (i % array_length(car_brands, 1))];
-                current_product_name := brand || ' ' || car_parts[1 + (i % array_length(car_parts, 1))];
-                category := 'Automotive';
-                purchase_price := 50 + (i % 500);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 2 THEN -- Phones (10%)
-                brand := phone_brands[1 + (i % array_length(phone_brands, 1))];
-                current_product_name := brand || ' ' || phone_models[1 + (i % array_length(phone_models, 1))];
-                category := 'Electronics';
-                purchase_price := 500 + (i % 1500);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 3 THEN -- Clothing (10%)
-                brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
-                current_product_name := brand || ' ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
-                category := 'Clothing';
-                purchase_price := 20 + (i % 200);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 4 THEN -- Electronics (10%)
-                brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
-                current_product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))];
-                category := 'Electronics';
-                purchase_price := 100 + (i % 2000);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 5 THEN -- Home & Garden (10%)
-                brand := home_brands[1 + (i % array_length(home_brands, 1))];
-                current_product_name := brand || ' ' || home_items[1 + (i % array_length(home_items, 1))];
-                category := 'Home & Garden';
-                purchase_price := 50 + (i % 1000);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 6 THEN -- Sports & Fitness (10%)
-                brand := sports_brands[1 + (i % array_length(sports_brands, 1))];
-                current_product_name := brand || ' ' || sports_items[1 + (i % array_length(sports_items, 1))];
-                category := 'Sports & Fitness';
-                purchase_price := 30 + (i % 800);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 7 THEN -- Mixed Electronics (10%)
-                brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
-                current_product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))] || ' Pro';
-                category := 'Electronics';
-                purchase_price := 200 + (i % 3000);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            WHEN 8 THEN -- Premium Clothing (10%)
-                brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
-                current_product_name := brand || ' Premium ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
-                category := 'Clothing';
-                purchase_price := 50 + (i % 300);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-                
-            ELSE -- Mixed Categories (10%)
-                brand := CASE (i % 4)
-                    WHEN 0 THEN car_brands[1 + (i % array_length(car_brands, 1))]
-                    WHEN 1 THEN phone_brands[1 + (i % array_length(phone_brands, 1))]
-                    WHEN 2 THEN clothing_brands[1 + (i % array_length(clothing_brands, 1))]
-                    ELSE electronics_brands[1 + (i % array_length(electronics_brands, 1))]
-                END;
-                current_product_name := brand || ' Special Edition Product ' || i;
-                category := categories[1 + (i % array_length(categories, 1))];
-                purchase_price := 25 + (i % 1000);
-                condition := conditions[1 + (i % array_length(conditions, 1))];
-        END CASE;
-        
-        -- Generate other random data
-        payment_method := payment_methods[1 + (i % array_length(payment_methods, 1))];
-        retailer := retailers[1 + (i % array_length(retailers, 1))];
-        serial_number := 'SN' || LPAD(i::TEXT, 6, '0') || '-' || brand;
-        purchase_date := CURRENT_DATE - INTERVAL '1 day' * (i % 365);
-        warranty_count := (i % 3) + 1;
-        
-        -- Insert the product
-        INSERT INTO products (
-            id,
-            user_id,
-            product_name,
-            brand,
-            category,
-            purchase_date,
-            purchase_price,
-            currency,
-            serial_number,
-            condition,
-            notes,
-            created_at,
-            updated_at,
-            is_archived,
-            payment_method,
-            purchase_location,
-            retailer_url,
-            affiliate_id
-        ) VALUES (
-            gen_random_uuid(),
-            current_user_id,
-            current_product_name,
-            brand,
-            category,
-            purchase_date,
-            purchase_price,
-            'USD',
-            serial_number,
-            condition,
-            'Sample product for testing - ' || current_product_name,
-            NOW() - INTERVAL '1 day' * (i % 30),
-            NOW(),
-            FALSE,
-            payment_method,
-            retailer,
-            'https://www.' || LOWER(REPLACE(retailer, ' ', '')) || '.com',
-            'claimso-' || (i % 20 + 1)
-        );
-        
-        -- Add warranties for some products (only if no warranty exists)
-        IF warranty_count > 0 THEN
-            INSERT INTO warranties (
-                id,
-                product_id,
-                user_id,
-                warranty_start_date,
-                warranty_end_date,
-                warranty_duration_months,
-                warranty_type,
-                coverage_details,
-                claim_process,
-                contact_info,
-                created_at,
-                updated_at
-            )
-            SELECT 
-                gen_random_uuid(),
-                p.id,
-                p.user_id,
-                p.purchase_date,
-                p.purchase_date + INTERVAL '1 year',
-                12,
-                CASE (i % 4)
-                    WHEN 0 THEN 'manufacturer'
-                    WHEN 1 THEN 'extended'
-                    WHEN 2 THEN 'store'
-                    ELSE 'insurance'
-                END,
-                'Standard warranty coverage for ' || p.product_name,
-                'Contact manufacturer or retailer for claims',
-                'support@' || LOWER(REPLACE(p.brand, ' ', '')) || '.com',
-                NOW(),
-                NOW()
-            FROM products p 
-            WHERE p.product_name = current_product_name 
-            AND p.user_id = current_user_id
-            AND NOT EXISTS (
-                SELECT 1 FROM warranties w WHERE w.product_id = p.id
-            )
-            LIMIT 1;
-        END IF;
-        
-    END LOOP;
-    
-    RAISE NOTICE 'Generated 1000 sample products successfully!';
-END $$;
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-iphone-15-pro-1', 'prod-iphone-15-pro', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'manufacturer', '2024-01-15', '2025-01-15', 12, 'Hardware defects, manufacturing issues', 'Contact Apple Support or visit Apple Store', '1-800-APL-CARE', '{"covers": ["Hardware defects", "Manufacturing issues"], "does_not_cover": ["Water damage", "Physical damage"], "key_terms": ["1 year limited warranty", "90 days phone support"]}', 0.95, NOW(), NOW(), NOW());
+
+-- MacBook Air M2 (Active warranty, long duration)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, new, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-macbook-air-m2', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'MacBook Air M2', 'Apple', 'Electronics', '2023-06-10', 1199.00, 'USD', 'MBA-M2-987654321', 'new', '13-inch, 8GB RAM, 256GB SSD', NOW(), NOW(), false, 'apple_pay', 'Apple Store');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-macbook-air-m2-1', 'prod-macbook-air-m2', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'manufacturer', '2023-06-10', '2025-06-10', 24, 'Hardware defects, battery issues', 'Contact Apple Support or visit Apple Store', '1-800-APL-CARE', '{"covers": ["Hardware defects", "Battery issues"], "does_not_cover": ["Accidental damage", "Software issues"], "key_terms": ["2 year limited warranty"]}', 0.95, NOW(), NOW(), NOW());
+
+-- Samsung TV (Expired warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-samsung-tv-65', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Samsung 65" QLED 4K TV', 'Samsung', 'Electronics', '2022-03-20', 1299.00, 'USD', 'SAM-TV-65-456789', 'new', '65-inch, QLED, 4K resolution', NOW(), NOW(), false, 'credit_card', 'Best Buy');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-samsung-tv-65-1', 'prod-samsung-tv-65', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'manufacturer', '2022-03-20', '2023-03-20', 12, 'Hardware defects, panel issues', 'Contact Samsung Support', '1-800-SAMSUNG', '{"covers": ["Hardware defects", "Panel issues"], "does_not_cover": ["Physical damage", "Burn-in"], "key_terms": ["1 year limited warranty"]}', 0.90, NOW(), NOW(), NOW());
+
+-- Sony Headphones (No warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-sony-headphones', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Sony WH-1000XM5 Headphones', 'Sony', 'Electronics', '2024-02-28', 349.99, 'USD', 'SONY-WH-1000XM5-123', 'new', 'Wireless noise-canceling headphones', NOW(), NOW(), false, 'debit_card', 'Amazon');
 
 -- ==============================================================================
--- SAMPLE MAINTENANCE RECORDS
+-- HOME & GARDEN (Mixed warranty scenarios)
 -- ==============================================================================
 
--- Add some maintenance records for automotive products
-INSERT INTO maintenance_records (
-    id,
-    product_id,
-    service_date,
-    service_type,
-    provider_name,
-    provider_contact,
-    cost,
-    currency,
-    description,
-    next_service_date,
-    created_at,
-    updated_at
-)
-SELECT 
-    gen_random_uuid(),
-    p.id,
-    p.purchase_date + INTERVAL '6 months',
-    CASE (ROW_NUMBER() OVER (ORDER BY p.id) % 5)
-        WHEN 0 THEN 'routine'
-        WHEN 1 THEN 'repair'
-        WHEN 2 THEN 'upgrade'
-        WHEN 3 THEN 'cleaning'
-        ELSE 'inspection'
-    END,
-    CASE (ROW_NUMBER() OVER (ORDER BY p.id) % 3)
-        WHEN 0 THEN 'AutoCare Pro'
-        WHEN 1 THEN 'QuickFix Mobile'
-        ELSE 'Premium Service Center'
-    END,
-    '(555) ' || LPAD((ROW_NUMBER() OVER (ORDER BY p.id) % 999)::TEXT, 3, '0') || '-' || LPAD((ROW_NUMBER() OVER (ORDER BY p.id) % 9999)::TEXT, 4, '0'),
-    50 + (ROW_NUMBER() OVER (ORDER BY p.id) % 300),
-    'USD',
-    'Regular maintenance service for ' || p.product_name,
-    p.purchase_date + INTERVAL '12 months',
-    NOW(),
-    NOW()
-FROM products p 
-WHERE p.category = 'Automotive' 
-LIMIT 100;
+-- Dyson Vacuum (Extended warranty, expiring soon)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-dyson-vacuum', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Dyson V15 Detect', 'Dyson', 'Home & Garden', '2023-08-15', 699.99, 'USD', 'DYSON-V15-789456', 'new', 'Cordless vacuum with laser detection', NOW(), NOW(), false, 'credit_card', 'Target');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-dyson-vacuum-1', 'prod-dyson-vacuum', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'extended', '2023-08-15', '2024-11-15', 15, 'Parts and labor, motor coverage', 'Contact Dyson Support', '1-866-DYSON-US', '{"covers": ["Parts and labor", "Motor coverage"], "does_not_cover": ["Normal wear and tear", "Battery"], "key_terms": ["Extended warranty", "15 months coverage"]}', 0.88, NOW(), NOW(), NOW());
+
+-- KitchenAid Mixer (Store warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-kitchenaid-mixer', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'KitchenAid Stand Mixer', 'KitchenAid', 'Home & Garden', '2023-12-01', 449.99, 'USD', 'KA-MIXER-456123', 'new', 'Professional 5-quart stand mixer, red', NOW(), NOW(), false, 'credit_card', 'Williams-Sonoma');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-kitchenaid-mixer-1', 'prod-kitchenaid-mixer', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'store', '2023-12-01', '2024-12-01', 12, 'Parts and labor, motor coverage', 'Contact Williams-Sonoma', '1-877-812-6235', '{"covers": ["Parts and labor", "Motor coverage"], "does_not_cover": ["Normal wear and tear", "Attachments"], "key_terms": ["Store warranty", "1 year coverage"]}', 0.85, NOW(), NOW(), NOW());
+
+-- Tide Laundry Detergent (No warranty - consumable)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-tide-detergent', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Tide Original Laundry Detergent', 'Tide', 'Home & Garden', '2024-01-10', 12.99, 'USD', NULL, 'new', '150 oz bottle, original scent', NOW(), NOW(), false, 'cash', 'Walmart');
 
 -- ==============================================================================
--- SAMPLE USER CONNECTIONS
+-- CLOTHING & ACCESSORIES (Various scenarios)
 -- ==============================================================================
 
-INSERT INTO user_connections (
-    user_id,
-    retailer,
-    status,
-    last_synced_at,
-    created_at,
-    updated_at
-)
-VALUES 
-    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'amazon', 'connected', NOW(), NOW(), NOW()),
-    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'best buy', 'connected', NOW(), NOW(), NOW()),
-    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'walmart', 'connected', NOW(), NOW(), NOW()),
-    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'target', 'connected', NOW(), NOW(), NOW()),
-    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'apple', 'connected', NOW(), NOW(), NOW())
-ON CONFLICT (user_id, retailer) DO NOTHING;
+-- Nike Running Shoes (No warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-nike-shoes', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Nike Air Zoom Pegasus 40', 'Nike', 'Clothing & Accessories', '2024-02-15', 129.99, 'USD', NULL, 'new', 'Running shoes, size 10, blue', NOW(), NOW(), false, 'credit_card', 'Nike Store');
+
+-- Gold Chain (High value, no warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-gold-chain', '5cbd0756-963e-4777-96d7-629edf66e0ca', '18K Gold Chain Necklace', 'Generic', 'Clothing & Accessories', '2023-11-20', 2500.00, 'USD', 'GC-18K-789123', 'new', '24-inch chain, 18K gold, 5mm width', NOW(), NOW(), false, 'bank_transfer', 'Local Jewelry Store');
 
 -- ==============================================================================
--- VERIFICATION QUERIES
+-- AUTOMOTIVE (Insurance-based warranties)
 -- ==============================================================================
 
--- Check the data
-SELECT 
-    'Total Products' as metric,
-    COUNT(*)::TEXT as count
-FROM products
-UNION ALL
-SELECT 
-    'Products by Category' as metric,
-    category || ': ' || COUNT(*)::TEXT as count
-FROM products 
-GROUP BY category
-UNION ALL
-SELECT 
-    'Products by Brand' as metric,
-    brand || ': ' || COUNT(*)::TEXT as count
-FROM products 
-GROUP BY brand
-ORDER BY metric, count DESC;
+-- Car Battery (Insurance warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-car-battery', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Optima RedTop Battery', 'Optima', 'Automotive', '2023-09-05', 299.99, 'USD', 'OPT-RED-456789', 'new', 'Group 34/78, 800 CCA', NOW(), NOW(), false, 'credit_card', 'AutoZone');
 
--- Show sample products
-SELECT 
-    product_name,
-    brand,
-    category,
-    purchase_price,
-    condition,
-    payment_method,
-    purchase_location
-FROM products 
-ORDER BY created_at DESC 
-LIMIT 10;
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-car-battery-1', 'prod-car-battery', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'insurance', '2023-09-05', '2026-09-05', 36, 'Free replacement, pro-rated after 18 months', 'Return to AutoZone with receipt', '1-800-OPTIMA-1', '{"covers": ["Free replacement", "Pro-rated coverage"], "does_not_cover": ["Physical damage", "Improper installation"], "key_terms": ["3 year warranty", "18 months free replacement"]}', 0.92, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- SPORTS & OUTDOORS (Mixed scenarios)
+-- ==============================================================================
+
+-- Peloton Bike (Extended warranty, active)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-peloton-bike', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Peloton Bike+', 'Peloton', 'Sports & Outdoors', '2023-10-12', 2495.00, 'USD', 'PEL-BIKE-123456', 'new', 'Premium bike with rotating HD touchscreen', NOW(), NOW(), false, 'credit_card', 'Peloton');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-peloton-bike-1', 'prod-peloton-bike', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'extended', '2023-10-12', '2026-10-12', 36, 'Frame, electronics, and labor', 'Contact Peloton Support', '1-866-679-9129', '{"covers": ["Frame", "Electronics", "Labor"], "does_not_cover": ["Normal wear and tear", "Software issues"], "key_terms": ["3 year extended warranty"]}', 0.94, NOW(), NOW(), NOW());
+
+-- Yoga Mat (No warranty)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-yoga-mat', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Lululemon Reversible Mat', 'Lululemon', 'Sports & Outdoors', '2024-01-05', 98.00, 'USD', NULL, 'new', '5mm thick, reversible, black/charcoal', NOW(), NOW(), false, 'credit_card', 'Lululemon');
+
+-- ==============================================================================
+-- BOOKS & MEDIA (No warranty items)
+-- ==============================================================================
+
+-- Kindle Paperwhite (Manufacturer warranty, expired)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-kindle-paperwhite', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Kindle Paperwhite', 'Amazon', 'Books & Media', '2022-05-15', 139.99, 'USD', 'KINDLE-PW-789123', 'new', '8GB, waterproof, 6.8-inch display', NOW(), NOW(), false, 'amazon_pay', 'Amazon');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-kindle-paperwhite-1', 'prod-kindle-paperwhite', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'manufacturer', '2022-05-15', '2023-05-15', 12, 'Hardware defects, battery issues', 'Contact Amazon Support', '1-888-280-4331', '{"covers": ["Hardware defects", "Battery issues"], "does_not_cover": ["Physical damage", "Water damage"], "key_terms": ["1 year limited warranty"]}', 0.87, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- TOOLS & HARDWARE (Store warranties)
+-- ==============================================================================
+
+-- DeWalt Drill (Store warranty, active)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-dewalt-drill', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'DeWalt 20V Max Drill', 'DeWalt', 'Tools & Hardware', '2023-12-20', 199.99, 'USD', 'DEWALT-DRILL-456', 'new', '20V Max, 1.5Ah battery, charger included', NOW(), NOW(), false, 'credit_card', 'Home Depot');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-dewalt-drill-1', 'prod-dewalt-drill', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'store', '2023-12-20', '2024-12-20', 12, 'Parts and labor, battery coverage', 'Return to Home Depot with receipt', '1-800-HOME-DEPOT', '{"covers": ["Parts and labor", "Battery coverage"], "does_not_cover": ["Normal wear and tear", "Accessories"], "key_terms": ["1 year store warranty"]}', 0.89, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- BEAUTY & PERSONAL CARE (No warranty items)
+-- ==============================================================================
+
+-- Dyson Hair Dryer (Extended warranty, expiring soon)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-dyson-hair-dryer', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Dyson Supersonic Hair Dryer', 'Dyson', 'Beauty & Personal Care', '2023-07-08', 429.99, 'USD', 'DYSON-HAIR-789', 'new', 'Supersonic hair dryer with attachments', NOW(), NOW(), false, 'credit_card', 'Sephora');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-dyson-hair-dryer-1', 'prod-dyson-hair-dryer', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'extended', '2023-07-08', '2024-10-08', 15, 'Motor and electronics coverage', 'Contact Dyson Support', '1-866-DYSON-US', '{"covers": ["Motor", "Electronics"], "does_not_cover": ["Normal wear and tear", "Attachments"], "key_terms": ["15 month extended warranty"]}', 0.91, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- FOOD & BEVERAGES (Consumables, no warranty)
+-- ==============================================================================
+
+-- Coffee Beans (No warranty - consumable)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-coffee-beans', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Starbucks Pike Place Roast', 'Starbucks', 'Food & Beverages', '2024-02-01', 14.99, 'USD', NULL, 'new', '1lb whole bean coffee, medium roast', NOW(), NOW(), false, 'credit_card', 'Starbucks');
+
+-- ==============================================================================
+-- GAMING (Mixed warranty scenarios)
+-- ==============================================================================
+
+-- PlayStation 5 (Manufacturer warranty, active)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-ps5', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'PlayStation 5 Console', 'Sony', 'Gaming', '2023-11-15', 499.99, 'USD', 'PS5-CONSOLE-123', 'new', 'Disc version, 825GB SSD', NOW(), NOW(), false, 'credit_card', 'GameStop');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-ps5-1', 'prod-ps5', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'manufacturer', '2023-11-15', '2024-11-15', 12, 'Hardware defects, disc drive issues', 'Contact Sony Support', '1-800-345-SONY', '{"covers": ["Hardware defects", "Disc drive issues"], "does_not_cover": ["Physical damage", "Software issues"], "key_terms": ["1 year limited warranty"]}', 0.93, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- MUSICAL INSTRUMENTS (High value, extended warranty)
+-- ==============================================================================
+
+-- Gibson Guitar (Extended warranty, long duration)
+INSERT INTO products (id, user_id, product_name, brand, category, purchase_date, purchase_price, currency, serial_number, condition, notes, created_at, updated_at, is_archived, payment_method, purchase_location) VALUES
+('prod-gibson-guitar', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'Gibson Les Paul Standard', 'Gibson', 'Musical Instruments', '2023-05-20', 2499.00, 'USD', 'GIBSON-LP-789', 'new', 'Les Paul Standard, Heritage Cherry Sunburst', NOW(), NOW(), false, 'credit_card', 'Guitar Center');
+
+INSERT INTO warranties (id, product_id, user_id, warranty_type, warranty_start_date, warranty_end_date, warranty_duration_months, coverage_details, claim_process, contact_info, snapshot_data, ai_confidence_score, last_analyzed_at, created_at, updated_at) VALUES
+('warr-gibson-guitar-1', 'prod-gibson-guitar', '5cbd0756-963e-4777-96d7-629edf66e0ca', 'extended', '2023-05-20', '2026-05-20', 36, 'Lifetime warranty on neck and body', 'Contact Gibson Support', '1-800-4GIBSON', '{"covers": ["Lifetime neck and body", "Electronics"], "does_not_cover": ["Normal wear and tear", "String replacement"], "key_terms": ["Lifetime warranty", "3 year electronics"]}', 0.96, NOW(), NOW(), NOW());
+
+-- ==============================================================================
+-- SUMMARY OF SAMPLE DATA
+-- ==============================================================================
+-- Total Products: 20
+-- Categories: Electronics, Home & Garden, Clothing & Accessories, Automotive, Sports & Outdoors, Books & Media, Tools & Hardware, Beauty & Personal Care, Food & Beverages, Gaming, Musical Instruments
+-- Warranty Types: manufacturer, extended, store, insurance, none
+-- Price Range: $12.99 - $2,500.00
+-- Warranty Status: Active, Expiring Soon, Expired, No Warranty
+-- Payment Methods: credit_card, apple_pay, debit_card, cash, bank_transfer, amazon_pay
+-- Real-life Products: iPhone, MacBook, Samsung TV, Dyson products, KitchenAid, Tide, Nike shoes, Gold chain, Car battery, Peloton, Yoga mat, Kindle, DeWalt drill, PlayStation 5, Gibson guitar, etc.
