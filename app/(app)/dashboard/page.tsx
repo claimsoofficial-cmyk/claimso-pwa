@@ -256,6 +256,10 @@ export default function DashboardPage() {
       </Card>
 
       {/* Living Card - Unified Product Management */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border border-green-200">
+        <h2 className="text-lg font-bold text-green-800 mb-2">🎉 NEW REDESIGN DEPLOYED! 🎉</h2>
+        <p className="text-green-700">The app has been completely redesigned with a unified dashboard experience!</p>
+      </div>
       <LivingCard />
     </div>
   );
