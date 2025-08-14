@@ -473,8 +473,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
-            {/* Products Grid - Horizontal Scrollable */}
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {/* Products Grid - Large Feature Cards */}
+            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
               {filteredProducts.map((product) => {
                 const warrantyStatus = getWarrantyStatus(product);
                 const daysUntilExpiry = getDaysUntilExpiry(product);
@@ -482,203 +482,240 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 return (
                   <Card 
                     key={product.id} 
-                    className="cursor-pointer hover:shadow-md transition-all duration-200 border-l-4 min-w-[320px] flex-shrink-0"
-                    style={{ borderLeftColor: warrantyStatus.color === 'green' ? '#10b981' : 
-                           warrantyStatus.color === 'orange' ? '#f59e0b' : 
-                           warrantyStatus.color === 'red' ? '#ef4444' : '#6b7280' }}
+                    className="min-w-[450px] w-[450px] flex-shrink-0 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border-2 border-gray-100 hover:border-blue-200"
                     onClick={() => setSelectedProduct(product)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
+                    <CardContent className="p-6">
+                      {/* Product Header with Image */}
+                      <div className="flex items-start gap-4 mb-6">
+                        {/* Product Image Placeholder */}
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Package className="w-8 h-8 text-blue-600" />
+                        </div>
+                        
+                        {/* Product Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-tight">
                             {product.product_name}
                           </h3>
-                          <p className="text-sm text-gray-500">
-                            {product.brand} • {product.category}
-                          </p>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                            {product.brand && (
+                              <>
+                                <span className="font-semibold text-gray-700">{product.brand}</span>
+                                <span className="text-gray-400">•</span>
+                              </>
+                            )}
+                            <span className="capitalize">{product.category || 'General'}</span>
+                          </div>
+                          {product.purchase_date && (
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              Purchased {new Date(product.purchase_date).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </p>
+                          )}
                         </div>
+                        
+                        {/* Warranty Status Badge */}
                         <Badge 
-                          variant={warrantyStatus.color === 'green' ? 'default' : 
-                                  warrantyStatus.color === 'orange' ? 'secondary' : 
-                                  warrantyStatus.color === 'red' ? 'destructive' : 'outline'}
-                          className="text-xs"
+                          className={cn(
+                            "ml-2 px-3 py-1 text-sm font-medium",
+                            warrantyStatus.color === 'green' && "bg-green-100 text-green-800 border-green-200",
+                            warrantyStatus.color === 'orange' && "bg-orange-100 text-orange-800 border-orange-200",
+                            warrantyStatus.color === 'red' && "bg-red-100 text-red-800 border-red-200",
+                            warrantyStatus.color === 'gray' && "bg-gray-100 text-gray-800 border-gray-200"
+                          )}
                         >
                           {warrantyStatus.label}
                         </Badge>
                       </div>
                       
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Value:</span>
-                          <span className="font-medium">
-                            ${product.purchase_price?.toLocaleString() || '0'}
-                          </span>
+                      {/* Product Details Section */}
+                      <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          {product.purchase_price && (
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-4 h-4 text-green-600" />
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide">Purchase Price</p>
+                                <p className="font-bold text-lg text-gray-900">
+                                  ${product.purchase_price.toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.serial_number && (
+                            <div className="flex items-center gap-2">
+                              <Shield className="w-4 h-4 text-blue-600" />
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide">Serial Number</p>
+                                <p className="font-mono text-sm font-medium text-gray-700">
+                                  {product.serial_number}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.condition && (
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-purple-600" />
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide">Condition</p>
+                                <p className="text-sm font-medium capitalize text-gray-700">
+                                  {product.condition}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-orange-600" />
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wide">Warranties</p>
+                              <p className="font-bold text-lg text-gray-900">
+                                {product.warranties?.length || 0}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                         
                         {daysUntilExpiry !== null && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Warranty:</span>
-                            <span className={cn(
-                              "font-medium",
-                              daysUntilExpiry <= 7 ? "text-red-600" :
-                              daysUntilExpiry <= 30 ? "text-orange-600" : "text-green-600"
-                            )}>
-                              {daysUntilExpiry} days left
-                            </span>
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-orange-600" />
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide">Warranty Status</p>
+                                <p className={cn(
+                                  "font-bold text-lg",
+                                  daysUntilExpiry <= 7 ? "text-red-600" :
+                                  daysUntilExpiry <= 30 ? "text-orange-600" : "text-green-600"
+                                )}>
+                                  {daysUntilExpiry} days left
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         )}
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Warranties:</span>
-                          <span className="font-medium">
-                            {product.warranties?.length || 0}
-                          </span>
-                        </div>
                       </div>
                       
-                      {/* Action Buttons - Icon Only with Hover Descriptions */}
-                      <div className="flex flex-wrap gap-1 justify-center mt-4">
-                        {/* Edit */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `/products/${product.id}`;
-                          }}
-                          title="Edit Product"
-                        >
-                          <Edit className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Edit Product
-                          </div>
-                        </Button>
-
-                        {/* Claim */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setClaimFilingProduct(product);
-                            setIsClaimFilingModalOpen(true);
-                          }}
-                          title="File Claim"
-                        >
-                          <FileText className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            File Claim
-                          </div>
-                        </Button>
-
-                        {/* Get Cash - Green with shine effect */}
-                        <Button
-                          variant="default"
-                          size="icon"
-                          className="w-8 h-8 relative group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setQuickCashProduct(product);
-                            setIsQuickCashModalOpen(true);
-                          }}
-                          title="Get Cash Offer"
-                        >
-                          <DollarSign className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Get Cash Offer
-                          </div>
-                        </Button>
-
-                        {/* Warranty */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setWarrantyDatabaseProduct(product);
-                            setIsWarrantyDatabaseModalOpen(true);
-                          }}
-                          title="Warranty Info"
-                        >
-                          <Shield className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Warranty Info
-                          </div>
-                        </Button>
-
-                        {/* Maintenance */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMaintenanceProduct(product);
-                            setIsMaintenanceModalOpen(true);
-                          }}
-                          title="Maintenance & Service"
-                        >
-                          <Wrench className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Maintenance & Service
-                          </div>
-                        </Button>
-
-                        {/* Re-buy */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRebuy(product);
-                          }}
-                          title="Re-buy from Retailer"
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Re-buy from Retailer
-                          </div>
-                        </Button>
-
-                        {/* Calendar */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            downloadCalendar(product);
-                          }}
-                          title="Download Calendar"
-                        >
-                          <Calendar className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Download Calendar
-                          </div>
-                        </Button>
-
-                        {/* Help - Simplified */}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-8 h-8 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setResolutionFlowProduct(product);
-                            setIsResolutionFlowOpen(true);
-                          }}
-                          title="Get Help"
-                        >
-                          <HelpCircle className="w-4 h-4" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Get Help
-                          </div>
-                        </Button>
+                      {/* Action Buttons - Organized in Rows */}
+                      <div className="space-y-3">
+                        {/* Primary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10 relative group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/products/${product.id}`;
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10 relative group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setClaimFilingProduct(product);
+                              setIsClaimFilingModalOpen(true);
+                            }}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Claim
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1 h-10 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setQuickCashProduct(product);
+                              setIsQuickCashModalOpen(true);
+                            }}
+                          >
+                            <DollarSign className="w-4 h-4 mr-2" />
+                            Get Cash
+                          </Button>
+                        </div>
+                        
+                        {/* Secondary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWarrantyDatabaseProduct(product);
+                              setIsWarrantyDatabaseModalOpen(true);
+                            }}
+                          >
+                            <Shield className="w-4 h-4 mr-2" />
+                            Warranty
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMaintenanceProduct(product);
+                              setIsMaintenanceModalOpen(true);
+                            }}
+                          >
+                            <Wrench className="w-4 h-4 mr-2" />
+                            Maintain
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRebuy(product);
+                            }}
+                          >
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Re-buy
+                          </Button>
+                        </div>
+                        
+                        {/* Tertiary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadCalendar(product);
+                            }}
+                          >
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Calendar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setResolutionFlowProduct(product);
+                              setIsResolutionFlowOpen(true);
+                            }}
+                          >
+                            <HelpCircle className="w-4 h-4 mr-2" />
+                            Help
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
