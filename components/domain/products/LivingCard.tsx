@@ -412,50 +412,6 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
             <CardTitle>Your Products</CardTitle>
             <p className="text-sm text-gray-500">Manage your warranties and claims</p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
-            
-            <select
-              value={activeFilter}
-              onChange={(e) => handleFilterChange(e.target.value as FilterType)}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="all">All Products</option>
-              <option value="active-warranties">Active Warranties</option>
-              <option value="expiring-soon">Expiring Soon</option>
-              <option value="expired">Expired</option>
-              <option value="no-warranty">No Warranty</option>
-            </select>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortType)}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="date">Date Added</option>
-              <option value="name">Name</option>
-              <option value="value">Value</option>
-              <option value="warranty">Warranty Status</option>
-            </select>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            >
-              {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-            </Button>
-          </div>
         </div>
       </CardHeader>
       
@@ -473,6 +429,51 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
+            {/* Search and Filter Controls */}
+            <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 flex-1">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              </div>
+              
+              <select
+                value={activeFilter}
+                onChange={(e) => handleFilterChange(e.target.value as FilterType)}
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="all">All Products</option>
+                <option value="active-warranties">Active Warranties</option>
+                <option value="expiring-soon">Expiring Soon</option>
+                <option value="expired">Expired</option>
+                <option value="no-warranty">No Warranty</option>
+              </select>
+              
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortType)}
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="date">Date Added</option>
+                <option value="name">Name</option>
+                <option value="value">Value</option>
+                <option value="warranty">Warranty Status</option>
+              </select>
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+              </Button>
+            </div>
+            
             {/* Products Grid - Large Feature Cards */}
             <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
               {filteredProducts.map((product) => {
@@ -602,120 +603,148 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                         )}
                       </div>
                       
-                      {/* Action Buttons - Organized in Rows */}
-                      <div className="space-y-3">
-                        {/* Primary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10 relative group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.location.href = `/products/${product.id}`;
-                            }}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10 relative group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setClaimFilingProduct(product);
-                              setIsClaimFilingModalOpen(true);
-                            }}
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Claim
-                          </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="flex-1 h-10 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setQuickCashProduct(product);
-                              setIsQuickCashModalOpen(true);
-                            }}
-                          >
-                            <DollarSign className="w-4 h-4 mr-2" />
-                            Get Cash
-                          </Button>
-                        </div>
-                        
-                        {/* Secondary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setWarrantyDatabaseProduct(product);
-                              setIsWarrantyDatabaseModalOpen(true);
-                            }}
-                          >
-                            <Shield className="w-4 h-4 mr-2" />
-                            Warranty
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMaintenanceProduct(product);
-                              setIsMaintenanceModalOpen(true);
-                            }}
-                          >
-                            <Wrench className="w-4 h-4 mr-2" />
-                            Maintain
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRebuy(product);
-                            }}
-                          >
-                            <ShoppingCart className="w-4 h-4 mr-2" />
-                            Re-buy
-                          </Button>
-                        </div>
-                        
-                        {/* Tertiary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              downloadCalendar(product);
-                            }}
-                          >
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Calendar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setResolutionFlowProduct(product);
-                              setIsResolutionFlowOpen(true);
-                            }}
-                          >
-                            <HelpCircle className="w-4 h-4 mr-2" />
-                            Help
-                          </Button>
-                        </div>
+                      {/* Action Buttons - Icon Only with Hover Descriptions */}
+                      <div className="flex flex-wrap gap-2 justify-center mt-4">
+                        {/* Edit */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/products/${product.id}`;
+                          }}
+                          title="Edit Product"
+                        >
+                          <Edit className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Edit Product
+                          </div>
+                        </Button>
+
+                        {/* Claim */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClaimFilingProduct(product);
+                            setIsClaimFilingModalOpen(true);
+                          }}
+                          title="File Claim"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            File Claim
+                          </div>
+                        </Button>
+
+                        {/* Get Cash - Green with shine effect */}
+                        <Button
+                          variant="default"
+                          size="icon"
+                          className="w-10 h-10 relative group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQuickCashProduct(product);
+                            setIsQuickCashModalOpen(true);
+                          }}
+                          title="Get Cash Offer"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Get Cash Offer
+                          </div>
+                        </Button>
+
+                        {/* Warranty */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWarrantyDatabaseProduct(product);
+                            setIsWarrantyDatabaseModalOpen(true);
+                          }}
+                          title="Warranty Info"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Warranty Info
+                          </div>
+                        </Button>
+
+                        {/* Maintenance */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMaintenanceProduct(product);
+                            setIsMaintenanceModalOpen(true);
+                          }}
+                          title="Maintenance & Service"
+                        >
+                          <Wrench className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Maintenance & Service
+                          </div>
+                        </Button>
+
+                        {/* Re-buy */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRebuy(product);
+                          }}
+                          title="Re-buy from Retailer"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Re-buy from Retailer
+                          </div>
+                        </Button>
+
+                        {/* Calendar */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadCalendar(product);
+                          }}
+                          title="Download Calendar"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Download Calendar
+                          </div>
+                        </Button>
+
+                        {/* Help - Simplified */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-10 h-10 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setResolutionFlowProduct(product);
+                            setIsResolutionFlowOpen(true);
+                          }}
+                          title="Get Help"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Get Help
+                          </div>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
