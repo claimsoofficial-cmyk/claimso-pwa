@@ -44,7 +44,23 @@ export default function EmptyState({
   tips = [],
   showOnboarding = false
 }: EmptyStateProps) {
-  const getDefaultContent = () => {
+  const getDefaultContent = (): {
+    icon: React.ComponentType<{ className?: string }>;
+    defaultTitle: string;
+    defaultDescription: string;
+    defaultPrimaryAction: {
+      label: string;
+      href?: string;
+      onClick?: () => void;
+    };
+    defaultSecondaryActions: Array<{
+      label: string;
+      href?: string;
+      onClick?: () => void;
+      icon?: React.ComponentType<{ className?: string }>;
+    }>;
+    defaultTips: string[];
+  } => {
     switch (type) {
       case 'products':
         return {

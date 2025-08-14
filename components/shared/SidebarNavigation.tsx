@@ -354,7 +354,7 @@ function SidebarContent({
   profile: any;
   stats: any;
   displayName: string;
-  avatarUrl: string;
+  avatarUrl: string | undefined;
   userInitials: string;
   filteredNavigation: NavigationItem[];
   renderNavigationItem: (item: NavigationItem, level?: number) => React.ReactNode;

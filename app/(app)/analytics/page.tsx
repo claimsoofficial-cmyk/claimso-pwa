@@ -43,6 +43,8 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [warranties, setWarranties] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'1y' | '6m' | '3m' | '1m'>('1y');
 
@@ -58,7 +60,7 @@ export default function AnalyticsPage() {
       if (!user) return;
 
       // Fetch products with warranties
-      const { data: products, error: productsError } = await supabase
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
           *,
@@ -73,8 +75,15 @@ export default function AnalyticsPage() {
         return;
       }
 
+      // Extract warranties from products
+      const allWarranties = productsData?.flatMap(product => product.warranties || []) || [];
+
+      // Store products and warranties
+      setProducts(productsData || []);
+      setWarranties(allWarranties);
+
       // Calculate analytics
-      const data = calculateAnalytics(products || []);
+      const data = calculateAnalytics(productsData || []);
       setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);

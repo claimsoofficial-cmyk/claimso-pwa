@@ -25,7 +25,7 @@ class NotificationService {
   private isSupported: boolean;
 
   constructor() {
-    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    this.isSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
   }
 
   async initialize(): Promise<boolean> {
@@ -81,7 +81,7 @@ class NotificationService {
     try {
       const subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+        applicationServerKey: this.urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '') as any
       });
 
       console.log('Push subscription created:', subscription);
@@ -129,11 +129,8 @@ class NotificationService {
         badge: data.badge || '/icons/badge-72x72.png',
         tag: data.tag,
         data: data.data,
-        actions: data.actions,
         requireInteraction: false,
-        silent: false,
-        vibrate: [100, 50, 100],
-        timestamp: Date.now()
+        silent: false
       });
     } catch (error) {
       console.error('Failed to show notification:', error);
