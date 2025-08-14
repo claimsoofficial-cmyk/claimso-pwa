@@ -256,7 +256,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
     setSortBy(sort);
     const sorted = [...filteredProducts].sort((a, b) => {
       let aValue: any, bValue: any;
-      
+
       switch (sort) {
         case 'name':
           aValue = a.product_name || '';
@@ -277,7 +277,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         default:
           return 0;
       }
-      
+
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -300,7 +300,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
       product.brand?.toLowerCase().includes(query.toLowerCase()) ||
       product.category?.toLowerCase().includes(query.toLowerCase())
     );
-    
+
     setFilteredProducts(filtered);
   };
 
@@ -399,11 +399,11 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   // ==============================================================================
 
   if (isLoading) {
-    return (
+  return (
       <Card className={cn("w-full", className)}>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+    <div>
               <CardTitle>Your Products</CardTitle>
               <p className="text-sm text-gray-500">Manage your warranties and claims</p>
             </div>
@@ -421,14 +421,14 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const analyticsData = getAnalyticsData();
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardHeader>
+      <Card className={cn("w-full", className)}>
+                   <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Your Products</CardTitle>
             <p className="text-sm text-gray-500">Manage your warranties and claims</p>
-          </div>
-        </div>
+                 </div>
+               </div>
       </CardHeader>
       
       <CardContent>
@@ -449,46 +449,46 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
             <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2 flex-1">
                 <Search className="w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
+                   <input
+                     type="text"
+                     placeholder="Search products..."
+                     value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-              </div>
-              
-              <select
-                value={activeFilter}
+                   />
+                 </div>
+                 
+                   <select
+                     value={activeFilter}
                 onChange={(e) => handleFilterChange(e.target.value as FilterType)}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              >
-                <option value="all">All Products</option>
-                <option value="active-warranties">Active Warranties</option>
-                <option value="expiring-soon">Expiring Soon</option>
-                <option value="expired">Expired</option>
-                <option value="no-warranty">No Warranty</option>
-              </select>
-              
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortType)}
+                   >
+                     <option value="all">All Products</option>
+                     <option value="active-warranties">Active Warranties</option>
+                     <option value="expiring-soon">Expiring Soon</option>
+                     <option value="expired">Expired</option>
+                     <option value="no-warranty">No Warranty</option>
+                   </select>
+                   
+                   <select
+                     value={sortBy}
+                     onChange={(e) => setSortBy(e.target.value as SortType)}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              >
-                <option value="date">Date Added</option>
-                <option value="name">Name</option>
-                <option value="value">Value</option>
-                <option value="warranty">Warranty Status</option>
-              </select>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              >
-                {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-              </Button>
-            </div>
+                   >
+                     <option value="date">Date Added</option>
+                     <option value="name">Name</option>
+                     <option value="value">Value</option>
+                     <option value="warranty">Warranty Status</option>
+                   </select>
+                   
+                   <Button
+                     variant="outline"
+                     size="icon"
+                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                   >
+                     {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                   </Button>
+                 </div>
             
             {/* Products Grid - Large Feature Cards */}
             <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
@@ -608,13 +608,13 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                                 <p className="text-xs text-gray-500 uppercase tracking-wide">Warranty Status</p>
                                 <p className={cn(
                                   "font-bold text-lg",
-                                  daysUntilExpiry <= 7 ? "text-red-600" :
-                                  daysUntilExpiry <= 30 ? "text-orange-600" : "text-green-600"
-                                )}>
-                                  {daysUntilExpiry} days left
+                              daysUntilExpiry <= 7 ? "text-red-600" :
+                              daysUntilExpiry <= 30 ? "text-orange-600" : "text-green-600"
+                            )}>
+                              {daysUntilExpiry} days left
                                 </p>
-                              </div>
-                            </div>
+                          </div>
+                        </div>
                           </div>
                         )}
                       </div>
@@ -622,79 +622,79 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                       {/* Action Buttons - Icon Only with Hover Descriptions */}
                       <div className="flex flex-wrap gap-2 justify-center mt-4">
                         {/* Edit */}
-                        <Button
-                          variant="outline"
+                               <Button
+                                 variant="outline"
                           size="icon"
                           className="w-10 h-10 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `/products/${product.id}`;
-                          }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   window.location.href = `/products/${product.id}`;
+                                 }}
                           title="Edit Product"
                         >
                           <Edit className="w-4 h-4" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                             Edit Product
                           </div>
-                        </Button>
+                               </Button>
 
                         {/* Claim */}
-                        <Button
-                          variant="outline"
+                               <Button
+                                 variant="outline"
                           size="icon"
                           className="w-10 h-10 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setClaimFilingProduct(product);
-                            setIsClaimFilingModalOpen(true);
-                          }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setClaimFilingProduct(product);
+                                   setIsClaimFilingModalOpen(true);
+                                 }}
                           title="File Claim"
                         >
                           <FileText className="w-4 h-4" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                             File Claim
                           </div>
-                        </Button>
+                               </Button>
 
                         {/* Get Cash - Green with shine effect */}
-                        <Button
+                               <Button
                           variant="default"
                           size="icon"
                           className="w-10 h-10 relative group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setQuickCashProduct(product);
-                            setIsQuickCashModalOpen(true);
-                          }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setQuickCashProduct(product);
+                                   setIsQuickCashModalOpen(true);
+                                 }}
                           title="Get Cash Offer"
                         >
                           <DollarSign className="w-4 h-4" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                             Get Cash Offer
                           </div>
-                        </Button>
+                               </Button>
 
                         {/* Warranty */}
-                        <Button
-                          variant="outline"
+                               <Button
+                                 variant="outline"
                           size="icon"
                           className="w-10 h-10 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setWarrantyDatabaseProduct(product);
-                            setIsWarrantyDatabaseModalOpen(true);
-                          }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setWarrantyDatabaseProduct(product);
+                                   setIsWarrantyDatabaseModalOpen(true);
+                                 }}
                           title="Warranty Info"
                         >
                           <Shield className="w-4 h-4" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                             Warranty Info
                           </div>
-                        </Button>
+                               </Button>
 
                         {/* Maintenance */}
-                        <Button
-                          variant="outline"
+                               <Button
+                                 variant="outline"
                           size="icon"
                           className="w-10 h-10 relative group"
                           onClick={(e) => {
@@ -749,19 +749,19 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                           variant="outline"
                           size="icon"
                           className="w-10 h-10 relative group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setResolutionFlowProduct(product);
-                            setIsResolutionFlowOpen(true);
-                          }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setResolutionFlowProduct(product);
+                                   setIsResolutionFlowOpen(true);
+                                 }}
                           title="Get Help"
                         >
                           <HelpCircle className="w-4 h-4" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                             Get Help
                           </div>
-                        </Button>
-                      </div>
+                               </Button>
+                             </div>
                     </CardContent>
                   </Card>
                 );
@@ -828,17 +828,17 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
               </Card>
               
               <Card>
-                <CardContent className="p-4">
+                    <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
                       <p className="text-2xl font-bold text-gray-900">{analyticsData.expiringWarranties}</p>
-                    </div>
+                      </div>
                     <AlertTriangle className="w-8 h-8 text-orange-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
+                      </div>
+                    </CardContent>
+                  </Card>
+
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -863,7 +863,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 </CardContent>
               </Card>
             </div>
-
+              
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -874,7 +874,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Active Warranties</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
@@ -882,7 +882,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                             className="bg-green-600 h-2 rounded-full" 
                             style={{ width: `${(analyticsData.activeWarranties / analyticsData.totalProducts) * 100}%` }}
                           ></div>
-                        </div>
+                    </div>
                         <span className="text-sm font-medium">{analyticsData.activeWarranties}</span>
                       </div>
                     </div>
@@ -952,7 +952,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                                   {method.replace('_', ' ')}
                                 </span>
                                 <span className="text-sm font-medium">${totalSpent.toLocaleString()}</span>
-                              </div>
+                    </div>
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                                   <div 
@@ -969,71 +969,71 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card>
-                <CardHeader>
+
+            <Card>
+              <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5" />
                     Top Categories
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
                     {Object.entries(analyticsData.categoryBreakdown)
-                      .sort(([,a], [,b]) => b - a)
+                  .sort(([,a], [,b]) => b - a)
                       .slice(0, 5)
-                      .map(([category, count]) => (
-                        <div key={category} className="flex items-center justify-between">
+                  .map(([category, count]) => (
+                    <div key={category} className="flex items-center justify-between">
                           <span className="text-sm text-gray-600">{category}</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
                                 style={{ width: `${(count / analyticsData.totalProducts) * 100}%` }}
                               ></div>
-                            </div>
-                            <span className="text-sm font-medium">{count}</span>
-                          </div>
                         </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
+                            <span className="text-sm font-medium">{count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
 
       {/* Modals */}
-      <QuickCashModal
-        isOpen={isQuickCashModalOpen}
+    <QuickCashModal
+      isOpen={isQuickCashModalOpen}
         onClose={() => setIsQuickCashModalOpen(false)}
-        product={quickCashProduct}
-      />
-      
-      <ClaimFilingModal
-        isOpen={isClaimFilingModalOpen}
+      product={quickCashProduct}
+    />
+
+    <ClaimFilingModal
+      isOpen={isClaimFilingModalOpen}
         onClose={() => setIsClaimFilingModalOpen(false)}
-        product={claimFilingProduct}
-      />
-      
-      <WarrantyDatabaseModal
-        isOpen={isWarrantyDatabaseModalOpen}
+      product={claimFilingProduct}
+    />
+
+    <WarrantyDatabaseModal
+      isOpen={isWarrantyDatabaseModalOpen}
         onClose={() => setIsWarrantyDatabaseModalOpen(false)}
-        product={warrantyDatabaseProduct}
-      />
-      
+      product={warrantyDatabaseProduct}
+    />
+
       <MaintenanceModal
         isOpen={isMaintenanceModalOpen}
         onClose={() => setIsMaintenanceModalOpen(false)}
         product={maintenanceProduct}
       />
       
-      <ResolutionFlow
-        isOpen={isResolutionFlowOpen}
+    <ResolutionFlow
+      isOpen={isResolutionFlowOpen}
         onClose={() => setIsResolutionFlowOpen(false)}
-        product={resolutionFlowProduct}
-      />
+      product={resolutionFlowProduct}
+    />
     </Card>
   );
 }

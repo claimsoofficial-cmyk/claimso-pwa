@@ -433,21 +433,7 @@ export default function DashboardPage() {
               }}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {product.product_name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {product.notes || 'No description available'}
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    Product ID: {product.id}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <LivingCard />
           )}
         </CardContent>
       </Card>
