@@ -33,22 +33,7 @@ export default function DashboardPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setDisplayName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
-        
-        // Fetch profile data (simplified)
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-
-          if (profile?.full_name) {
-            setDisplayName(profile.full_name);
-          }
-        } catch (profileError) {
-          console.warn('Profile fetch failed, using default name:', profileError);
-        }
+        setDisplayName(user.email?.split('@')[0] || 'User');
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -67,23 +52,21 @@ export default function DashboardPage() {
       }
 
       console.log('📦 Fetching products for user:', user.id);
-      // Simplified query - just get products without warranties first
-      const { data: productsData, error } = await supabase
+      // Even simpler - just count products
+      const { count, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false })
-        .limit(10); // Limit to 10 products for testing
+        .eq('is_archived', false);
 
-      console.log('📊 Products query result:', { data: productsData?.length, error });
+      console.log('📊 Products count result:', { count, error });
 
       if (error) {
-        console.error('❌ Error fetching products:', error);
-        setError('Failed to fetch products: ' + error.message);
+        console.error('❌ Error counting products:', error);
+        setError('Failed to count products: ' + error.message);
       } else {
-        console.log('✅ Products fetched successfully:', productsData?.length);
-        setProducts(productsData || []);
+        console.log('✅ Products counted successfully:', count);
+        setProducts([]); // Set empty array for now
       }
     } catch (error) {
       console.error('💥 Exception in fetchProducts:', error);
@@ -94,24 +77,9 @@ export default function DashboardPage() {
   }, [supabase]);
 
   const fetchUserConnections = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: connectionsData, error: connError } = await supabase
-        .from('user_connections')
-        .select('retailer, status, last_synced_at, user_id')
-        .eq('user_id', user.id);
-      
-      if (connError) {
-        console.error('Error fetching connections:', connError);
-      } else {
-        setUserConnections(connectionsData || []);
-      }
-    } catch (error) {
-      console.error('Error fetching connections:', error);
-    }
-  }, [supabase]);
+    // Temporarily disabled for debugging
+    setUserConnections([]);
+  }, []);
 
   // ==============================================================================
   // HELPER FUNCTIONS
