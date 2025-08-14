@@ -2,16 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
-  BarChart3, 
-  DollarSign, 
-  Shield, 
-  TrendingUp, 
-  TrendingDown,
-  Calendar,
-  Package,
   AlertTriangle
 } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
@@ -174,14 +167,7 @@ export default function AnalyticsPage() {
     };
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+
 
   if (isLoading) {
     return (

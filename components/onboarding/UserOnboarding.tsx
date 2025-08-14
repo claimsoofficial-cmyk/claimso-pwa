@@ -235,7 +235,7 @@ export default function UserOnboarding() {
               </div>
               <div>
                 <CardTitle className="text-xl">Welcome to Claimso!</CardTitle>
-                <p className="text-sm text-gray-600">Let's get you set up in a few quick steps</p>
+                <p className="text-sm text-gray-600">Let&apos;s get you set up in a few quick steps</p>
               </div>
             </div>
             <Button

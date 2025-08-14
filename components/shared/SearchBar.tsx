@@ -283,7 +283,7 @@ export default function SearchBar() {
             </div>
           ) : query ? (
             <div className="p-4 text-center text-gray-500">
-              <p className="text-sm">No results found for "{query}"</p>
+              <p className="text-sm">No results found for &quot;{query}&quot;</p>
               <p className="text-xs mt-1">Try searching for a different term</p>
             </div>
           ) : null}
