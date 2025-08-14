@@ -1007,11 +1007,11 @@ export default function LivingCard({
                       {product.warranties?.length || 1} Layer{product.warranties && product.warranties.length > 1 ? 's' : ''}
                     </Badge>
                   )}
-                  {primaryWarranty.ai_confidence_score && (
+                {primaryWarranty.ai_confidence_score && (
                     <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
                       {Math.round(primaryWarranty.ai_confidence_score * 100)}% AI confident
-                    </Badge>
-                  )}
+                  </Badge>
+                )}
                   {primaryWarranty.data_source && (
                     <button
                       className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -1026,38 +1026,38 @@ export default function LivingCard({
               {/* AI Warranty Snapshot */}
               {primaryWarranty.snapshot_data && (
                 <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="grid gap-3">
-                    {primaryWarranty.snapshot_data.covers && (
-                      <div className="space-y-2">
+              <div className="grid gap-3">
+                {primaryWarranty.snapshot_data.covers && (
+                  <div className="space-y-2">
                         <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Covers
+                      <CheckCircle2 className="h-3 w-3" />
+                      Covers
                         </h5>
-                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                          {primaryWarranty.snapshot_data.covers.slice(0, 3).map((item, index) => (
-                            <li key={index} className="flex items-start gap-1">
-                              • {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                      {primaryWarranty.snapshot_data.covers.slice(0, 3).map((item, index) => (
+                        <li key={index} className="flex items-start gap-1">
+                          • {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-                    {primaryWarranty.snapshot_data.does_not_cover && (
-                      <div className="space-y-2">
+                {primaryWarranty.snapshot_data.does_not_cover && (
+                  <div className="space-y-2">
                         <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
-                          <XCircle className="h-3 w-3" />
-                          Does Not Cover
+                      <XCircle className="h-3 w-3" />
+                      Does Not Cover
                         </h5>
-                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                          {primaryWarranty.snapshot_data.does_not_cover.slice(0, 2).map((item, index) => (
-                            <li key={index} className="flex items-start gap-1">
-                              • {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                      {primaryWarranty.snapshot_data.does_not_cover.slice(0, 2).map((item, index) => (
+                        <li key={index} className="flex items-start gap-1">
+                          • {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                     {primaryWarranty.snapshot_data.key_terms && (
                       <div className="space-y-2">
@@ -1071,10 +1071,10 @@ export default function LivingCard({
                               {term}
                             </Badge>
                           ))}
-                        </div>
-                      </div>
+              </div>
+            </div>
                     )}
-                  </div>
+          </div>
                 </div>
               )}
 

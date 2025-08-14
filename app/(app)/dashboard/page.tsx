@@ -28,6 +28,9 @@ import CredentialConnectModal from '@/components/onboarding/CredentialConnectMod
 import LivingCard from '@/components/domain/products/LivingCard';
 
 import ProductTour from '@/components/shared/ProductTour';
+import UserOnboarding from '@/components/onboarding/UserOnboarding';
+import ContextualHelp from '@/components/shared/ContextualHelp';
+import EmptyState from '@/components/shared/EmptyState';
 import { detectWarrantyLinkages, bundleLinkedProducts } from '@/lib/warranty-utils';
 
 // ==============================================================================
@@ -106,7 +109,7 @@ export default function DashboardPage() {
   // ==============================================================================
   // DATA FETCHING
   // ==============================================================================
-
+  
   const fetchUserData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -115,12 +118,12 @@ export default function DashboardPage() {
         setDisplayName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
         
         // Fetch profile data
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-        
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
         if (profile?.full_name) {
           setDisplayName(profile.full_name);
         }
@@ -136,15 +139,15 @@ export default function DashboardPage() {
       if (!user) return;
 
       const { data: productsData, error } = await supabase
-        .from('products')
-        .select(`
+    .from('products')
+    .select(`
           *,
           warranties (*),
           documents (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false });
+    `)
+    .eq('user_id', user.id)
+    .eq('is_archived', false)
+    .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching products:', error);
@@ -410,8 +413,8 @@ export default function DashboardPage() {
   // ==============================================================================
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
+  return (
+    <div className="min-h-screen bg-gray-50">
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -437,11 +440,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       <ProductTour />
+      <UserOnboarding />
+      
+      {/* Help Button */}
+      <div className="absolute top-4 right-4 z-40">
+        <ContextualHelp feature="dashboard" />
+      </div>
       
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Welcome back, {displayName}</h1>
@@ -491,9 +500,9 @@ export default function DashboardPage() {
             </div>
 
             {/* Install Extension Button */}
-            <Button
-              variant="outline"
-              size="sm"
+              <Button 
+                variant="outline" 
+                size="sm"
               onClick={() => {
                 toast.message('Extension Installation', { 
                   description: 'Redirecting to Chrome Web Store...' 
@@ -503,18 +512,18 @@ export default function DashboardPage() {
               className="flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
-              Install Extension
-            </Button>
+                Install Extension
+              </Button>
 
             {/* Settings Button */}
-            <Button
+              <Button 
               variant="ghost"
-              size="sm"
+                size="sm"
               onClick={() => window.location.href = '/settings/account'}
               className="flex items-center gap-2"
-            >
+              >
               <Settings className="w-4 h-4" />
-            </Button>
+              </Button>
           </div>
         </div>
 
@@ -532,30 +541,41 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Quick Actions */}
-        <div className="flex items-center gap-3 mb-6">
-          <Button
-            onClick={() => setIsConnectionModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Connect Account
-          </Button>
+      <div className="space-y-6">
+                {/* Quick Actions */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={() => setIsConnectionModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Connect Account
+            </Button>
           
-          <Button
-            variant="outline"
-            onClick={() => setIsAddProductModalOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAddProductModalOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
         </div>
-
+            
         {/* Products Section */}
         <div className="space-y-6">
+          {/* Empty State for No Products */}
+          {products.length === 0 && (
+            <EmptyState 
+              type="products" 
+              showOnboarding={true}
+            />
+          )}
+          
           {/* Warranty-Worthy Products */}
-          {Object.entries(groupedWarrantyProducts).map(([category, categoryBundles]) => (
+          {products.length > 0 && Object.entries(groupedWarrantyProducts).map(([category, categoryBundles]) => (
             <div key={category} className="bg-white rounded-lg border border-gray-200">
               <button
                 onClick={() => toggleCategory(category)}
@@ -564,7 +584,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-semibold text-gray-900">{category}</h3>
                   <Badge variant="secondary">{categoryBundles.length}</Badge>
-                </div>
+            </div>
                 {expandedCategories.has(category) ? (
                   <ChevronDown className="w-5 h-5 text-gray-400" />
                 ) : (
@@ -588,7 +608,7 @@ export default function DashboardPage() {
                             setIsAddDetailsModalOpen(true);
                           }}
                         />
-                      </div>
+                    </div>
                     ))}
                   </div>
                 </div>
@@ -597,7 +617,7 @@ export default function DashboardPage() {
           ))}
 
                       {/* Non-Warranty Items Section */}
-            {Object.keys(groupedNonWarrantyProducts).length > 0 && (
+            {products.length > 0 && Object.keys(groupedNonWarrantyProducts).length > 0 && (
               <div className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleCategory('non-warranty')}
@@ -728,13 +748,13 @@ export default function DashboardPage() {
                   className="mt-2"
                 />
               </div>
-            </div>
+          </div>
             <div className="flex gap-3">
               <Button type="submit" className="flex-1">Save Details</Button>
               <Button type="button" variant="outline" onClick={() => setIsAddDetailsModalOpen(false)}>
                 Cancel
               </Button>
-            </div>
+      </div>
           </form>
         </DialogContent>
       </Dialog>
