@@ -155,8 +155,16 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
       if (error) {
         console.error('Error fetching products:', error);
       } else {
-        setProducts(productsData || []);
-        setFilteredProducts(productsData || []);
+        // Ensure warranties is always an array for each product
+        const processedProducts = (productsData || []).map(product => ({
+          ...product,
+          warranties: Array.isArray(product.warranties) ? product.warranties : [],
+          documents: Array.isArray(product.documents) ? product.documents : []
+        }));
+        
+        console.log('Processed products:', processedProducts.length);
+        setProducts(processedProducts);
+        setFilteredProducts(processedProducts);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -170,9 +178,9 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   // ==============================================================================
 
   const getWarrantyStatus = (product: Product) => {
-    const warranties = product.warranties || [];
+    const warranties = Array.isArray(product.warranties) ? product.warranties : [];
     const activeWarranties = warranties.filter(w => {
-      if (!w.warranty_end_date) return true;
+      if (!w || !w.warranty_end_date) return true;
       return new Date(w.warranty_end_date) > new Date();
     });
 
@@ -181,7 +189,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
     }
 
     const expiringWarranties = activeWarranties.filter(w => {
-      if (!w.warranty_end_date) return false;
+      if (!w || !w.warranty_end_date) return false;
       const daysUntilExpiry = Math.ceil((new Date(w.warranty_end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       return daysUntilExpiry <= 30;
     });
@@ -194,13 +202,13 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   };
 
   const getDaysUntilExpiry = (product: Product) => {
-    const warranties = product.warranties || [];
-    const activeWarranties = warranties.filter(w => w.warranty_end_date);
+    const warranties = Array.isArray(product.warranties) ? product.warranties : [];
+    const activeWarranties = warranties.filter(w => w && w.warranty_end_date);
     
     if (activeWarranties.length === 0) return null;
     
     const earliestExpiry = activeWarranties.reduce((earliest, current) => {
-      if (!current.warranty_end_date) return earliest;
+      if (!current || !current.warranty_end_date) return earliest;
       if (!earliest) return current.warranty_end_date;
       return new Date(current.warranty_end_date) < new Date(earliest) ? current.warranty_end_date : earliest;
     }, null as string | null);
