@@ -65,7 +65,7 @@ export default function ResolutionFlow({ isOpen, onClose, product, onComplete, o
       cost: '$50-300',
       action: () => {
         toast.success('Opening hardware repair options...');
-        // Navigate to claim filing or warranty database
+        // Navigate to maintenance providers
         window.location.href = '/dashboard';
       }
     },
@@ -81,50 +81,7 @@ export default function ResolutionFlow({ isOpen, onClose, product, onComplete, o
       action: () => {
         toast.success('Opening software troubleshooting...');
         // Show software troubleshooting steps
-      }
-    },
-    {
-      id: 'warranty-claim',
-      title: 'Warranty Claim',
-      description: 'File a warranty claim or check coverage',
-      icon: <Shield className="w-5 h-5" />,
-      category: 'warranty',
-      priority: 'high',
-      estimatedTime: '5-7 days',
-      cost: '$0',
-      action: () => {
-        toast.success('Opening warranty claim...');
-        // Navigate to claim filing
-        window.location.href = '/dashboard';
-      }
-    },
-    {
-      id: 'get-cash',
-      title: 'Get Cash for Device',
-      description: 'Sell or trade-in your device for cash',
-      icon: <DollarSign className="w-5 h-5" />,
-      category: 'cash',
-      priority: 'low',
-      estimatedTime: '1-3 days',
-      cost: 'Get $100-500',
-      action: () => {
-        toast.success('Opening cash offers...');
-        // Navigate to Quick Cash
-        window.location.href = '/dashboard';
-      }
-    },
-    {
-      id: 'upgrade-opportunity',
-      title: 'Upgrade Opportunity',
-      description: 'Check for upgrade deals and trade-in offers',
-      icon: <TrendingUp className="w-5 h-5" />,
-      category: 'cash',
-      priority: 'low',
-      estimatedTime: '1-2 days',
-      cost: 'Save $200-800',
-      action: () => {
-        toast.success('Opening upgrade options...');
-        // Show upgrade opportunities
+        window.open('https://help.claimso.com/software-troubleshooting', '_blank');
       }
     },
     {
@@ -177,8 +134,6 @@ export default function ResolutionFlow({ isOpen, onClose, product, onComplete, o
   const categories = [
     { id: 'hardware', name: 'Hardware Issues', icon: <Wrench className="w-4 h-4" />, color: 'bg-red-100 text-red-800' },
     { id: 'software', name: 'Software Issues', icon: <Settings className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800' },
-    { id: 'warranty', name: 'Warranty & Claims', icon: <Shield className="w-4 h-4" />, color: 'bg-green-100 text-green-800' },
-    { id: 'cash', name: 'Cash & Upgrades', icon: <DollarSign className="w-4 h-4" />, color: 'bg-yellow-100 text-yellow-800' },
     { id: 'support', name: 'Support & Help', icon: <Phone className="w-4 h-4" />, color: 'bg-purple-100 text-purple-800' }
   ];
 

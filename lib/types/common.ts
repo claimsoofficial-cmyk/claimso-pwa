@@ -19,6 +19,12 @@ export interface Product {
   is_archived: boolean;
   warranties?: Warranty[];
   documents?: Document[];
+  // New fields for enhanced functionality
+  payment_method?: 'credit_card' | 'debit_card' | 'cash' | 'bank_transfer' | 'paypal' | 'apple_pay' | 'google_pay' | 'amazon_pay' | 'other';
+  purchase_location?: string | null;
+  retailer_url?: string | null;
+  affiliate_id?: string | null;
+  maintenance_records?: MaintenanceRecord[];
 }
 
 export interface Warranty {
@@ -89,4 +95,19 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     total: number;
     totalPages: number;
   };
+}
+
+export interface MaintenanceRecord {
+  id: string;
+  product_id: string;
+  service_date: string;
+  service_type: 'routine' | 'repair' | 'upgrade' | 'cleaning' | 'inspection';
+  provider_name: string;
+  provider_contact?: string;
+  cost: number;
+  currency: string;
+  description: string;
+  next_service_date?: string;
+  created_at: string;
+  updated_at?: string;
 }

@@ -29,7 +29,10 @@ import {
   HelpCircle,
   Download,
   TrendingUp,
-  Activity
+  Activity,
+  Wrench,
+  ShoppingCart,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -38,6 +41,7 @@ import RetailerConnect from './RetailerConnect';
 import QuickCashModal from './QuickCashModal';
 import ClaimFilingModal from './ClaimFilingModal';
 import WarrantyDatabaseModal from './WarrantyDatabaseModal';
+import MaintenanceModal from './MaintenanceModal';
 import ResolutionFlow from '../resolution/ResolutionFlow';
 
 interface LivingCardProps {
@@ -63,6 +67,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [claimFilingProduct, setClaimFilingProduct] = useState<Product | null>(null);
   const [isWarrantyDatabaseModalOpen, setIsWarrantyDatabaseModalOpen] = useState(false);
   const [warrantyDatabaseProduct, setWarrantyDatabaseProduct] = useState<Product | null>(null);
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [maintenanceProduct, setMaintenanceProduct] = useState<Product | null>(null);
   const [isResolutionFlowOpen, setIsResolutionFlowOpen] = useState(false);
   const [resolutionFlowProduct, setResolutionFlowProduct] = useState<Product | null>(null);
 
@@ -97,6 +103,32 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
       console.error('Error downloading calendar:', error);
       toast.error('Failed to download calendar file');
     }
+  };
+
+  const handleRebuy = (product: Product) => {
+    // Generate affiliate link based on product and retailer
+    const retailer = product.purchase_location?.toLowerCase() || 'amazon';
+    const productName = encodeURIComponent(product.product_name || '');
+    const affiliateId = product.affiliate_id || 'claimso-20';
+    
+    let affiliateUrl = '';
+    
+    switch (retailer) {
+      case 'amazon':
+        affiliateUrl = `https://www.amazon.com/s?k=${productName}&tag=${affiliateId}`;
+        break;
+      case 'best buy':
+        affiliateUrl = `https://www.bestbuy.com/site/searchpage.jsp?st=${productName}`;
+        break;
+      case 'walmart':
+        affiliateUrl = `https://www.walmart.com/search?q=${productName}`;
+        break;
+      default:
+        affiliateUrl = `https://www.amazon.com/s?k=${productName}&tag=${affiliateId}`;
+    }
+    
+    window.open(affiliateUrl, '_blank');
+    toast.success('Opening retailer website...');
   };
 
   // ==============================================================================
@@ -280,6 +312,44 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
       return acc;
     }, {} as Record<string, number>);
 
+    // Payment method analytics
+    const paymentMethodBreakdown = products.reduce((acc, product) => {
+      const method = product.payment_method || 'unknown';
+      acc[method] = (acc[method] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const paymentMethodSpending = products.reduce((acc, product) => {
+      const method = product.payment_method || 'unknown';
+      acc[method] = (acc[method] || 0) + (product.purchase_price || 0);
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Monthly spending analysis
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const monthlySpending = products.reduce((acc, product) => {
+      if (product.purchase_date) {
+        const purchaseDate = new Date(product.purchase_date);
+        if (purchaseDate.getMonth() === currentMonth && purchaseDate.getFullYear() === currentYear) {
+          acc += product.purchase_price || 0;
+        }
+      }
+      return acc;
+    }, 0);
+
+    const yearlySpending = products.reduce((acc, product) => {
+      if (product.purchase_date) {
+        const purchaseDate = new Date(product.purchase_date);
+        if (purchaseDate.getFullYear() === currentYear) {
+          acc += product.purchase_price || 0;
+        }
+      }
+      return acc;
+    }, 0);
+
     return {
       totalProducts,
       totalValue,
@@ -288,7 +358,11 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
       expiredWarranties,
       noWarranty,
       categoryBreakdown,
-      brandBreakdown
+      brandBreakdown,
+      paymentMethodBreakdown,
+      paymentMethodSpending,
+      monthlySpending,
+      yearlySpending
     };
   };
 
@@ -463,95 +537,148 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                         </div>
                       </div>
                       
-                      {/* Action Buttons - Restructured */}
-                      <div className="space-y-2">
-                        {/* Primary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.location.href = `/products/${product.id}`;
-                            }}
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setClaimFilingProduct(product);
-                              setIsClaimFilingModalOpen(true);
-                            }}
-                          >
-                            <FileText className="w-3 h-3 mr-1" />
-                            Claim
-                          </Button>
-                        </div>
-                        
-                        {/* Secondary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setQuickCashProduct(product);
-                              setIsQuickCashModalOpen(true);
-                            }}
-                          >
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            Get Cash
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setWarrantyDatabaseProduct(product);
-                              setIsWarrantyDatabaseModalOpen(true);
-                            }}
-                          >
-                            <Shield className="w-3 h-3 mr-1" />
-                            Warranty
-                          </Button>
-                        </div>
-                        
-                        {/* Tertiary Actions Row */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              downloadCalendar(product);
-                            }}
-                          >
-                            <Calendar className="w-3 h-3 mr-1" />
-                            Calendar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setResolutionFlowProduct(product);
-                              setIsResolutionFlowOpen(true);
-                            }}
-                          >
-                            <HelpCircle className="w-3 h-3 mr-1" />
-                            Help
-                          </Button>
-                        </div>
+                      {/* Action Buttons - Icon Only with Hover Descriptions */}
+                      <div className="flex flex-wrap gap-1 justify-center mt-4">
+                        {/* Edit */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/products/${product.id}`;
+                          }}
+                          title="Edit Product"
+                        >
+                          <Edit className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Edit Product
+                          </div>
+                        </Button>
+
+                        {/* Claim */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClaimFilingProduct(product);
+                            setIsClaimFilingModalOpen(true);
+                          }}
+                          title="File Claim"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            File Claim
+                          </div>
+                        </Button>
+
+                        {/* Get Cash - Green with shine effect */}
+                        <Button
+                          variant="default"
+                          size="icon"
+                          className="w-8 h-8 relative group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQuickCashProduct(product);
+                            setIsQuickCashModalOpen(true);
+                          }}
+                          title="Get Cash Offer"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Get Cash Offer
+                          </div>
+                        </Button>
+
+                        {/* Warranty */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWarrantyDatabaseProduct(product);
+                            setIsWarrantyDatabaseModalOpen(true);
+                          }}
+                          title="Warranty Info"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Warranty Info
+                          </div>
+                        </Button>
+
+                        {/* Maintenance */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMaintenanceProduct(product);
+                            setIsMaintenanceModalOpen(true);
+                          }}
+                          title="Maintenance & Service"
+                        >
+                          <Wrench className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Maintenance & Service
+                          </div>
+                        </Button>
+
+                        {/* Re-buy */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRebuy(product);
+                          }}
+                          title="Re-buy from Retailer"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Re-buy from Retailer
+                          </div>
+                        </Button>
+
+                        {/* Calendar */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadCalendar(product);
+                          }}
+                          title="Download Calendar"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Download Calendar
+                          </div>
+                        </Button>
+
+                        {/* Help - Simplified */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 relative group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setResolutionFlowProduct(product);
+                            setIsResolutionFlowOpen(true);
+                          }}
+                          title="Get Help"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Get Help
+                          </div>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -629,6 +756,30 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                   </div>
                 </CardContent>
               </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">This Month</p>
+                      <p className="text-2xl font-bold text-gray-900">${analyticsData.monthlySpending.toLocaleString()}</p>
+                    </div>
+                    <Calendar className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">This Year</p>
+                      <p className="text-2xl font-bold text-gray-900">${analyticsData.yearlySpending.toLocaleString()}</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -699,6 +850,47 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Payment Method Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(analyticsData.paymentMethodBreakdown)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 5)
+                      .map(([method, count]) => {
+                        const totalSpent = analyticsData.paymentMethodSpending[method] || 0;
+                        const percentage = (count / analyticsData.totalProducts) * 100;
+                        return (
+                          <div key={method} className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm text-gray-600 capitalize">
+                                  {method.replace('_', ' ')}
+                                </span>
+                                <span className="text-sm font-medium">${totalSpent.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full" 
+                                    style={{ width: `${percentage}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500">{count} items</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5" />
                     Top Categories
                   </CardTitle>
@@ -747,6 +939,12 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         isOpen={isWarrantyDatabaseModalOpen}
         onClose={() => setIsWarrantyDatabaseModalOpen(false)}
         product={warrantyDatabaseProduct}
+      />
+      
+      <MaintenanceModal
+        isOpen={isMaintenanceModalOpen}
+        onClose={() => setIsMaintenanceModalOpen(false)}
+        product={maintenanceProduct}
       />
       
       <ResolutionFlow
