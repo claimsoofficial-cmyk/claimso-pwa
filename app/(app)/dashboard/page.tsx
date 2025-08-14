@@ -1,17 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
-import { createProduct } from '@/lib/actions/product-actions';
 import { Button } from '@/components/ui/button';
-
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { 
@@ -19,25 +13,25 @@ import {
   Download, 
   Settings, 
   CheckCircle, 
-  ChevronDown,
-  ChevronRight,
-  Upload
+  Package,
+  Shield,
+  FileText,
+  BarChart3,
+  TrendingUp,
+  AlertTriangle,
+  Sparkles,
+  Zap,
+  DollarSign,
+  Calendar,
+  ArrowRight
 } from 'lucide-react';
-import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
-import CredentialConnectModal from '@/components/onboarding/CredentialConnectModal';
-import LivingCard from '@/components/domain/products/LivingCard';
-
-import ProductTour from '@/components/shared/ProductTour';
-import UserOnboarding from '@/components/onboarding/UserOnboarding';
-import ContextualHelp from '@/components/shared/ContextualHelp';
-import EmptyState from '@/components/shared/EmptyState';
-import { detectWarrantyLinkages, bundleLinkedProducts } from '@/lib/warranty-utils';
+import { cn } from '@/lib/utils';
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
 // ==============================================================================
 
-interface ProductWithRelations {
+interface Product {
   id: string;
   product_name: string;
   brand: string | null;
@@ -73,37 +67,16 @@ interface UserConnection {
   last_synced_at?: string;
 }
 
-interface EmailScrapeStatus {
-  last_check: string;
-  new_products: number;
-  status: 'idle' | 'processing' | 'completed' | 'error';
-}
-
 // ==============================================================================
 // MAIN COMPONENT
 // ==============================================================================
 
 export default function DashboardPage() {
-  // State management
-  const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-  const [isCredModalOpen, setIsCredModalOpen] = useState(false);
-  const [isAddDetailsModalOpen, setIsAddDetailsModalOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [credRetailer, setCredRetailer] = useState<string>('walmart');
-  const [userConnections, setUserConnections] = useState<UserConnection[]>([]);
-  const [products, setProducts] = useState<ProductWithRelations[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState('');
-  const [userId, setUserId] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [emailScrapeStatus, setEmailScrapeStatus] = useState<EmailScrapeStatus>({
-    last_check: '',
-    new_products: 0,
-    status: 'idle'
-  });
+  const [userConnections, setUserConnections] = useState<UserConnection[]>([]);
 
-  // Initialize Supabase client
   const supabase = createClient();
 
   // ==============================================================================
@@ -114,15 +87,14 @@ export default function DashboardPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setUserId(user.id);
         setDisplayName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
         
         // Fetch profile data
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
 
         if (profile?.full_name) {
           setDisplayName(profile.full_name);
@@ -139,15 +111,15 @@ export default function DashboardPage() {
       if (!user) return;
 
       const { data: productsData, error } = await supabase
-    .from('products')
-    .select(`
+        .from('products')
+        .select(`
           *,
           warranties (*),
           documents (*)
-    `)
-    .eq('user_id', user.id)
-    .eq('is_archived', false)
-    .order('created_at', { ascending: false });
+        `)
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching products:', error);
@@ -181,207 +153,38 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchEmailScrapeStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Fetch recent email processing activity
-      const { data: recentActivity } = await supabase
-        .from('products')
-        .select('created_at, source')
-        .eq('user_id', user.id)
-        .eq('source', 'email_import')
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false });
-
-      if (recentActivity) {
-        setEmailScrapeStatus({
-          last_check: recentActivity[0]?.created_at || '',
-          new_products: recentActivity.length,
-          status: recentActivity.length > 0 ? 'completed' : 'idle'
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching email scrape status:', error);
-    }
-  };
-
   // ==============================================================================
   // HELPER FUNCTIONS
   // ==============================================================================
 
-
-
-  // Memoize bundled products to prevent recalculation on every render
-  const bundledProducts = useMemo(() => {
-    if (!products.length) return [];
-    const warrantyLinkages = detectWarrantyLinkages(products);
-    return bundleLinkedProducts(products, warrantyLinkages);
-  }, [products]);
-
-  // Show notification for enhanced protection products
-  useEffect(() => {
-    const enhancedProducts = bundledProducts.filter(bundle => bundle.hasEnhancedProtection);
-    if (enhancedProducts.length > 0) {
-      toast.success('Enhanced Protection Detected', {
-        description: `Found ${enhancedProducts.length} product${enhancedProducts.length > 1 ? 's' : ''} with extended warranty coverage.`
-      });
-    }
-  }, [bundledProducts]);
-
-
-
-  // Group warranty-worthy products by category
-  const groupedWarrantyProducts = useMemo(() => {
-    const warrantyWorthyProducts = bundledProducts.filter(bundle => isWarrantyWorthy(bundle.mainProduct));
-    return warrantyWorthyProducts.reduce((acc, bundle) => {
-      const category = bundle.mainProduct.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(bundle);
-      return acc;
-    }, {} as Record<string, typeof warrantyWorthyProducts>);
-  }, [bundledProducts]);
-
-  // Group non-warranty products by category
-  const groupedNonWarrantyProducts = useMemo(() => {
-    const nonWarrantyProducts = bundledProducts.filter(bundle => !isWarrantyWorthy(bundle.mainProduct));
-    return nonWarrantyProducts.reduce((acc, bundle) => {
-      const category = bundle.mainProduct.category || 'Other Items';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(bundle);
-      return acc;
-    }, {} as Record<string, typeof nonWarrantyProducts>);
-  }, [bundledProducts]);
-
-  // Memoize user connections status
-  const connectedRetailers = useMemo(() => {
-    return userConnections.filter(c => c.status === 'connected').length;
-  }, [userConnections]);
-
-  // Toggle category expansion
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
-    });
+  // Calculate dashboard stats
+  const stats = {
+    totalProducts: products.length,
+    totalValue: products.reduce((sum, p) => sum + (p.purchase_price || 0), 0),
+    activeWarranties: products.filter(p => p.warranties?.some(w => {
+      if (!w.warranty_end_date) return true;
+      return new Date(w.warranty_end_date) > new Date();
+    })).length,
+    expiringWarranties: products.filter(p => p.warranties?.some(w => {
+      if (!w.warranty_end_date) return false;
+      const endDate = new Date(w.warranty_end_date);
+      const now = new Date();
+      const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    })).length,
+    connectedRetailers: userConnections.filter(c => c.status === 'connected').length
   };
 
-  /**
-   * Helper function to determine if product is warranty-worthy
-   */
-  function isWarrantyWorthy(product: any): boolean {
-    const category = product.category?.toLowerCase() || '';
-    const price = product.purchase_price || 0;
-    
-    // Non-warranty categories
-    const nonWarrantyCategories = [
-      'clothing', 'apparel', 'fashion', 'shoes', 'accessories',
-      'bedding', 'linens', 'towels', 'curtains', 'home decor',
-      'food', 'beverages', 'groceries', 'consumables',
-      'books', 'magazines', 'media', 'digital content',
-      'cosmetics', 'beauty', 'personal care', 'hygiene'
-    ];
-    
-    // Check if category is non-warranty
-    if (nonWarrantyCategories.some(cat => category.includes(cat))) {
-      return false;
-    }
-    
-    // Low-value items typically don't need warranty
-    if (price < 25) {
-      return false;
-    }
-    
-    return true;
-  }
+  // Get recent products
+  const recentProducts = products.slice(0, 3);
 
-  // ==============================================================================
-  // EVENT HANDLERS
-  // ==============================================================================
-
-  const handleCreateProduct = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const result = await createProduct(formData);
-    if (result.success) {
-      setIsAddProductModalOpen(false);
-      toast.success('Product added', { description: `${result.product?.product_name || 'New product'} created.` });
-      fetchProducts();
-    } else {
-      toast.error(result.error || 'Failed to create product');
-    }
-  };
-
-  const handleCredentialConnect = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    try {
-      const response = await fetch('/api/import/credentialed-scrape', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        setIsCredModalOpen(false);
-        toast.success('Connection successful', { 
-          description: `Imported ${result.products?.length || 0} products from ${credRetailer}` 
-        });
-        fetchProducts();
-        fetchUserConnections();
-      } else {
-        toast.error(result.error || 'Connection failed');
-      }
-    } catch (error) {
-      console.error('Credential connect error:', error);
-      toast.error('Connection failed. Please try again.');
-    }
-  };
-
-  const handleAddDetails = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    try {
-      // Handle serial number update
-      const serialNumber = formData.get('serialNumber') as string;
-      if (serialNumber && selectedProductId) {
-        const { error } = await supabase
-          .from('products')
-          .update({ serial_number: serialNumber })
-          .eq('id', selectedProductId);
-        
-        if (error) throw error;
-      }
-
-      // Handle receipt upload (simplified - would need file upload logic)
-      const receiptFile = formData.get('receipt') as File;
-      if (receiptFile && selectedProductId) {
-        // File upload logic would go here
-        toast.success('Receipt uploaded successfully');
-      }
-
-      setIsAddDetailsModalOpen(false);
-      setSelectedProductId(null);
-      toast.success('Product details updated');
-      fetchProducts();
-    } catch (error) {
-      console.error('Error updating product details:', error);
-      toast.error('Failed to update product details');
-    }
-  };
+  // Get products needing attention
+  const productsNeedingAttention = products.filter(p => {
+    const hasWarranty = p.warranties && p.warranties.length > 0;
+    const hasSerialNumber = !!p.serial_number;
+    const hasDocuments = p.documents && p.documents.length > 0;
+    return !hasWarranty || !hasSerialNumber || !hasDocuments;
+  }).slice(0, 3);
 
   // ==============================================================================
   // INITIALIZATION
@@ -391,12 +194,10 @@ export default function DashboardPage() {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        // Fetch all data in parallel for better performance
         await Promise.all([
           fetchUserData(),
           fetchProducts(),
-          fetchUserConnections(),
-          fetchEmailScrapeStatus()
+          fetchUserConnections()
         ]);
       } catch (error) {
         console.error('Error initializing data:', error);
@@ -409,355 +210,396 @@ export default function DashboardPage() {
   }, []);
 
   // ==============================================================================
-  // RENDER
+  // LOADING STATE
   // ==============================================================================
 
   if (isLoading) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Skeleton className="h-8 w-64 mb-2" />
-              <Skeleton className="h-4 w-48" />
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <Skeleton className="h-8 w-64 mb-2" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-10" />
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-10" />
-            </div>
-          </div>
-        </div>
+          </CardHeader>
+        </Card>
         
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="space-y-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-8 w-24 mb-2" />
+                <Skeleton className="h-6 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
+  // ==============================================================================
+  // RENDER
+  // ==============================================================================
+
   return (
     <div className="space-y-6">
-      <ProductTour />
-      <UserOnboarding />
-      
-      {/* Help Button */}
-      <div className="absolute top-4 right-4 z-40">
-        <ContextualHelp feature="dashboard" />
-      </div>
-      
-      {/* Header Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, {displayName}</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {products.length} products • {connectedRetailers} retailers connected
-            </p>
+      {/* Welcome Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200/50">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                Welcome back, {displayName}!
+              </h1>
+              <p className="text-gray-600">
+                {stats.totalProducts} products • {stats.connectedRetailers} retailers connected
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/products/add'}
+                className="hover-lift"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Product
+              </Button>
+              
+              <Button 
+                variant="ghost"
+                size="icon"
+                onClick={() => window.location.href = '/settings/account'}
+                className="hover-lift"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Floating Retailer Icons */}
-            <div className="flex items-center gap-2">
+        </CardContent>
+      </Card>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Value</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${stats.totalValue.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Warranties</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeWarranties}</p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Shield className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.expiringWarranties}</p>
+              </div>
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <AlertTriangle className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Products */}
+        <Card className="card-hover">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-blue-600" />
+                Recent Products
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.location.href = '/products'}
+                className="hover-lift"
+              >
+                View All
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentProducts.length > 0 ? (
+              <div className="space-y-4">
+                {recentProducts.map((product) => (
+                  <div 
+                    key={product.id}
+                    className="flex items-center gap-4 p-4 rounded-xl bg-gray-50/50 hover:bg-gray-100/50 transition-colors cursor-pointer"
+                    onClick={() => window.location.href = `/products/${product.id}`}
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                      <Package className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {product.product_name}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {product.brand} • {product.category}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">
+                        ${product.purchase_price?.toLocaleString() || '0'}
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        {product.warranties?.length || 0} warranty{product.warranties?.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
+                <p className="text-gray-500 mb-4">Start by adding your first product</p>
+                <Button 
+                  onClick={() => window.location.href = '/products/add'}
+                  className="hover-lift"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-purple-600" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Button 
+                variant="gradient" 
+                className="w-full justify-start h-12"
+                onClick={() => window.location.href = '/products/add'}
+              >
+                <Plus className="w-5 h-5 mr-3" />
+                Add New Product
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12"
+                onClick={() => window.location.href = '/claims/new'}
+              >
+                <FileText className="w-5 h-5 mr-3" />
+                File a Claim
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12"
+                onClick={() => window.location.href = '/analytics'}
+              >
+                <BarChart3 className="w-5 h-5 mr-3" />
+                View Analytics
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12"
+                onClick={() => window.location.href = '/warranties'}
+              >
+                <Shield className="w-5 h-5 mr-3" />
+                Check Warranties
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Products Needing Attention */}
+      {productsNeedingAttention.length > 0 && (
+        <Card className="card-hover border-orange-200 bg-orange-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-800">
+              <AlertTriangle className="w-5 h-5" />
+              Products Needing Attention
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {productsNeedingAttention.map((product) => (
+                <div 
+                  key={product.id}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white/80 hover:bg-white transition-colors cursor-pointer"
+                  onClick={() => window.location.href = `/products/${product.id}`}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 truncate">
+                      {product.product_name}
+                    </h4>
+                    <div className="flex gap-2 mt-1">
+                      {!product.warranties?.length && (
+                        <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">
+                          No Warranty
+                        </Badge>
+                      )}
+                      {!product.serial_number && (
+                        <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300">
+                          No Serial
+                        </Badge>
+                      )}
+                      {!product.documents?.length && (
+                        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                          No Docs
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/products/${product.id}`;
+                    }}
+                  >
+                    Fix
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Retailer Connections */}
+      {stats.connectedRetailers > 0 && (
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-green-600" />
+              Connected Retailers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
               {[
-                { id: 'amazon', label: 'Amazon', logo: '/logos/amazon.svg', type: 'oauth' },
-                { id: 'walmart', label: 'Walmart', logo: '/logos/walmart.svg', type: 'cred' },
-                { id: 'target', label: 'Target', logo: '/logos/target.svg', type: 'cred' },
-                { id: 'bestbuy', label: 'Best Buy', logo: '/logos/bestbuy.svg', type: 'cred' },
+                { id: 'amazon', label: 'Amazon', logo: '/logos/amazon.svg' },
+                { id: 'walmart', label: 'Walmart', logo: '/logos/walmart.svg' },
+                { id: 'target', label: 'Target', logo: '/logos/target.svg' },
+                { id: 'bestbuy', label: 'Best Buy', logo: '/logos/bestbuy.svg' },
               ].map(r => {
                 const connection = userConnections.find(c => c.retailer === r.id && c.status === 'connected');
                 const isConnected = !!connection;
                 
                 return (
-                  <button
+                  <div
                     key={r.id}
-                    className={`relative p-2 rounded-full transition-all ${
+                    className={cn(
+                      "flex items-center gap-2 p-3 rounded-xl transition-all duration-200",
                       isConnected 
-                        ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                    }`}
-                    onClick={() => {
-                      if (r.type === 'oauth') {
-                        toast.message('Redirecting to Amazon...', { description: 'Complete the sign-in to connect.' });
-                        window.location.href = `https://www.amazon.com/ap/oa?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID || '')}&response_type=code&scope=profile&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/amazon/auth')}&state=${Math.random().toString(16).slice(2)}`;
-                      } else {
-                        setCredRetailer(r.id);
-                        setIsCredModalOpen(true);
-                      }
-                    }}
-                    title={`${isConnected ? 'Connected' : 'Connect'} ${r.label}`}
-                  >
-                    <Image src={r.logo} alt={r.label} width={20} height={20} className="w-5 h-5" />
-                    {isConnected && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                        ? "bg-green-100 text-green-700" 
+                        : "bg-gray-100 text-gray-400"
                     )}
-                  </button>
+                  >
+                    <Image src={r.logo} alt={r.label} width={24} height={24} className="w-6 h-6" />
+                    <span className="text-sm font-medium">{r.label}</span>
+                    {isConnected && (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    )}
+                  </div>
                 );
               })}
             </div>
-
-            {/* Install Extension Button */}
-              <Button 
-                variant="outline" 
-                size="sm"
-              onClick={() => {
-                toast.message('Extension Installation', { 
-                  description: 'Redirecting to Chrome Web Store...' 
-                });
-                // window.open('https://chrome.google.com/webstore/detail/claimso/...', '_blank');
-              }}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-                Install Extension
-              </Button>
-
-            {/* Settings Button */}
-              <Button 
-              variant="ghost"
-                size="sm"
-              onClick={() => window.location.href = '/settings/account'}
-              className="flex items-center gap-2"
-              >
-              <Settings className="w-4 h-4" />
-              </Button>
-          </div>
-        </div>
-
-        {/* Email Scrape Status */}
-        {emailScrapeStatus.status === 'completed' && emailScrapeStatus.new_products > 0 && (
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-blue-600" />
-              <span className="text-sm text-blue-800">
-                Email processing complete! Found {emailScrapeStatus.new_products} new products.
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Main Content */}
-      <div className="space-y-6">
-                {/* Quick Actions */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="flex items-center gap-3">
-            <Button 
-              onClick={() => setIsConnectionModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Connect Account
-            </Button>
-          
-            <Button 
-              variant="outline" 
-              onClick={() => setIsAddProductModalOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </div>
-        </div>
-            
-        {/* Products Section */}
-        <div className="space-y-6">
-          {/* Empty State for No Products */}
-          {products.length === 0 && (
-            <EmptyState 
-              type="products" 
-              showOnboarding={true}
-            />
-          )}
-          
-          {/* Warranty-Worthy Products */}
-          {products.length > 0 && Object.entries(groupedWarrantyProducts).map(([category, categoryBundles]) => (
-            <div key={category} className="bg-white rounded-lg border border-gray-200">
-              <button
-                onClick={() => toggleCategory(category)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{category}</h3>
-                  <Badge variant="secondary">{categoryBundles.length}</Badge>
-            </div>
-                {expandedCategories.has(category) ? (
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-              
-              {expandedCategories.has(category) && (
-                <div className="border-t border-gray-200 p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categoryBundles.map((bundle, index) => (
-                      <div key={bundle.mainProduct.id} id={`product-card-${index}`}>
-                        <LivingCard
-                          product={bundle.mainProduct as any}
-                          onAddSerialNumber={(productId) => {
-                            setSelectedProductId(productId);
-                            setIsAddDetailsModalOpen(true);
-                          }}
-                          onAddDocuments={(productId) => {
-                            setSelectedProductId(productId);
-                            setIsAddDetailsModalOpen(true);
-                          }}
-                        />
-                    </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-                      {/* Non-Warranty Items Section */}
-            {products.length > 0 && Object.keys(groupedNonWarrantyProducts).length > 0 && (
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
-                <button
-                  onClick={() => toggleCategory('non-warranty')}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-gray-700">Other Items</h3>
-                    <Badge variant="outline" className="text-gray-600">
-                      {Object.values(groupedNonWarrantyProducts).flat().length} items
-                    </Badge>
-                    <span className="text-sm text-gray-500">(Low warranty priority)</span>
-                  </div>
-                  {expandedCategories.has('non-warranty') ? (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
-                
-                {expandedCategories.has('non-warranty') && (
-                  <div className="border-t border-gray-200 p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {Object.values(groupedNonWarrantyProducts).flat().map((bundle: any, _index: number) => (
-                        <div key={bundle.mainProduct.id} className="opacity-75">
-                          <LivingCard
-                            product={bundle.mainProduct as any}
-                            onAddSerialNumber={(productId) => {
-                              setSelectedProductId(productId);
-                              setIsAddDetailsModalOpen(true);
-                            }}
-                            onAddDocuments={(productId) => {
-                              setSelectedProductId(productId);
-                              setIsAddDetailsModalOpen(true);
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-        </div>
-      </div>
-
-      {/* Modals */}
-      <Dialog open={isConnectionModalOpen} onOpenChange={setIsConnectionModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Connect Your Accounts</DialogTitle>
-          </DialogHeader>
-          <OnboardingFlow userId={userId} />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreateProduct} className="space-y-4">
-            <div>
-              <Label htmlFor="product_name">Product Name</Label>
-              <Input id="product_name" name="product_name" required />
-            </div>
-            <div>
-              <Label htmlFor="brand">Brand</Label>
-              <Input id="brand" name="brand" />
-            </div>
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Input id="category" name="category" />
-            </div>
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea id="notes" name="notes" />
-            </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1">Add Product</Button>
-              <Button type="button" variant="outline" onClick={() => setIsAddProductModalOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCredModalOpen} onOpenChange={setIsCredModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Connect {credRetailer.charAt(0).toUpperCase() + credRetailer.slice(1)}</DialogTitle>
-          </DialogHeader>
-          <CredentialConnectModal 
-            isOpen={isCredModalOpen}
-            onClose={() => setIsCredModalOpen(false)}
-            retailerName={credRetailer}
-            onConnect={async ({ username, password }) => {
-              const formData = new FormData();
-              formData.append('retailer', credRetailer);
-              formData.append('username', username);
-              formData.append('password', password);
-              await handleCredentialConnect({ currentTarget: { formData } } as any);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isAddDetailsModalOpen} onOpenChange={setIsAddDetailsModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Product Details</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddDetails} className="space-y-4">
-            <div>
-              <Label htmlFor="serialNumber">Serial Number</Label>
-              <Input id="serialNumber" name="serialNumber" placeholder="Enter serial number" />
-            </div>
-            <div>
-              <Label htmlFor="receipt">Upload Receipt</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-                <Input 
-                  id="receipt" 
-                  name="receipt" 
-                  type="file" 
-                  accept="image/*,.pdf"
-                  className="mt-2"
-                />
-              </div>
-          </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1">Save Details</Button>
-              <Button type="button" variant="outline" onClick={() => setIsAddDetailsModalOpen(false)}>
-                Cancel
-              </Button>
-      </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

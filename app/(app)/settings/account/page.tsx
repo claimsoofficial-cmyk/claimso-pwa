@@ -1,346 +1,437 @@
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-
-import type { User } from '@supabase/supabase-js';
-
-import { 
-  User as UserIcon, 
-  Download, 
-  AlertTriangle,
-  Save,
-  Loader2,
-  ArrowLeft
-} from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
-  updateUserProfile, 
-  exportUserData, 
-  deleteUserAccount 
-} from '@/lib/actions/user-actions';
+  User, 
+  Mail, 
+  Phone, 
+  Shield, 
+  Bell, 
+  Zap,
+  Settings,
+  Save,
+  Edit,
+  Camera,
+  LogOut,
+  Trash2,
+  AlertTriangle,
+  FileText
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-export default function AccountSettingsPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fullName, setFullName] = useState('');
-  const [isUpdatingProfile, startUpdateTransition] = useTransition();
-  const [isExportingData, startExportTransition] = useTransition();
-  const [isDeletingAccount, startDeleteTransition] = useTransition();
+interface UserProfile {
+  id: string;
+  full_name: string | null;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+export default function SettingsPage() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    email: ''
+  });
+
   const supabase = createClient();
 
-
-  // Get user on component mount
   useEffect(() => {
-    const getUser = async () => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      if (user) {
-        // Get user profile data (profiles table)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setFullName(profile.full_name || '');
-        }
+      if (!user) return;
+
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('Failed to load profile');
+      } else {
+        setProfile(profileData);
+        setFormData({
+          full_name: profileData?.full_name || '',
+          phone: profileData?.phone || '',
+          email: user.email || ''
+        });
       }
-      
-      setLoading(false);
-    };
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    getUser();
+  const handleSave = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setFullName('');
-        } else if (session?.user) {
-          setUser(session.user);
-        }
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.full_name,
+          phone: formData.phone
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
       }
-    );
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
-
-  // Handle profile update
-const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  
-  if (!fullName.trim()) {
-    toast.error("Name cannot be empty");
-    return; // Stop the function here
-  }
-
-  startUpdateTransition(async () => {
-    const formData = new FormData();
-    formData.append('full_name', fullName.trim());
-    
-    const result = await updateUserProfile(formData);
-    
-    if (result.success) {
-      toast.success("Profile Updated", {
-        description: "Your name has been updated successfully."
-      });
-    } else {
-      toast.error("Update Failed", {
-        description: result.error || "Please try again.",
-      });
+      toast.success('Profile updated successfully');
+      setIsEditing(false);
+      fetchProfile();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
     }
-  });
-};
+  };
 
- // Handle data export
-const handleDataExport = () => {
-  startExportTransition(async () => {
-    const result = await exportUserData();
-    
-    if (result.success && result.data) {
-      const blob = new Blob([result.data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `claimso-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Data Exported", {
-        description: "Your account data has been successfully downloaded."
-      });
-    } else {
-      toast.error("Export Failed", {
-        description: result.error || "Please try again.",
-      });
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out');
     }
-  });
-};
+  };
 
-// Handle account deletion
-const handleAccountDeletion = () => {
-  if (window.confirm("Are you absolutely sure? This will permanently delete all your data and cannot be undone.")) {
-    const finalConfirmation = window.prompt("To confirm, please type 'DELETE' in all capital letters.");
-    
-    if (finalConfirmation === 'DELETE') {
-      startDeleteTransition(async () => {
-        const result = await deleteUserAccount();
-        if (result?.error) {
-          toast.error("Deletion Failed", {
-            description: result.error,
-          });
-        }
-        // No success toast is needed as the page will redirect
-      });
-    } else {
-      toast.info("Account deletion cancelled.");
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
     }
-  }
-};
 
-  if (loading) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Delete user data
+      await supabase.from('profiles').delete().eq('id', user.id);
+      await supabase.auth.admin.deleteUser(user.id);
+
+      toast.success('Account deleted successfully');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account');
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-gray-600">Loading account settings...</p>
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
         </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="text-center">
-          <p className="text-gray-600">Please sign in to access account settings.</p>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i}>
+                    <Skeleton className="h-4 w-20 mb-2" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-32 w-full" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <a href="/dashboard" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
-        </a>
-      </div>
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-        <p className="text-gray-600">
-          Manage your account information, export your data, or delete your account.
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+        <p className="text-gray-600 mt-1">
+          Manage your account information and preferences
         </p>
       </div>
 
-      {/* Profile Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserIcon className="w-5 h-5" />
-            Profile
-          </CardTitle>
-          <CardDescription>
-            Update your account information and preferences.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleProfileUpdate}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-gray-50"
-              />
-              <p className="text-xs text-gray-500">
-                Email address cannot be changed
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-                disabled={isUpdatingProfile}
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              type="submit" 
-              disabled={isUpdatingProfile || !fullName.trim()}
-              className="w-full sm:w-auto"
-            >
-              {isUpdatingProfile ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving Changes...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Settings */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Profile Information */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-600" />
+                  Profile Information
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="hover-lift"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  {isEditing ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="full_name">Full Name</Label>
+                  <Input
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    disabled={!isEditing}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="mt-1 bg-gray-50"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    disabled={!isEditing}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Member Since</Label>
+                  <Input
+                    value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ''}
+                    disabled
+                    className="mt-1 bg-gray-50"
+                  />
+                </div>
+              </div>
+              
+              {isEditing && (
+                <div className="flex gap-3 pt-4">
+                  <Button onClick={handleSave} className="hover-lift">
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditing(false);
+                      setFormData({
+                        full_name: profile?.full_name || '',
+                        phone: profile?.phone || '',
+                        email: profile?.email || ''
+                      });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               )}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Data Management Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="w-5 h-5" />
-            Data Management
-          </CardTitle>
-          <CardDescription>
-            Export all your account data including products, warranties, and documents.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600 mb-4">
-            Download a complete backup of your account data in JSON format. This includes 
-            your profile, products, warranties, and document metadata.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={handleDataExport}
-            disabled={isExportingData}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
-            {isExportingData ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Exporting Data...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 mr-2" />
-                Export My Data
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+          {/* Security Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-green-600" />
+                Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium text-gray-900">Password</h4>
+                  <p className="text-sm text-gray-600">Last changed 30 days ago</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover-lift">
+                  Change Password
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium text-gray-900">Two-Factor Authentication</h4>
+                  <p className="text-sm text-gray-600">Add an extra layer of security</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover-lift">
+                  Enable 2FA
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Danger Zone Section */}
-      <Card className="border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-700">
-            <AlertTriangle className="w-5 h-5" />
-            Danger Zone
-          </CardTitle>
-          <CardDescription className="text-red-600">
-            Irreversible actions that will permanently affect your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-white border border-red-200 rounded-lg">
-              <h4 className="font-semibold text-red-700 mb-2">Delete Account</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                Permanently delete your account and all associated data. This action 
-                cannot be undone and will remove all your products, warranties, 
-                documents, and account information.
-              </p>
-              <ul className="text-xs text-gray-600 space-y-1 mb-4">
-                <li>• All product information will be deleted</li>
-                <li>• All warranty data will be permanently removed</li>
-                <li>• All uploaded documents will be deleted</li>
-                <li>• Your account cannot be recovered</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={handleAccountDeletion}
-            disabled={isDeletingAccount}
-            variant="destructive"
-            className="w-full sm:w-auto"
-          >
-            {isDeletingAccount ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Deleting Account...
-              </>
-            ) : (
-              <>
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                Delete My Account
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+          {/* Notification Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-purple-600" />
+                Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">Email Notifications</h4>
+                  <p className="text-sm text-gray-600">Receive updates about your warranties</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover-lift">
+                  Configure
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">Push Notifications</h4>
+                  <p className="text-sm text-gray-600">Get alerts on your device</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover-lift">
+                  Configure
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Profile Picture */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-blue-600" />
+                Profile Picture
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Avatar className="w-24 h-24 mx-auto mb-4">
+                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || 'User'} />
+                <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <Button variant="outline" size="sm" className="hover-lift">
+                <Camera className="w-4 h-4 mr-2" />
+                Change Photo
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-orange-600" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover-lift"
+                onClick={() => window.location.href = '/help'}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Help & Support
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover-lift"
+                onClick={() => window.location.href = '/privacy'}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Privacy Policy
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover-lift"
+                onClick={() => window.location.href = '/terms'}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Terms of Service
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="border-red-200 bg-red-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700">
+                <AlertTriangle className="w-5 h-5" />
+                Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-red-600 border-red-300 hover:bg-red-50 hover-lift"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-red-600 border-red-300 hover:bg-red-50 hover-lift"
+                onClick={handleDeleteAccount}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Account
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
