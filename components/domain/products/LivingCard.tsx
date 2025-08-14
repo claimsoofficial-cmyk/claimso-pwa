@@ -1,1528 +1,616 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-
-import { 
-  Shield, 
-  CheckCircle2, 
-  XCircle, 
-  Calendar, 
-  DollarSign, 
-  AlertTriangle,
-  Plus,
-  FileText,
-  Camera,
-  CalendarPlus,
-  MoreHorizontal,
-  Share2,
-  ExternalLink,
-  Wrench,
-  ArrowDown,
-  ShieldCheck,
-  Zap,
-  Info,
-  Archive,
-  Sparkles,
-  MonitorSpeaker,
-  Phone,
-  Download,
-  CheckCircle,
-  ArrowRight
-} from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter
-} from '@/components/ui/card';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { hasEnhancedProtection, getWarrantyPair } from '@/lib/warranty-utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Package, 
+  Shield, 
+  FileText, 
+  BarChart3,
+  Plus,
+  Edit,
+  Trash2,
+  Calendar,
+  DollarSign,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  XCircle,
+  ChevronRight,
+  Filter,
+  Search,
+  SortAsc,
+  SortDesc
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { Product } from '@/lib/types/common';
 
-// ==============================================================================
-// TYPESCRIPT INTERFACES
-// ==============================================================================
-
-/**
- * Warranty data structure matching our Supabase schema
- */
-interface Warranty {
-  id: string;
-  warranty_start_date: string | null;
-  warranty_end_date: string | null;
-  warranty_duration_months: number | null;
-  warranty_type: 'manufacturer' | 'extended' | 'store' | 'insurance';
-  coverage_details: string | null;
-  claim_process: string | null;
-  contact_info: string | null;
-  snapshot_data: {
-    covers?: string[];
-    does_not_cover?: string[];
-    key_terms?: string[];
-    claim_requirements?: string[];
-  };
-  ai_confidence_score: number | null;
-  last_analyzed_at: string | null;
-  data_source?: string;
-}
-
-/**
- * Document data structure matching our Supabase schema
- */
-interface Document {
-  id: string;
-  file_name: string;
-  file_url: string;
-  file_type: string | null;
-  document_type: 'receipt' | 'warranty_pdf' | 'manual' | 'insurance' | 'photo' | 'other';
-  description: string | null;
-  is_primary: boolean;
-  upload_date: string;
-}
-
-/**
- * Product data structure with nested warranties and documents
- */
-interface Product {
-  id: string;
-  user_id: string;
-  product_name: string;
-  brand: string | null;
-  model: string | null;
-  category: string | null;
-  purchase_date: string | null;
-  purchase_price: number | null;
-  currency: string;
-  purchase_location: string | null;
-  serial_number: string | null;
-  condition: 'new' | 'used' | 'refurbished' | 'damaged';
-  notes: string | null;
-  is_archived: boolean;
-  created_at: string;
-  updated_at: string;
-  warranties?: Warranty[];
-  documents?: Document[];
-}
-
-/**
- * Props for the LivingCard component
- */
 interface LivingCardProps {
-  /** Product data with nested warranties and documents */
-  product: Product;
-  /** Loading state for AI warranty analysis */
-  isLoadingWarranty?: boolean;
-  /** Callback when user wants to add serial number */
-  onAddSerialNumber?: (productId: string) => void;
-  /** Callback when user wants to add documents */
-  onAddDocuments?: (productId: string) => void;
-  /** Callback when user requests a repair quote */
-  onRequestRepairQuote?: (productId: string) => void;
+  className?: string;
 }
 
-// Marketplace partner configuration
-interface MarketplacePartner {
-  repairNetwork: boolean;
-  extendedWarranty: boolean;
-  resalePartner: boolean;
-}
+type FilterType = 'all' | 'active-warranties' | 'expiring-soon' | 'expired' | 'no-warranty';
+type SortType = 'name' | 'date' | 'value' | 'warranty';
 
-// Category-based partner availability
-const MARKETPLACE_PARTNERS: Record<string, MarketplacePartner> = {
-  'Electronics': {
-    repairNetwork: true,
-    extendedWarranty: true,
-    resalePartner: true
-  },
-  'Appliances': {
-    repairNetwork: true,
-    extendedWarranty: true,
-    resalePartner: false
-  },
-  'Automotive': {
-    repairNetwork: true,
-    extendedWarranty: false,
-    resalePartner: true
-  },
-  'Home & Garden': {
-    repairNetwork: false,
-    extendedWarranty: true,
-    resalePartner: true
-  },
-  // Default fallback
-  'General': {
-    repairNetwork: false,
-    extendedWarranty: false,
-    resalePartner: true
-  }
-};
+export default function LivingCard({ className = '' }: LivingCardProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [sortBy, setSortBy] = useState<SortType>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-/**
- * Helper function to get human-readable data source labels
- */
-function getDataSourceLabel(dataSource: string): string {
-  const sourceLabels: Record<string, string> = {
-    'user_documents': 'User uploaded documents',
-    'manufacturer_lookup': 'Manufacturer database',
-    'retailer_data': 'Retailer purchase history',
-    'internet_search': 'Internet search results',
-    'purchase_history': 'Purchase history analysis',
-    'ai': 'AI analysis',
-    'user_upload': 'User uploaded documents',
-    'partner_data': 'Partner data'
-  };
-  
-  return sourceLabels[dataSource] || 'Unknown source';
-}
+  const supabase = createClient();
 
-/**
- * Smart issue detection based on product category
- */
-function getSmartIssueOptions(product: Product): Array<{
-  type: string;
-  label: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  action: 'call' | 'download' | 'online' | 'repair';
-  priority: number;
-}> {
-  const category = product.category?.toLowerCase() || '';
-  
-  // Base issue types for all products
-  const baseIssues = [
-    {
-      type: 'not_working',
-      label: 'Not Working',
-      description: 'Device won\'t turn on or function properly',
-      icon: AlertTriangle,
-      color: 'bg-red-50 hover:bg-red-100 border-red-200 text-red-800',
-      action: 'call' as const,
-      priority: 1
-    },
-    {
-      type: 'damaged',
-      label: 'Physical Damage',
-      description: 'Cracks, dents, or visible damage',
-      icon: AlertTriangle,
-      color: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-800',
-      action: 'call' as const,
-      priority: 2
-    }
-  ];
+  // ==============================================================================
+  // DATA FETCHING
+  // ==============================================================================
 
-  // Category-specific issues
-  const categoryIssues = [];
-  
-  if (category.includes('phone') || category.includes('mobile')) {
-    categoryIssues.push(
-      {
-        type: 'screen_issue',
-        label: 'Screen Problem',
-        description: 'Cracked screen, won\'t respond to touch',
-        icon: MonitorSpeaker,
-        color: 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-800',
-        action: 'repair' as const,
-        priority: 1
-      },
-      {
-        type: 'battery_issue',
-        label: 'Battery Problem',
-        description: 'Won\'t charge or drains too fast',
-        icon: Zap,
-        color: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200 text-yellow-800',
-        action: 'call' as const,
-        priority: 2
-      }
-    );
-  } else if (category.includes('laptop') || category.includes('computer')) {
-    categoryIssues.push(
-      {
-        type: 'performance_issue',
-        label: 'Slow Performance',
-        description: 'Very slow, freezing, or overheating',
-        icon: MonitorSpeaker,
-        color: 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800',
-        action: 'online' as const,
-        priority: 1
-      },
-      {
-        type: 'hardware_issue',
-        label: 'Hardware Problem',
-        description: 'Keyboard, trackpad, or ports not working',
-        icon: Wrench,
-        color: 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800',
-        action: 'repair' as const,
-        priority: 2
-      }
-    );
-  } else if (category.includes('appliance')) {
-    categoryIssues.push(
-      {
-        type: 'not_working',
-        label: 'Appliance Not Working',
-        description: 'Won\'t start or function properly',
-        icon: Wrench,
-        color: 'bg-red-50 hover:bg-red-100 border-red-200 text-red-800',
-        action: 'call' as const,
-        priority: 1
-      },
-      {
-        type: 'noise_issue',
-        label: 'Unusual Noise',
-        description: 'Making strange sounds or vibrations',
-        icon: AlertTriangle,
-        color: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-800',
-        action: 'repair' as const,
-        priority: 2
-      }
-    );
-  }
-
-  // Combine and sort by priority
-  return [...baseIssues, ...categoryIssues].sort((a, b) => a.priority - b.priority);
-}
-
-/**
- * Get resolution action for issue type
- */
-function getResolutionAction(issueType: string, product: Product): {
-  action: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  url?: string;
-} {
-  const category = product.category?.toLowerCase() || '';
-  const brand = product.brand?.toLowerCase() || '';
-  
-  // Default resolution actions
-  const actions = {
-    call: {
-      action: 'Call Support',
-      description: 'Speak with a specialist',
-      icon: Phone,
-      color: 'bg-blue-600 hover:bg-blue-700',
-      url: `tel:1-800-${brand.toUpperCase()}-SUPPORT`
-    },
-    download: {
-      action: 'Download Claim Form',
-      description: 'Complete documentation',
-      icon: Download,
-      color: 'bg-green-600 hover:bg-green-700',
-      url: `/api/resolution/generate-packet?productId=${product.id}`
-    },
-    online: {
-      action: 'Online Support',
-      description: 'Self-service tools',
-      icon: MonitorSpeaker,
-      color: 'bg-purple-600 hover:bg-purple-700',
-      url: `https://support.${brand}.com`
-    },
-    repair: {
-      action: 'Find Repair',
-      description: 'Local repair services',
-      icon: Wrench,
-      color: 'bg-orange-600 hover:bg-orange-700',
-      url: `https://repair.claimso.com?product=${encodeURIComponent(product.product_name)}`
-    }
-  };
-
-  // Smart action selection based on issue and product
-  if (issueType.includes('screen') || issueType.includes('damage')) {
-    return actions.repair;
-  } else if (issueType.includes('performance') || issueType.includes('software')) {
-    return actions.online;
-  } else if (category.includes('appliance') || category.includes('electronics')) {
-    return actions.call;
-  } else {
-    return actions.download;
-  }
-}
-
-/**
- * Helper function to determine if product needs extended warranty
- */
-function needsExtendedWarranty(product: Product): boolean {
-  // Check if product has extended warranty
-  const hasExtended = product.warranties?.some(w => 
-    w.warranty_type === 'extended' || w.warranty_type === 'insurance'
-  );
-  
-  // Check if warranty is expired or expiring soon
-  const primaryWarranty = product.warranties?.[0];
-  if (primaryWarranty?.warranty_end_date) {
-    const endDate = new Date(primaryWarranty.warranty_end_date);
-    const now = new Date();
-    const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Show extended warranty option if warranty expires within 30 days or is expired
-    return !hasExtended && (daysUntilExpiry <= 30 || daysUntilExpiry < 0);
-  }
-  
-  return !hasExtended;
-}
-
-/**
- * Helper function to get resale options using Quick Cash Partner Network
- */
-function getResaleOptions(product: Product): Array<{
-  name: string;
-  description: string;
-  estimatedValue: string;
-  affiliateUrl: string;
-  rating: number;
-  instantQuote: boolean;
-}> {
-  const price = product.purchase_price || 0;
-  const estimatedResaleValue = Math.round(price * 0.6); // 60% of original price
-  
-  return [
-    {
-      name: 'Gazelle',
-      description: 'Instant cash for electronics',
-      estimatedValue: `$${Math.round(estimatedResaleValue * 0.7)}`,
-      affiliateUrl: `https://www.gazelle.com/trade-in/${encodeURIComponent(product.product_name)}?ref=claimso`,
-      rating: 4.5,
-      instantQuote: true
-    },
-    {
-      name: 'Decluttr',
-      description: 'Quick cash for tech items',
-      estimatedValue: `$${Math.round(estimatedResaleValue * 0.6)}`,
-      affiliateUrl: `https://www.decluttr.com/sell/${encodeURIComponent(product.product_name)}?ref=claimso`,
-      rating: 4.3,
-      instantQuote: true
-    },
-    {
-      name: 'Swappa',
-      description: 'Peer-to-peer marketplace',
-      estimatedValue: `$${Math.round(estimatedResaleValue * 0.85)}`,
-      affiliateUrl: `https://swappa.com/sell/${encodeURIComponent(product.product_name)}?ref=claimso`,
-      rating: 4.7,
-      instantQuote: false
-    },
-    {
-      name: 'Amazon Trade-In',
-      description: 'Amazon gift cards',
-      estimatedValue: `$${Math.round(estimatedResaleValue * 0.75)}`,
-      affiliateUrl: `https://www.amazon.com/tradein/${encodeURIComponent(product.product_name)}?ref=claimso`,
-      rating: 4.6,
-      instantQuote: true
-    }
-  ];
-}
-
-
-
-/**
- * Helper function to get extended warranty options
- */
-function getExtendedWarrantyOptions(product: Product): Array<{
-  name: string;
-  description: string;
-  price: string;
-  coverage: string;
-  affiliateUrl: string;
-  rating: number;
-}> {
-  const price = product.purchase_price || 0;
-  
-  return [
-    {
-      name: 'SquareTrade Protection Plan',
-      description: 'Comprehensive coverage for accidental damage',
-      price: `$${Math.round(price * 0.15)}/year`,
-      coverage: '3 years coverage',
-      affiliateUrl: `https://www.squaretrade.com/protection?product=${encodeURIComponent(product.product_name)}&ref=claimso`,
-      rating: 4.8
-    },
-    {
-      name: 'Asurion Home+ Protection',
-      description: 'Home protection for all your devices',
-      price: `$${Math.round(price * 0.12)}/year`,
-      coverage: '2 years coverage',
-      affiliateUrl: `https://www.asurion.com/home-plus?product=${encodeURIComponent(product.product_name)}&ref=claimso`,
-      rating: 4.6
-    },
-    {
-      name: 'Warranty Group Extended',
-      description: 'Manufacturer-authorized extended warranty',
-      price: `$${Math.round(price * 0.18)}/year`,
-      coverage: '4 years coverage',
-      affiliateUrl: `https://www.warrantygroup.com/extended?product=${encodeURIComponent(product.product_name)}&ref=claimso`,
-      rating: 4.7
-    }
-  ];
-}
-
-// ==============================================================================
-// MAIN COMPONENT
-// ==============================================================================
-
-/**
- * LivingCard - Smart product display component with multiple visual states
- * 
- * This component serves as the centerpiece of the UI, dynamically changing
- * its appearance based on the product's warranty status and data completeness.
- * 
- * Visual States:
- * 1. Loading - Skeleton while AI analyzes warranty
- * 2. Default - Product info with warranty snapshot
- * 3. Actionable - Claim readiness with action buttons
- * 4. Problem - UI for warranty claims and resolution
- * 5. Expired - Warranty expired with repair service options
- */
-export default function LivingCard({
-  product,
-  isLoadingWarranty = false,
-  onAddSerialNumber,
-  onAddDocuments,
-  onRequestRepairQuote
-}: LivingCardProps) {
-  // Internal state for warranty analysis and modals
-  const [isAnalyzingWarranty, setIsAnalyzingWarranty] = useState(false);
-  const [showExtendedWarrantyModal, setShowExtendedWarrantyModal] = useState(false);
-  const [showQuickCashModal, setShowQuickCashModal] = useState(false);
-  const [showResolutionOptions, setShowResolutionOptions] = useState(false);
-  const [selectedIssueType, setSelectedIssueType] = useState<string | null>(null);
-  
-  // Ref for scrolling to Next Steps section
-  const nextStepsRef = useRef<HTMLDivElement>(null);
-
-  // Get primary warranty and document
-  const primaryWarranty = product.warranties?.[0];
-  const primaryImage = product.documents?.find(doc => 
-    doc.document_type === 'photo' && doc.is_primary
-  );
-  const hasReceipt = product.documents?.some(doc => 
-    doc.document_type === 'receipt'
-  );
-
-  // Check for enhanced protection
-  const hasEnhanced = hasEnhancedProtection(product.warranties || []);
-  const { primary, extended } = getWarrantyPair(product.warranties || []);
-
-  // Check if calendar feature is available
-  const canCreateCalendarEvent = !!(
-    product.purchase_date && 
-    primaryWarranty?.warranty_duration_months &&
-    primaryWarranty?.warranty_end_date
-  );
-
-  // Handle calendar download
-  const handleCalendarDownload = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const response = await fetch(`/api/calendar/generate-ics?productId=${product.id}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate calendar event');
-      }
-      
-      // Get the filename from the response headers
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filename = contentDisposition?.split('filename=')[1]?.replace(/"/g, '') || 'warranty_event.ics';
-      
-      // Create blob and download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast.success('Calendar event downloaded', { 
-        description: 'Warranty reminder added to your calendar' 
-      });
-    } catch (error) {
-      console.error('Calendar download error:', error);
-      toast.error('Failed to download calendar event', {
-        description: 'Please try again later'
-      });
-    }
-  };
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  // Handle warranty analysis
-  const handleWarrantyAnalysis = async () => {
-    if (!primaryWarranty) return;
-    
-    setIsAnalyzingWarranty(true);
-    try {
-      const response = await fetch('/api/warranty/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productId: product.id }),
-      });
+      const { data: productsData, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          warranties (*),
+          documents (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
 
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('Warranty analysis complete', {
-          description: 'AI has analyzed your warranty documents'
-        });
-        // Refresh the page to show updated data
-        window.location.reload();
+      if (error) {
+        console.error('Error fetching products:', error);
       } else {
-        toast.error('Analysis failed', {
-          description: result.error || 'Please try again later'
-        });
+        setProducts(productsData || []);
+        setFilteredProducts(productsData || []);
       }
     } catch (error) {
-      console.error('Warranty analysis error:', error);
-      toast.error('Analysis failed', {
-        description: 'Please try again later'
-      });
+      console.error('Error fetching products:', error);
     } finally {
-      setIsAnalyzingWarranty(false);
+      setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  // Calculate warranty status and expiration
-  const calculateWarrantyStatus = () => {
-    if (!primaryWarranty) return { isActive: false, isExpired: false };
+  // ==============================================================================
+  // FILTERING AND SORTING
+  // ==============================================================================
 
-    // Use warranty_end_date if available
-    if (primaryWarranty.warranty_end_date) {
-      const endDate = new Date(primaryWarranty.warranty_end_date);
-      const now = new Date();
-      return {
-        isActive: endDate > now,
-        isExpired: endDate <= now
-      };
-    }
+  useEffect(() => {
+    let filtered = [...products];
 
-    // Calculate from purchase date and warranty duration
-    if (product.purchase_date && primaryWarranty.warranty_duration_months) {
-      const purchaseDate = new Date(product.purchase_date);
-      const expirationDate = new Date(purchaseDate);
-      expirationDate.setMonth(expirationDate.getMonth() + primaryWarranty.warranty_duration_months);
-      
-      const now = new Date();
-      return {
-        isActive: expirationDate > now,
-        isExpired: expirationDate <= now
-      };
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(product =>
+        product.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
-    return { isActive: false, isExpired: false };
-  };
-
-  const { isActive: isWarrantyActive, isExpired: isWarrantyExpired } = calculateWarrantyStatus();
-
-  // Determine claim readiness score
-  const claimReadinessItems = [
-    { key: 'serial', label: 'Serial Number', complete: !!product.serial_number },
-    { key: 'receipt', label: 'Purchase Receipt', complete: hasReceipt },
-    { key: 'warranty', label: 'Warranty Info', complete: !!primaryWarranty },
-  ];
-  const completedItems = claimReadinessItems.filter(item => item.complete).length;
-  const readinessPercentage = Math.round((completedItems / claimReadinessItems.length) * 100);
-
-  // Handle sharing functionality
-  const handleShare = async () => {
-    try {
-      const shareUrl = `${window.location.origin}/share/product/${product.id}`;
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      toast.error('Failed to copy link. Please try again.');
+    // Apply status filter
+    switch (activeFilter) {
+      case 'active-warranties':
+        filtered = filtered.filter(product => 
+          product.warranties?.some(w => {
+            if (!w.warranty_end_date) return true;
+            return new Date(w.warranty_end_date) > new Date();
+          })
+        );
+        break;
+      case 'expiring-soon':
+        filtered = filtered.filter(product =>
+          product.warranties?.some(w => {
+            if (!w.warranty_end_date) return false;
+            const endDate = new Date(w.warranty_end_date);
+            const now = new Date();
+            const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+          })
+        );
+        break;
+      case 'expired':
+        filtered = filtered.filter(product =>
+          product.warranties?.some(w => {
+            if (!w.warranty_end_date) return false;
+            return new Date(w.warranty_end_date) < new Date();
+          })
+        );
+        break;
+      case 'no-warranty':
+        filtered = filtered.filter(product => 
+          !product.warranties || product.warranties.length === 0
+        );
+        break;
     }
-  };
 
-  // Get marketplace partner availability for this product category
-  const getMarketplacePartners = (): MarketplacePartner => {
-    const category = product.category || 'General';
-    return MARKETPLACE_PARTNERS[category] || MARKETPLACE_PARTNERS['General'];
-  };
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
 
-  const partners = getMarketplacePartners();
+      switch (sortBy) {
+        case 'name':
+          aValue = a.product_name.toLowerCase();
+          bValue = b.product_name.toLowerCase();
+          break;
+        case 'date':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        case 'value':
+          aValue = a.purchase_price || 0;
+          bValue = b.purchase_price || 0;
+          break;
+        case 'warranty':
+          aValue = a.warranties?.length || 0;
+          bValue = b.warranties?.length || 0;
+          break;
+        default:
+          return 0;
+      }
 
-  // Generate affiliate URLs with proper referral codes
-  const getExtendedWarrantyUrl = () => {
-    const productName = encodeURIComponent(product.product_name);
-    const brand = encodeURIComponent(product.brand || '');
-    // Example affiliate URL - replace with actual partner
-    return `https://partner-warranty.com/plans?product=${productName}&brand=${brand}&ref=claimso_affiliate`;
-  };
-
-  const getResaleValueUrl = () => {
-    const searchQuery = encodeURIComponent(`${product.brand || ''} ${product.product_name}`);
-    // Example eBay affiliate URL - replace with actual affiliate ID
-    return `https://www.ebay.com/sch/i.html?_nkw=${searchQuery}&_sacat=0&_odkw=&_osacat=0&_trksid=claimso_affiliate`;
-  };
-
-  // Handle repair quote request
-  const handleRepairQuote = () => {
-    if (onRequestRepairQuote) {
-      onRequestRepairQuote(product.id);
-    } else {
-      // Fallback to direct action
-      toast.success('Repair quote request initiated');
-    }
-  };
-
-  // Scroll to Next Steps section
-  const scrollToNextSteps = () => {
-    nextStepsRef.current?.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'center' 
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
     });
+
+    setFilteredProducts(filtered);
+  }, [products, activeFilter, sortBy, sortOrder, searchQuery]);
+
+  // ==============================================================================
+  // HELPER FUNCTIONS
+  // ==============================================================================
+
+  const getWarrantyStatus = (product: Product) => {
+    if (!product.warranties || product.warranties.length === 0) {
+      return { status: 'no-warranty', label: 'No Warranty', color: 'gray' };
+    }
+
+    const activeWarranties = product.warranties.filter(w => {
+      if (!w.warranty_end_date) return true;
+      return new Date(w.warranty_end_date) > new Date();
+    });
+
+    const expiringWarranties = product.warranties.filter(w => {
+      if (!w.warranty_end_date) return false;
+      const endDate = new Date(w.warranty_end_date);
+      const now = new Date();
+      const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    });
+
+    if (expiringWarranties.length > 0) {
+      return { status: 'expiring', label: 'Expiring Soon', color: 'orange' };
+    } else if (activeWarranties.length > 0) {
+      return { status: 'active', label: 'Active', color: 'green' };
+    } else {
+      return { status: 'expired', label: 'Expired', color: 'red' };
+    }
+  };
+
+  const getDaysUntilExpiry = (product: Product) => {
+    if (!product.warranties || product.warranties.length === 0) return null;
+
+    const activeWarranty = product.warranties.find(w => {
+      if (!w.warranty_end_date) return false;
+      const endDate = new Date(w.warranty_end_date);
+      return endDate > new Date();
+    });
+
+    if (!activeWarranty?.warranty_end_date) return null;
+
+    const endDate = new Date(activeWarranty.warranty_end_date);
+    const now = new Date();
+    return Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   // ==============================================================================
-  // LOADING STATE
+  // INITIALIZATION
   // ==============================================================================
-  if (isLoadingWarranty) {
-    return (
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <Skeleton className="h-20 w-20 rounded-lg" />
-            <div className="flex-1 ml-4">
-              <Skeleton className="h-5 w-3/4 mb-2" />
-              <div className="flex gap-2 mb-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-            </div>
-            <Skeleton className="h-6 w-16" />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-4 w-2/3 mb-4" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Skeleton className="h-10 w-full" />
-        </CardFooter>
-      </Card>
-    );
-  }
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   // ==============================================================================
-  // DEFAULT/ACTIONABLE/EXPIRED STATE
+  // RENDER
   // ==============================================================================
+
   return (
-    <>
-      <Card className={`overflow-hidden ${
-        isWarrantyExpired 
-          ? 'opacity-75 shadow-lg shadow-red-200 dark:shadow-red-900/20 border-red-200 dark:border-red-800' 
-          : ''
-      }`}>
-      {/* Product Image */}
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          {primaryImage ? (
-            <Image
-              src={primaryImage.file_url}
-              alt={product.product_name}
-              width={80}
-              height={80}
-              className={`rounded-lg object-cover ${isWarrantyExpired ? 'grayscale' : ''}`}
-              priority={false}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-            />
-          ) : (
-            <div className={`w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center ${isWarrantyExpired ? 'grayscale' : ''}`}>
-              <Camera className="h-8 w-8 text-gray-400" />
-              <span className="sr-only">No image</span>
-            </div>
-          )}
-          
-          {/* Warranty Status Badge */}
-          {primaryWarranty && (
-            <div className="flex flex-col items-end gap-2">
-              {isWarrantyExpired ? (
-                <Badge variant="destructive" className="gap-1">
-                  <XCircle className="h-3 w-3" />
-                  Warranty Expired
-                </Badge>
-              ) : isWarrantyActive ? (
-                <Badge variant="secondary" className="gap-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                  <Shield className="h-3 w-3" />
-                  Protected
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="gap-1">
-                  <XCircle className="h-3 w-3" />
-                  Expired
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {/* Enhanced Protection Badge */}
-          {hasEnhanced && (
-            <Badge variant="secondary" className="gap-1 bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
-              <ShieldCheck className="h-3 w-3" />
-              Enhanced Protection
-            </Badge>
-          )}
-
-          {/* Extended Warranty Button (Pulsing) */}
-          {needsExtendedWarranty(product) && (
-            <button
-              onClick={() => setShowExtendedWarrantyModal(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full animate-pulse hover:animate-none transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              <Sparkles className="h-3 w-3" />
-              Get Extended Warranty
-            </button>
-          )}
-
-          {/* Quick Cash Button */}
-          <button
-            onClick={() => setShowQuickCashModal(true)}
-            className="inline-flex items-center gap-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-full transition-colors"
-            title="Get instant cash for this item"
+    <Card className={cn("w-full", className)}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-blue-600" />
+            Product Vault
+          </CardTitle>
+          <Button 
+            variant="gradient" 
+            size="sm"
+            onClick={() => window.location.href = '/products/add'}
           >
-            <DollarSign className="h-3 w-3" />
-            Get Cash
-          </button>
-
-          {/* Archive Button */}
-          <button
-            onClick={() => {
-              // Archive functionality would be implemented here
-              toast.success('Item archived', { description: 'Item moved to archive' });
-            }}
-            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded-full transition-colors"
-            title="Archive this item"
-          >
-            <Archive className="h-3 w-3" />
-            Archive
-          </button>
-
-          {/* Linked Products Indicator */}
-          {product.warranties && product.warranties.length > 1 && (
-            <div className="text-xs text-gray-500 flex items-center gap-1">
-              <Shield className="h-3 w-3" />
-              {product.warranties.length} warranty{product.warranties.length > 1 ? 's' : ''} linked
-            </div>
-          )}
-
-          {/* More Options Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShare}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
+          </Button>
         </div>
       </CardHeader>
+      
+      <CardContent>
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Products ({filteredProducts.length})
+            </TabsTrigger>
+            <TabsTrigger value="warranties" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Warranties
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-      <CardContent className="pt-0">
-        {/* Product Details */}
-        <div className="mb-4">
-          <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
-            {product.product_name}
-          </h3>
-          <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
-            {product.brand && (
-              <span className="font-medium">{product.brand}</span>
-            )}
-            {product.purchase_price && (
-              <span className="flex items-center gap-1">
-                <DollarSign className="h-3 w-3" />
-                ${product.purchase_price.toLocaleString()}
-              </span>
-            )}
-            {product.purchase_date && (
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {new Date(product.purchase_date).toLocaleDateString()}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* AI Warranty Snapshot, Claim Readiness, or Next Steps Marketplace */}
-        {isWarrantyExpired ? (
-          /* Next Steps Marketplace Section */
-          <div ref={nextStepsRef} className="space-y-4">
-            <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-5 w-5 text-orange-600" />
-                <h4 className="font-semibold text-orange-900 dark:text-orange-100">
-                  Next Steps
-                </h4>
-                <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
-                  Trusted Partners
-                </Badge>
+          <TabsContent value="products" className="mt-6">
+            {/* Filters and Search */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
               
-              <p className="text-sm text-orange-800 dark:text-orange-200 mb-4">
-                Your warranty has expired, but we can still help you get the most out of your {product.product_name}.
-              </p>
-
-              <div className="grid gap-3">
-                {/* Repair Quote Button */}
-                {partners.repairNetwork && (
-                  <Button
-                    onClick={handleRepairQuote}
-                    variant="outline"
-                    className="justify-start h-auto p-4 border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:border-blue-800 dark:hover:border-blue-700 dark:hover:bg-blue-900/20"
-                  >
-                    <div className="flex items-start gap-3 text-left w-full">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <Wrench className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-blue-900 dark:text-blue-100">
-                          Get a Repair Quote
-                        </div>
-                        <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                          Connect with certified repair technicians in your area
-                        </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          • Free estimates • Trusted partners • Local service
-                        </div>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-blue-500 mt-1" />
-                    </div>
-                  </Button>
-                )}
-
-                {/* Extended Warranty Button */}
-                {partners.extendedWarranty && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start h-auto p-4 border-2 border-green-200 hover:border-green-300 hover:bg-green-50 dark:border-green-800 dark:hover:border-green-700 dark:hover:bg-green-900/20"
-                  >
-                    <a
-                      href={getExtendedWarrantyUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-start gap-3 text-left w-full"
-                    >
-                      <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                        <ShieldCheck className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-green-900 dark:text-green-100">
-                          Explore Protection Plans
-                        </div>
-                        <div className="text-sm text-green-700 dark:text-green-300 mt-1">
-                          Extend your protection with comprehensive coverage
-                        </div>
-                        <div className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          • Accident protection • Extended coverage • Peace of mind
-                        </div>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-green-500 mt-1" />
-                    </a>
-                  </Button>
-                )}
-
-                {/* Resale Value Button */}
-                {partners.resalePartner && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start h-auto p-4 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 dark:border-purple-800 dark:hover:border-purple-700 dark:hover:bg-purple-900/20"
-                  >
-                    <a
-                      href={getResaleValueUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-start gap-3 text-left w-full"
-                    >
-                      <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-purple-900 dark:text-purple-100">
-                          Check Resale Value
-                        </div>
-                        <div className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                          See what your {product.product_name} is worth today
-                        </div>
-                        <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                          • Market pricing • Instant estimates • Easy selling
-                        </div>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-purple-500 mt-1" />
-                    </a>
-                  </Button>
-                )}
-              </div>
-
-              {/* Trust indicators */}
-              <div className="mt-4 pt-3 border-t border-orange-200 dark:border-orange-700">
-                <p className="text-xs text-orange-700 dark:text-orange-300 flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  All partners are vetted and trusted by CLAIMSO
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* Warranty Snapshot - Enhanced for multiple warranties */}
-        {primaryWarranty && primary && (
-          <div className="space-y-3 mt-4">
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  {hasEnhanced ? 'Enhanced Warranty Coverage' : 'Warranty Coverage'}
-                </h4>
-                <div className="flex items-center gap-2">
-                  {hasEnhanced && (
-                    <Badge variant="outline" className="text-xs">
-                      {product.warranties?.length || 1} Layer{product.warranties && product.warranties.length > 1 ? 's' : ''}
-                    </Badge>
-                  )}
-                {primaryWarranty.ai_confidence_score && (
-                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                      {Math.round(primaryWarranty.ai_confidence_score * 100)}% AI confident
-                  </Badge>
-                )}
-                  {primaryWarranty.data_source && (
-                    <button
-                      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                      title={`Data source: ${getDataSourceLabel(primaryWarranty.data_source)}`}
-                    >
-                      <Info className="w-3 h-3 text-gray-600" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* AI Warranty Snapshot */}
-              {primaryWarranty.snapshot_data && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="grid gap-3">
-                {primaryWarranty.snapshot_data.covers && (
-                  <div className="space-y-2">
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Covers
-                        </h5>
-                    <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                      {primaryWarranty.snapshot_data.covers.slice(0, 3).map((item, index) => (
-                        <li key={index} className="flex items-start gap-1">
-                          • {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {primaryWarranty.snapshot_data.does_not_cover && (
-                  <div className="space-y-2">
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
-                      <XCircle className="h-3 w-3" />
-                      Does Not Cover
-                        </h5>
-                    <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                      {primaryWarranty.snapshot_data.does_not_cover.slice(0, 2).map((item, index) => (
-                        <li key={index} className="flex items-start gap-1">
-                          • {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                    {primaryWarranty.snapshot_data.key_terms && (
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
-                          <FileText className="h-3 w-3" />
-                          Key Terms
-                        </h5>
-                        <div className="flex flex-wrap gap-1">
-                          {primaryWarranty.snapshot_data.key_terms.slice(0, 4).map((term, index) => (
-                            <Badge key={index} variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
-                              {term}
-                            </Badge>
-                          ))}
-              </div>
-            </div>
-                    )}
-          </div>
-                </div>
-              )}
-
-              {/* Loading State for Warranty Analysis */}
-              {primaryWarranty && !primaryWarranty.snapshot_data && (isLoadingWarranty || isAnalyzingWarranty) && (
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-                    <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                      {isAnalyzingWarranty ? 'Analyzing warranty documents...' : 'Loading warranty analysis...'}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* No Warranty Data Available - Show Analysis Button */}
-              {primaryWarranty && !primaryWarranty.snapshot_data && !isLoadingWarranty && !isAnalyzingWarranty && (
-                <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Warranty analysis not available
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleWarrantyAnalysis}
-                      disabled={isAnalyzingWarranty}
-                      className="text-xs"
-                    >
-                      {isAnalyzingWarranty ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1"></div>
-                          Analyzing...
-                        </>
-                      ) : (
-                        'Analyze Warranty'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Primary Warranty */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Primary Coverage</span>
-                  <span className="font-medium capitalize">{primary.warranty_type}</span>
-                </div>
-                {primary.warranty_duration_months && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Duration</span>
-                    <span className="font-medium">{primary.warranty_duration_months} months</span>
-                  </div>
-                )}
-                {primary.warranty_end_date && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Expires</span>
-                    <span className="font-medium">{new Date(primary.warranty_end_date).toLocaleDateString()}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Extended Warranty (if exists) */}
-              {extended && (
-                <>
-                  <Separator className="my-3" />
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Extended Coverage</span>
-                      <span className="font-medium capitalize">{extended.warranty_type}</span>
-                    </div>
-                    {extended.warranty_duration_months && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Additional</span>
-                        <span className="font-medium">+{extended.warranty_duration_months} months</span>
-                      </div>
-                    )}
-                    {extended.warranty_end_date && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Extended Until</span>
-                        <span className="font-medium">{new Date(extended.warranty_end_date).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Total Coverage Summary */}
-              {hasEnhanced && (
-                <>
-                  <Separator className="my-3" />
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                    <div className="flex items-center justify-between text-sm font-medium">
-                      <span className="text-blue-800 dark:text-blue-300">Total Protection</span>
-                      <span className="text-blue-800 dark:text-blue-300">
-                        {((primary.warranty_duration_months || 0) + (extended?.warranty_duration_months || 0))} months
-                      </span>
-                    </div>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                      Enhanced coverage with multiple warranty layers
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Claim Readiness Section - Hidden for expired warranties */}
-        {!isWarrantyExpired && (
-          <div className="space-y-3 mt-4">
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Claim Readiness
-                </h4>
-                <Badge variant="outline">
-                  {readinessPercentage}% Ready
-                </Badge>
-              </div>
-
-              {/* Action Items */}
-              <div className="space-y-2">
-                {!product.serial_number && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAddSerialNumber?.(product.id)}
-                    className="justify-start h-8 text-xs"
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add Serial Number
-                  </Button>
-                )}
-
-                {!hasReceipt && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAddDocuments?.(product.id)}
-                    className="justify-start h-8 text-xs"
-                  >
-                    <FileText className="mr-1 h-3 w-3" />
-                    Add Receipt
-                  </Button>
-                )}
-
-                {product.documents && product.documents.length < 2 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAddDocuments?.(product.id)}
-                    className="justify-start h-8 text-xs"
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add Documents
-                  </Button>
-                )}
-
-                {canCreateCalendarEvent && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="justify-start h-8 text-xs"
-                    onClick={handleCalendarDownload}
-                  >
-                    <CalendarPlus className="mr-1 h-3 w-3" />
-                    Add to Calendar
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-
-      {/* Main Call-to-Action */}
-      <CardFooter>
-        {isWarrantyExpired ? (
-          <Button
-            onClick={scrollToNextSteps}
-            className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-medium py-2.5"
-            size="default"
-          >
-            <ArrowDown className="mr-2 h-4 w-4" />
-            View Resolution Options
-          </Button>
-        ) : (
-          <Button
-            onClick={() => setShowResolutionOptions(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
-            size="default"
-          >
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            I have a problem
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
-
-    {/* Extended Warranty Modal */}
-    {showExtendedWarrantyModal && (
-      <Dialog open={showExtendedWarrantyModal} onOpenChange={setShowExtendedWarrantyModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Extended Warranty Options
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Protect your {product.product_name} with extended warranty coverage. We&apos;ve ranked the best options for you:
-            </p>
-            
-            <div className="grid gap-3">
-              {getExtendedWarrantyOptions(product).map((option, index) => (
-                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium">{option.name}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {option.rating}★
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{option.description}</p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-green-600 font-medium">{option.price}</span>
-                        <span className="text-gray-500">{option.coverage}</span>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        window.open(option.affiliateUrl, '_blank');
-                        setShowExtendedWarrantyModal(false);
-                      }}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Get Quote
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="text-xs text-gray-500 text-center">
-              * Prices and coverage may vary. We earn a commission on qualifying purchases.
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )}
-
-    {/* Smart Resolution Options Modal */}
-    {showResolutionOptions && (
-      <Dialog open={showResolutionOptions} onOpenChange={setShowResolutionOptions}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-blue-600" />
-                                  What&apos;s the issue with your {product.product_name}?
-            </DialogTitle>
-            <DialogDescription>
-              Select the problem you&apos;re experiencing and we&apos;ll get you the right help immediately.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Issue Type Selection */}
-            {!selectedIssueType ? (
-              <div className="grid gap-3">
-                {getSmartIssueOptions(product).map((issue) => {
-                  const IconComponent = issue.icon;
-                  return (
-                    <Button
-                      key={issue.type}
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setSelectedIssueType(issue.type)}
-                      className={`h-auto p-4 justify-start text-left transition-all duration-200 ${issue.color}`}
-                    >
-                      <div className="flex items-center gap-4 w-full">
-                        <IconComponent className="w-6 h-6 flex-shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium">{issue.label}</div>
-                          <div className="text-sm opacity-80 mt-1">
-                            {issue.description}
-                          </div>
-                        </div>
-                        <ArrowRight className="w-4 h-4 flex-shrink-0 opacity-60" />
-                      </div>
-                    </Button>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Resolution Action */
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <h4 className="font-medium text-blue-900">
-                        {getSmartIssueOptions(product).find(opt => opt.type === selectedIssueType)?.label}
-                      </h4>
-                      <p className="text-sm text-blue-800">
-                        We&apos;ve identified the best resolution for your issue.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex gap-2">
+                <select
+                  value={activeFilter}
+                  onChange={(e) => setActiveFilter(e.target.value as FilterType)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Products</option>
+                  <option value="active-warranties">Active Warranties</option>
+                  <option value="expiring-soon">Expiring Soon</option>
+                  <option value="expired">Expired</option>
+                  <option value="no-warranty">No Warranty</option>
+                </select>
                 
-                {(() => {
-                  const resolution = getResolutionAction(selectedIssueType, product);
-                  const IconComponent = resolution.icon;
-                  return (
-                    <Button
-                      onClick={() => {
-                        if (resolution.url) {
-                          if (resolution.url.startsWith('tel:')) {
-                            window.location.href = resolution.url;
-                          } else if (resolution.url.startsWith('http')) {
-                            window.open(resolution.url, '_blank');
-                          } else {
-                            window.open(resolution.url, '_blank');
-                          }
-                        }
-                        setShowResolutionOptions(false);
-                        setSelectedIssueType(null);
-                        toast.success('Resolution initiated', {
-                          description: `Opening ${resolution.action.toLowerCase()}...`
-                        });
-                      }}
-                      size="lg"
-                      className={`w-full ${resolution.color} text-white`}
-                    >
-                      <IconComponent className="w-5 h-5 mr-2" />
-                      {resolution.action}
-                    </Button>
-                  );
-                })()}
-                
-                <p className="text-sm text-gray-600 text-center">
-                  {getResolutionAction(selectedIssueType, product).description}
-                </p>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortType)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="date">Date Added</option>
+                  <option value="name">Name</option>
+                  <option value="value">Value</option>
+                  <option value="warranty">Warranty Status</option>
+                </select>
                 
                 <Button
                   variant="outline"
-                  onClick={() => setSelectedIssueType(null)}
-                  className="w-full"
+                  size="icon"
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 >
-                  Choose Different Issue
+                  {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProducts.map((product) => {
+                const warrantyStatus = getWarrantyStatus(product);
+                const daysUntilExpiry = getDaysUntilExpiry(product);
+                
+                return (
+                  <Card 
+                    key={product.id} 
+                    className="cursor-pointer hover:shadow-md transition-all duration-200 border-l-4"
+                    style={{ borderLeftColor: warrantyStatus.color === 'green' ? '#10b981' : 
+                           warrantyStatus.color === 'orange' ? '#f59e0b' : 
+                           warrantyStatus.color === 'red' ? '#ef4444' : '#6b7280' }}
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {product.product_name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {product.brand} • {product.category}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={warrantyStatus.color === 'green' ? 'default' : 
+                                  warrantyStatus.color === 'orange' ? 'secondary' : 
+                                  warrantyStatus.color === 'red' ? 'destructive' : 'outline'}
+                          className="text-xs"
+                        >
+                          {warrantyStatus.label}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Value:</span>
+                          <span className="font-medium">
+                            ${product.purchase_price?.toLocaleString() || '0'}
+                          </span>
+                        </div>
+                        
+                        {daysUntilExpiry !== null && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Warranty:</span>
+                            <span className={cn(
+                              "font-medium",
+                              daysUntilExpiry <= 7 ? "text-red-600" :
+                              daysUntilExpiry <= 30 ? "text-orange-600" : "text-green-600"
+                            )}>
+                              {daysUntilExpiry} days left
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Warranties:</span>
+                          <span className="font-medium">
+                            {product.warranties?.length || 0}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/products/${product.id}`;
+                          }}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle claim filing
+                          }}
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Claim
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {searchQuery || activeFilter !== 'all' ? 'No products found' : 'No products yet'}
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  {searchQuery || activeFilter !== 'all' 
+                    ? 'Try adjusting your search or filters' 
+                    : 'Start by adding your first product'}
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/products/add'}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
                 </Button>
               </div>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    )}
+          </TabsContent>
 
-    {/* Quick Cash Partner Network Modal */}
-    {showQuickCashModal && (
-      <Dialog open={showQuickCashModal} onOpenChange={setShowQuickCashModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              Get Instant Cash for Your {product.product_name}
-            </DialogTitle>
-            <DialogDescription>
-              Choose from our trusted partners to get the best cash offer for your item.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {getResaleOptions(product).map((option, index) => (
-              <div
-                key={option.name}
-                className={`p-4 border rounded-lg transition-all duration-200 hover:shadow-md ${
-                  index === 0 ? 'border-green-300 bg-green-50' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-gray-900">{option.name}</h4>
-                      {option.instantQuote && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                          Instant Quote
+          <TabsContent value="warranties" className="mt-6">
+            {/* Warranty Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Active Warranties</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {products.filter(p => getWarrantyStatus(p).status === 'active').length}
+                      </p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {products.filter(p => getWarrantyStatus(p).status === 'expiring').length}
+                      </p>
+                    </div>
+                    <AlertTriangle className="w-8 h-8 text-orange-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Expired</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {products.filter(p => getWarrantyStatus(p).status === 'expired').length}
+                      </p>
+                    </div>
+                    <XCircle className="w-8 h-8 text-red-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Warranty Details */}
+            <div className="space-y-4">
+              {products
+                .filter(p => p.warranties && p.warranties.length > 0)
+                .map(product => (
+                  <Card key={product.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-medium text-gray-900">{product.product_name}</h3>
+                        <Badge variant={getWarrantyStatus(product).color === 'green' ? 'default' : 'secondary'}>
+                          {getWarrantyStatus(product).label}
                         </Badge>
-                      )}
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <CheckCircle
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < Math.floor(option.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                            }`}
-                          />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {product.warranties?.map(warranty => (
+                          <div key={warranty.id} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">
+                              {warranty.warranty_type || 'Standard'} Warranty
+                            </span>
+                            <span className="font-medium">
+                              {warranty.warranty_end_date 
+                                ? new Date(warranty.warranty_end_date).toLocaleDateString()
+                                : 'Lifetime'
+                              }
+                            </span>
+                          </div>
                         ))}
-                        <span className="text-xs text-gray-500 ml-1">({option.rating})</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            {/* Analytics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Products</p>
+                      <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                    </div>
+                    <Package className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Value</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${products.reduce((sum, p) => sum + (p.purchase_price || 0), 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <DollarSign className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Avg Value</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${products.length > 0 
+                          ? Math.round(products.reduce((sum, p) => sum + (p.purchase_price || 0), 0) / products.length).toLocaleString()
+                          : '0'
+                        }
+                      </p>
+                    </div>
+                    <BarChart3 className="w-8 h-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Coverage</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {products.length > 0 
+                          ? Math.round((products.filter(p => getWarrantyStatus(p).status === 'active').length / products.length) * 100)
+                          : 0
+                        }%
+                      </p>
+                    </div>
+                    <Shield className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Category Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Category Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(
+                    products.reduce((acc, product) => {
+                      const category = product.category || 'Uncategorized';
+                      acc[category] = (acc[category] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  )
+                  .sort(([,a], [,b]) => b - a)
+                  .map(([category, count]) => (
+                    <div key={category} className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">{category}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${(count / products.length) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-500 w-8 text-right">{count}</span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{option.description}</p>
-                    <div className="text-lg font-bold text-green-600">
-                      {option.estimatedValue}
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      window.open(option.affiliateUrl, '_blank');
-                      setShowQuickCashModal(false);
-                      toast.success('Redirecting to partner', {
-                        description: `Opening ${option.name}...`
-                      });
-                    }}
-                    className={`ml-4 ${
-                      index === 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
-                    } text-white`}
-                  >
-                    Get Cash
-                  </Button>
+                  ))}
                 </div>
-              </div>
-            ))}
-            
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="h-4 w-4 text-blue-600" />
-                <h5 className="font-medium text-blue-900">How it works</h5>
-              </div>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Get instant quotes from trusted partners</li>
-                <li>• Free shipping labels provided</li>
-                <li>• Payment within 24-48 hours</li>
-                <li>• No hidden fees or charges</li>
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )}
-  </>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }

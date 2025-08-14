@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import SidebarNavigation from '@/components/shared/SidebarNavigation';
+import TopNavigation from '@/components/shared/TopNavigation';
 import Breadcrumbs from '@/components/shared/Breadcrumbs';
-import MobileBottomNav from '@/components/shared/MobileBottomNav';
+
 
 export default async function AppLayout({
   children,
@@ -53,30 +53,20 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      {/* Sidebar Navigation */}
-      <SidebarNavigation 
+      {/* Top Navigation */}
+      <TopNavigation 
         user={user} 
         profile={profile} 
         stats={stats}
       />
       
       {/* Main Content Area */}
-      <div className="lg:pl-80">
-        <div className="min-h-screen">
-          {/* Top Bar with Breadcrumbs */}
-          <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 px-6 py-4 sticky top-0 z-30">
-            <Breadcrumbs />
-          </div>
-          
-          {/* Page Content */}
-          <main className="p-6 max-w-7xl mx-auto">
-            {children}
-          </main>
-        </div>
+      <div className="min-h-screen">
+        {/* Page Content */}
+        <main className="p-6 max-w-7xl mx-auto">
+          {children}
+        </main>
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav stats={stats} />
     </div>
   );
 }

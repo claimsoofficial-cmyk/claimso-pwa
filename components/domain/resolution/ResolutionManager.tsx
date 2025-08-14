@@ -525,12 +525,7 @@ export default function ResolutionManager({
   return (
     <div className="space-y-6">
       {/* Main Living Card */}
-              <LivingCard
-          product={createLivingCardProduct()}
-          onAddSerialNumber={() => handleEditClick()}
-          onAddDocuments={() => handleEditClick()}
-          onRequestRepairQuote={() => toast.success('Repair quote request initiated')}
-        />
+      <LivingCard />
 
       {/* Resolution Flow Modal */}
       <Dialog open={isResolutionFlowOpen} onOpenChange={setIsResolutionFlowOpen}>

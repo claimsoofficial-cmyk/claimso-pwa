@@ -1,28 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Plus, 
-  Settings, 
-  CheckCircle, 
-  Package,
-  Shield,
-  FileText,
-  BarChart3,
-  AlertTriangle,
-  Sparkles,
-  Zap,
-  DollarSign,
-  ArrowRight
+  Settings
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { Product, UserConnection } from '@/lib/types/common';
+import LivingCard from '@/components/domain/products/LivingCard';
 
 // ==============================================================================
 // MAIN COMPONENT
@@ -132,16 +120,7 @@ export default function DashboardPage() {
     connectedRetailers: userConnections.filter(c => c.status === 'connected').length
   };
 
-  // Get recent products
-  const recentProducts = products.slice(0, 3);
 
-  // Get products needing attention
-  const productsNeedingAttention = products.filter(p => {
-    const hasWarranty = p.warranties && p.warranties.length > 0;
-    const hasSerialNumber = !!p.serial_number;
-    const hasDocuments = p.documents && p.documents.length > 0;
-    return !hasWarranty || !hasSerialNumber || !hasDocuments;
-  }).slice(0, 3);
 
   // ==============================================================================
   // INITIALIZATION
@@ -276,287 +255,8 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Package className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${stats.totalValue.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-xl">
-                <DollarSign className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Warranties</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeWarranties}</p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <Shield className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.expiringWarranties}</p>
-              </div>
-              <div className="p-3 bg-orange-100 rounded-xl">
-                <AlertTriangle className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Products */}
-        <Card className="card-hover">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-600" />
-                Recent Products
-              </CardTitle>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => window.location.href = '/products'}
-                className="hover-lift"
-              >
-                View All
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentProducts.length > 0 ? (
-              <div className="space-y-4">
-                {recentProducts.map((product) => (
-                  <div 
-                    key={product.id}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-gray-50/50 hover:bg-gray-100/50 transition-colors cursor-pointer"
-                    onClick={() => window.location.href = `/products/${product.id}`}
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                      <Package className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {product.product_name}
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        {product.brand} • {product.category}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">
-                        ${product.purchase_price?.toLocaleString() || '0'}
-                      </p>
-                      <Badge variant="secondary" className="text-xs">
-                        {product.warranties?.length || 0} warranty{product.warranties?.length !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
-                <p className="text-gray-500 mb-4">Start by adding your first product</p>
-                <Button 
-                  onClick={() => window.location.href = '/products/add'}
-                  className="hover-lift"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-purple-600" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Button 
-                variant="gradient" 
-                className="w-full justify-start h-12"
-                onClick={() => window.location.href = '/products/add'}
-              >
-                <Plus className="w-5 h-5 mr-3" />
-                Add New Product
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start h-12"
-                onClick={() => window.location.href = '/claims/new'}
-              >
-                <FileText className="w-5 h-5 mr-3" />
-                File a Claim
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start h-12"
-                onClick={() => window.location.href = '/analytics'}
-              >
-                <BarChart3 className="w-5 h-5 mr-3" />
-                View Analytics
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start h-12"
-                onClick={() => window.location.href = '/warranties'}
-              >
-                <Shield className="w-5 h-5 mr-3" />
-                Check Warranties
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Products Needing Attention */}
-      {productsNeedingAttention.length > 0 && (
-        <Card className="card-hover border-orange-200 bg-orange-50/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-800">
-              <AlertTriangle className="w-5 h-5" />
-              Products Needing Attention
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {productsNeedingAttention.map((product) => (
-                <div 
-                  key={product.id}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white/80 hover:bg-white transition-colors cursor-pointer"
-                  onClick={() => window.location.href = `/products/${product.id}`}
-                >
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 truncate">
-                      {product.product_name}
-                    </h4>
-                    <div className="flex gap-2 mt-1">
-                      {!product.warranties?.length && (
-                        <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">
-                          No Warranty
-                        </Badge>
-                      )}
-                      {!product.serial_number && (
-                        <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300">
-                          No Serial
-                        </Badge>
-                      )}
-                      {!product.documents?.length && (
-                        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
-                          No Docs
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.location.href = `/products/${product.id}`;
-                    }}
-                  >
-                    Fix
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Retailer Connections */}
-      {stats.connectedRetailers > 0 && (
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-green-600" />
-              Connected Retailers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              {[
-                { id: 'amazon', label: 'Amazon', logo: '/logos/amazon.svg' },
-                { id: 'walmart', label: 'Walmart', logo: '/logos/walmart.svg' },
-                { id: 'target', label: 'Target', logo: '/logos/target.svg' },
-                { id: 'bestbuy', label: 'Best Buy', logo: '/logos/bestbuy.svg' },
-              ].map(r => {
-                const connection = userConnections.find(c => c.retailer === r.id && c.status === 'connected');
-                const isConnected = !!connection;
-                
-                return (
-                  <div
-                    key={r.id}
-                    className={cn(
-                      "flex items-center gap-2 p-3 rounded-xl transition-all duration-200",
-                      isConnected 
-                        ? "bg-green-100 text-green-700" 
-                        : "bg-gray-100 text-gray-400"
-                    )}
-                  >
-                    <Image src={r.logo} alt={r.label} width={24} height={24} className="w-6 h-6" />
-                    <span className="text-sm font-medium">{r.label}</span>
-                    {isConnected && (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Living Card - Unified Product Management */}
+      <LivingCard />
     </div>
   );
 }
