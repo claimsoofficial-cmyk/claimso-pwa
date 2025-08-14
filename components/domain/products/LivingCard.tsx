@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types/common';
 import RetailerConnect from './RetailerConnect';
 import QuickCashModal from './QuickCashModal';
+import ClaimFilingModal from './ClaimFilingModal';
 
 interface LivingCardProps {
   className?: string;
@@ -51,6 +52,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isQuickCashModalOpen, setIsQuickCashModalOpen] = useState(false);
   const [quickCashProduct, setQuickCashProduct] = useState<Product | null>(null);
+  const [isClaimFilingModalOpen, setIsClaimFilingModalOpen] = useState(false);
+  const [claimFilingProduct, setClaimFilingProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
 
@@ -415,7 +418,8 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                                  className="flex-1"
                                  onClick={(e) => {
                                    e.stopPropagation();
-                                   // Handle claim filing
+                                   setClaimFilingProduct(product);
+                                   setIsClaimFilingModalOpen(true);
                                  }}
                                >
                                  <FileText className="w-3 h-3 mr-1" />
@@ -652,6 +656,16 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         setQuickCashProduct(null);
       }}
       product={quickCashProduct}
+    />
+
+    {/* Claim Filing Modal */}
+    <ClaimFilingModal
+      isOpen={isClaimFilingModalOpen}
+      onClose={() => {
+        setIsClaimFilingModalOpen(false);
+        setClaimFilingProduct(null);
+      }}
+      product={claimFilingProduct}
     />
   </div>
   );
