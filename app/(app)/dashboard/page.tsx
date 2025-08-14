@@ -84,9 +84,12 @@ export default function DashboardPage() {
             warranty_start_date,
             warranty_end_date,
             warranty_duration_months,
-            warranty_provider,
-            warranty_terms,
-            is_active,
+            coverage_details,
+            claim_process,
+            contact_info,
+            snapshot_data,
+            ai_confidence_score,
+            last_analyzed_at,
             created_at,
             updated_at
           )

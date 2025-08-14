@@ -12,122 +12,14 @@
   "categories": ["productivity", "utilities", "finance"],
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Add Product",
-      "short_name": "Add Product",
-      "description": "Quickly add a new product to track",
-      "url": "/products/add",
-      "icons": [
-        {
-          "src": "/icons/shortcut-add-product.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "View Warranties",
-      "short_name": "Warranties",
-      "description": "Check your warranty status",
-      "url": "/warranties",
-      "icons": [
-        {
-          "src": "/icons/shortcut-warranties.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Analytics",
-      "short_name": "Analytics",
-      "description": "View your spending and coverage insights",
-      "url": "/analytics",
-      "icons": [
-        {
-          "src": "/icons/shortcut-analytics.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Dashboard view showing products and warranties"
-    },
-    {
-      "src": "/screenshots/mobile-dashboard.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile dashboard with product cards"
-    },
-    {
-      "src": "/screenshots/desktop-analytics.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Analytics dashboard with spending insights"
-    },
-    {
-      "src": "/screenshots/mobile-analytics.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile analytics view"
-    }
-  ],
+
+
   "related_applications": [],
   "prefer_related_applications": false,
   "edge_side_panel": {
