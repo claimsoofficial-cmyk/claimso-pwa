@@ -17,6 +17,13 @@ import {
 import EmptyState from '@/components/shared/EmptyState';
 import ContextualHelp from '@/components/shared/ContextualHelp';
 import LoadingState from '@/components/shared/LoadingState';
+import { 
+  QuickStatsGrid, 
+  SpendingTrendChart, 
+  CategoryBreakdownChart, 
+  WarrantyCoverageChart 
+} from '@/components/analytics/ChartComponents';
+import DataExport from '@/components/analytics/DataExport';
 import { toast } from 'sonner';
 
 interface AnalyticsData {
@@ -237,160 +244,35 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(analyticsData.totalSpent)}</div>
-            <p className="text-xs text-muted-foreground">
-              Across {analyticsData.totalProducts} products
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Warranties</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.activeWarranties}</div>
-            <p className="text-xs text-muted-foreground">
-              {analyticsData.expiringWarranties} expiring soon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Warranty Coverage</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round((analyticsData.warrantyCoverage.covered / analyticsData.totalProducts) * 100)}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {analyticsData.warrantyCoverage.covered} of {analyticsData.totalProducts} products
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Product Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(analyticsData.totalProducts > 0 ? analyticsData.totalSpent / analyticsData.totalProducts : 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Per product
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <QuickStatsGrid 
+        stats={{
+          totalSpent: analyticsData.totalSpent,
+          totalProducts: analyticsData.totalProducts,
+          activeWarranties: analyticsData.activeWarranties,
+          avgProductValue: analyticsData.totalProducts > 0 ? analyticsData.totalSpent / analyticsData.totalProducts : 0
+        }}
+      />
 
       {/* Detailed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Spending by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analyticsData.categoryBreakdown.slice(0, 5).map((category) => (
-                <div key={category.category} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                    <span className="text-sm font-medium">{category.category}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {category.count} items
-                    </Badge>
-                  </div>
-                  <span className="text-sm font-medium">
-                    {formatCurrency(category.totalSpent)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <CategoryBreakdownChart 
+          data={analyticsData.categoryBreakdown.map(cat => ({
+            category: cat.category,
+            amount: cat.totalSpent
+          }))}
+        />
 
-        {/* Warranty Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Warranty Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                  <span className="text-sm font-medium">Covered</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{analyticsData.warrantyCoverage.covered}</span>
-                  <Badge variant="default" className="text-xs">Active</Badge>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                  <span className="text-sm font-medium">Expiring Soon</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{analyticsData.warrantyCoverage.expiringSoon}</span>
-                  <Badge variant="secondary" className="text-xs">30 days</Badge>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                  <span className="text-sm font-medium">Uncovered</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{analyticsData.warrantyCoverage.uncovered}</span>
-                  <Badge variant="destructive" className="text-xs">No Warranty</Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Warranty Coverage */}
+        <WarrantyCoverageChart 
+          covered={analyticsData.warrantyCoverage.covered}
+          uncovered={analyticsData.warrantyCoverage.uncovered}
+          expiring={analyticsData.warrantyCoverage.expiringSoon}
+        />
       </div>
 
       {/* Monthly Spending Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Spending Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 flex items-end justify-between space-x-2">
-            {analyticsData.monthlySpending.map((month, index) => {
-              const maxAmount = Math.max(...analyticsData.monthlySpending.map(m => m.amount));
-              const height = (month.amount / maxAmount) * 100;
-              
-              return (
-                <div key={month.month} className="flex-1 flex flex-col items-center space-y-2">
-                  <div 
-                    className="w-full bg-blue-600 rounded-t transition-all duration-300 hover:bg-blue-700"
-                    style={{ height: `${height}%` }}
-                  ></div>
-                  <span className="text-xs text-gray-600">{month.month}</span>
-                  <span className="text-xs font-medium">{formatCurrency(month.amount)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <SpendingTrendChart data={analyticsData.monthlySpending} />
 
       {/* Recommendations */}
       {analyticsData.warrantyCoverage.uncovered > 0 && (
@@ -418,6 +300,19 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Data Export */}
+      <DataExport 
+        data={{
+          products: products || [],
+          warranties: warranties || [],
+          analytics: analyticsData,
+          claims: []
+        }}
+        onExport={(format, data) => {
+          console.log(`Exported data as ${format}`, data);
+        }}
+      />
     </div>
   );
 }

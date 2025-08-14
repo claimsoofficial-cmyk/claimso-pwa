@@ -6,6 +6,345 @@ import {
   NotificationTrigger 
 } from '@/lib/types/notifications';
 
+export interface NotificationData {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: any;
+  actions?: Array<{
+    action: string;
+    title: string;
+    icon?: string;
+  }>;
+}
+
+class NotificationService {
+  private registration: ServiceWorkerRegistration | null = null;
+  private isSupported: boolean;
+
+  constructor() {
+    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+  }
+
+  async initialize(): Promise<boolean> {
+    if (!this.isSupported) {
+      console.warn('Push notifications are not supported in this browser');
+      return false;
+    }
+
+    try {
+      this.registration = await navigator.serviceWorker.ready;
+      console.log('Notification service initialized');
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize notification service:', error);
+      return false;
+    }
+  }
+
+  async requestPermission(): Promise<NotificationPermission> {
+    if (!this.isSupported) {
+      return 'denied';
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      console.log('Notification permission:', permission);
+      return permission;
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
+      return 'denied';
+    }
+  }
+
+  async getPermissionStatus(): Promise<NotificationPermission> {
+    if (!this.isSupported) {
+      return 'denied';
+    }
+
+    return Notification.permission;
+  }
+
+  async subscribeToPush(): Promise<PushSubscription | null> {
+    if (!this.isSupported || !this.registration) {
+      return null;
+    }
+
+    const permission = await this.getPermissionStatus();
+    if (permission !== 'granted') {
+      console.warn('Notification permission not granted');
+      return null;
+    }
+
+    try {
+      const subscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+      });
+
+      console.log('Push subscription created:', subscription);
+      return subscription;
+    } catch (error) {
+      console.error('Failed to subscribe to push notifications:', error);
+      return null;
+    }
+  }
+
+  async unsubscribeFromPush(): Promise<boolean> {
+    if (!this.isSupported || !this.registration) {
+      return false;
+    }
+
+    try {
+      const subscription = await this.registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+        console.log('Push subscription removed');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to unsubscribe from push notifications:', error);
+      return false;
+    }
+  }
+
+  async showNotification(data: NotificationData): Promise<void> {
+    if (!this.isSupported || !this.registration) {
+      return;
+    }
+
+    const permission = await this.getPermissionStatus();
+    if (permission !== 'granted') {
+      console.warn('Cannot show notification: permission not granted');
+      return;
+    }
+
+    try {
+      await this.registration.showNotification(data.title, {
+        body: data.body,
+        icon: data.icon || '/icons/icon-192x192.png',
+        badge: data.badge || '/icons/badge-72x72.png',
+        tag: data.tag,
+        data: data.data,
+        actions: data.actions,
+        requireInteraction: false,
+        silent: false,
+        vibrate: [100, 50, 100],
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('Failed to show notification:', error);
+    }
+  }
+
+  async showWarrantyExpiryNotification(productName: string, daysLeft: number): Promise<void> {
+    await this.showNotification({
+      title: 'Warranty Expiring Soon',
+      body: `${productName} warranty expires in ${daysLeft} days`,
+      tag: 'warranty-expiry',
+      data: { type: 'warranty-expiry', productName, daysLeft },
+      actions: [
+        {
+          action: 'view',
+          title: 'View Details'
+        },
+        {
+          action: 'extend',
+          title: 'Extend Warranty'
+        }
+      ]
+    });
+  }
+
+  async showNewProductNotification(productName: string): Promise<void> {
+    await this.showNotification({
+      title: 'New Product Added',
+      body: `${productName} has been added to your inventory`,
+      tag: 'new-product',
+      data: { type: 'new-product', productName },
+      actions: [
+        {
+          action: 'view',
+          title: 'View Product'
+        }
+      ]
+    });
+  }
+
+  async showClaimUpdateNotification(claimId: string, status: string): Promise<void> {
+    await this.showNotification({
+      title: 'Claim Update',
+      body: `Your warranty claim has been ${status}`,
+      tag: 'claim-update',
+      data: { type: 'claim-update', claimId, status },
+      actions: [
+        {
+          action: 'view',
+          title: 'View Claim'
+        }
+      ]
+    });
+  }
+
+  async showQuickCashNotification(amount: number, productName: string): Promise<void> {
+    await this.showNotification({
+      title: 'Quick Cash Offer',
+      body: `Get $${amount} for your ${productName}`,
+      tag: 'quick-cash',
+      data: { type: 'quick-cash', amount, productName },
+      actions: [
+        {
+          action: 'accept',
+          title: 'Accept Offer'
+        },
+        {
+          action: 'view',
+          title: 'View Details'
+        }
+      ]
+    });
+  }
+
+  async scheduleWarrantyReminder(productId: string, productName: string, expiryDate: Date): Promise<void> {
+    if (!this.isSupported) {
+      return;
+    }
+
+    const now = new Date();
+    const timeUntilExpiry = expiryDate.getTime() - now.getTime();
+    const daysUntilExpiry = Math.ceil(timeUntilExpiry / (1000 * 60 * 60 * 24));
+
+    // Schedule notifications at different intervals
+    const reminderIntervals = [30, 7, 1]; // days before expiry
+
+    for (const days of reminderIntervals) {
+      if (daysUntilExpiry <= days && daysUntilExpiry > 0) {
+        const delay = (daysUntilExpiry - days) * 24 * 60 * 60 * 1000; // Convert to milliseconds
+        
+        setTimeout(async () => {
+          await this.showWarrantyExpiryNotification(productName, daysUntilExpiry);
+        }, delay);
+      }
+    }
+  }
+
+  async clearNotifications(tag?: string): Promise<void> {
+    if (!this.isSupported) {
+      return;
+    }
+
+    try {
+      if (tag) {
+        // Clear notifications with specific tag
+        const notifications = await this.registration?.getNotifications({ tag });
+        notifications?.forEach(notification => notification.close());
+      } else {
+        // Clear all notifications
+        const notifications = await this.registration?.getNotifications();
+        notifications?.forEach(notification => notification.close());
+      }
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+    }
+  }
+
+  // Utility function to convert VAPID public key
+  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // Get subscription for sending to server
+  async getSubscription(): Promise<PushSubscription | null> {
+    if (!this.isSupported || !this.registration) {
+      return null;
+    }
+
+    try {
+      return await this.registration.pushManager.getSubscription();
+    } catch (error) {
+      console.error('Failed to get push subscription:', error);
+      return null;
+    }
+  }
+
+  // Check if notifications are enabled
+  async isEnabled(): Promise<boolean> {
+    if (!this.isSupported) {
+      return false;
+    }
+
+    const permission = await this.getPermissionStatus();
+    if (permission !== 'granted') {
+      return false;
+    }
+
+    const subscription = await this.getSubscription();
+    return subscription !== null;
+  }
+
+  // Setup notification click handlers
+  setupClickHandlers(): void {
+    if (!this.isSupported) {
+      return;
+    }
+
+    // Listen for notification clicks
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+        this.handleNotificationClick(event.data);
+      }
+    });
+  }
+
+  private handleNotificationClick(data: any): void {
+    const { action, notificationData } = data;
+
+    switch (action) {
+      case 'view':
+        if (notificationData.type === 'warranty-expiry') {
+          window.location.href = `/warranties?product=${notificationData.productName}`;
+        } else if (notificationData.type === 'new-product') {
+          window.location.href = `/products?search=${notificationData.productName}`;
+        } else if (notificationData.type === 'claim-update') {
+          window.location.href = `/claims/${notificationData.claimId}`;
+        } else if (notificationData.type === 'quick-cash') {
+          window.location.href = `/products?quick-cash=${notificationData.productName}`;
+        }
+        break;
+      
+      case 'extend':
+        window.location.href = `/warranties/extended?product=${notificationData.productName}`;
+        break;
+      
+      case 'accept':
+        window.location.href = `/quick-cash/accept?product=${notificationData.productName}&amount=${notificationData.amount}`;
+        break;
+      
+      default:
+        // Default action - open dashboard
+        window.location.href = '/dashboard';
+        break;
+    }
+  }
+}
+
+// Export singleton instance
+export const notificationService = new NotificationService();
+
 // ==============================================================================
 // SMART NOTIFICATIONS SERVICE
 // ==============================================================================

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import SidebarNavigation from '@/components/shared/SidebarNavigation';
 import Breadcrumbs from '@/components/shared/Breadcrumbs';
+import MobileBottomNav from '@/components/shared/MobileBottomNav';
 
 export default async function AppLayout({
   children,
@@ -73,6 +74,9 @@ export default async function AppLayout({
           </main>
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav stats={stats} />
     </div>
   );
 }
