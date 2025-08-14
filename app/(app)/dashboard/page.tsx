@@ -344,76 +344,16 @@ export default function DashboardPage() {
         </CardHeader>
       </Card>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
-                <p className="text-2xl font-bold text-gray-900">{products.length}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Warranties</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {products.filter(p => {
-                    if (!p.warranties || !Array.isArray(p.warranties)) return false;
-                    return p.warranties.some(w => {
-                      if (!w.warranty_end_date) return true;
-                      return new Date(w.warranty_end_date) > new Date();
-                    });
-                  }).length}
-                </p>
-              </div>
-              <Shield className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Connected Retailers</p>
-                <p className="text-2xl font-bold text-gray-900">{userConnections.length}</p>
-              </div>
-              <Link className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${products.reduce((sum, p) => sum + (p.purchase_price || 0), 0).toLocaleString()}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Products Section */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
-              <p className="text-gray-600 mt-1">
+              <h2 className="text-xl font-semibold text-gray-900">
                 {products.length} product{products.length !== 1 ? 's' : ''} in your collection
-              </p>
+              </h2>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleRefresh}>
