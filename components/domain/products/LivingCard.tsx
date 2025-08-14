@@ -32,7 +32,8 @@ import {
   Activity,
   Wrench,
   ShoppingCart,
-  CreditCard
+  CreditCard,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -73,6 +74,20 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [resolutionFlowProduct, setResolutionFlowProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
+
+  // ==============================================================================
+  // HANDLERS
+  // ==============================================================================
+
+  const handleAddProduct = () => {
+    // TODO: Implement add product functionality
+    console.log('Add product clicked');
+  };
+
+  const handleRefresh = () => {
+    // TODO: Implement refresh functionality
+    console.log('Refresh clicked');
+  };
 
   // ==============================================================================
   // CALENDAR FUNCTIONALITY
@@ -427,8 +442,17 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
           <div>
             <CardTitle>Your Products</CardTitle>
             <p className="text-sm text-gray-500">Manage your warranties and claims</p>
-                 </div>
-               </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleAddProduct} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Button>
+            <Button variant="outline" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent>

@@ -56,6 +56,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
       driver.js:
         specifier: ^1.3.6
         version: 1.3.6
@@ -86,6 +89,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.11)
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       zod:
         specifier: ^4.0.17
         version: 4.0.17
@@ -1473,6 +1479,10 @@ packages:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
 
+  dotenv@17.2.1:
+    resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
+    engines: {node: '>=12'}
+
   driver.js@1.3.6:
     resolution: {integrity: sha512-g2nNuu+tWmPpuoyk3ffpT9vKhjPz4NrJzq6mkRDZIwXCrFhrKdDJ9TX5tJOBpvCTBrBYjgRQ17XlcQB15q4gMg==}
 
@@ -2574,6 +2584,10 @@ packages:
     resolution: {integrity: sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -3932,6 +3946,8 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
+  dotenv@17.2.1: {}
+
   driver.js@1.3.6: {}
 
   dunder-proto@1.0.1:
@@ -5255,6 +5271,8 @@ snapshots:
   use-sync-external-store@1.5.0(react@19.1.1):
     dependencies:
       react: 19.1.1
+
+  uuid@11.1.0: {}
 
   webidl-conversions@3.0.1: {}
 

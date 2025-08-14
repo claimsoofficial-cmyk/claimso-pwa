@@ -97,7 +97,7 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Welcome back, {displayName}!
+                  Claimso
                 </h1>
               </div>
             </div>
