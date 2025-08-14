@@ -104,8 +104,15 @@ export default function DashboardPage() {
         console.error('❌ Error fetching products:', error);
         setError('Failed to fetch products: ' + error.message);
       } else {
-        console.log('✅ Products fetched successfully:', productsData?.length);
-        setProducts(productsData || []);
+              console.log('✅ Products fetched successfully:', productsData?.length);
+      
+      // Ensure warranties is always an array for each product
+      const sanitizedProducts = (productsData || []).map(product => ({
+        ...product,
+        warranties: Array.isArray(product.warranties) ? product.warranties : []
+      }));
+      
+      setProducts(sanitizedProducts);
       }
     } catch (error) {
       console.error('💥 Exception in fetchProducts:', error);
@@ -357,10 +364,13 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Warranties</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {products.filter(p => p.warranties?.some(w => {
-                    if (!w.warranty_end_date) return true;
-                    return new Date(w.warranty_end_date) > new Date();
-                  })).length}
+                  {products.filter(p => {
+                    if (!p.warranties || !Array.isArray(p.warranties)) return false;
+                    return p.warranties.some(w => {
+                      if (!w.warranty_end_date) return true;
+                      return new Date(w.warranty_end_date) > new Date();
+                    });
+                  }).length}
                 </p>
               </div>
               <Shield className="h-8 w-8 text-green-600" />
