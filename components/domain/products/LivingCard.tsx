@@ -790,150 +790,177 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
           </TabsContent>
 
           <TabsContent value="insights" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Products</p>
-                      <p className="text-2xl font-bold text-gray-900">{analyticsData.totalProducts}</p>
-                    </div>
-                    <Package className="w-8 h-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Value</p>
-                      <p className="text-2xl font-bold text-gray-900">${analyticsData.totalValue.toLocaleString()}</p>
-                    </div>
-                    <DollarSign className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Active Warranties</p>
-                      <p className="text-2xl font-bold text-gray-900">{analyticsData.activeWarranties}</p>
-                    </div>
-                    <Shield className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                    <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
-                      <p className="text-2xl font-bold text-gray-900">{analyticsData.expiringWarranties}</p>
-                      </div>
-                    <AlertTriangle className="w-8 h-8 text-orange-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">This Month</p>
-                      <p className="text-2xl font-bold text-gray-900">${analyticsData.monthlySpending.toLocaleString()}</p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">This Year</p>
-                      <p className="text-2xl font-bold text-gray-900">${analyticsData.yearlySpending.toLocaleString()}</p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-              
+            {/* Quadrant Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* 1. Warranty Related Info */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Warranty Status Breakdown
+                    <Shield className="w-5 h-5 text-green-600" />
+                    Warranty Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">{analyticsData.activeWarranties}</p>
+                        <p className="text-sm text-gray-600">Active</p>
+                      </div>
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <p className="text-2xl font-bold text-orange-600">{analyticsData.expiringWarranties}</p>
+                        <p className="text-sm text-gray-600">Expiring Soon</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Active Warranties</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-600 h-2 rounded-full" 
+                              style={{ width: `${(analyticsData.activeWarranties / analyticsData.totalProducts) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{analyticsData.activeWarranties}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Expiring Soon</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-orange-600 h-2 rounded-full" 
+                              style={{ width: `${(analyticsData.expiringWarranties / analyticsData.totalProducts) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{analyticsData.expiringWarranties}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Expired</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-red-600 h-2 rounded-full" 
+                              style={{ width: `${(analyticsData.expiredWarranties / analyticsData.totalProducts) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{analyticsData.expiredWarranties}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">No Warranty</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gray-600 h-2 rounded-full" 
+                              style={{ width: `${(analyticsData.noWarranty / analyticsData.totalProducts) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{analyticsData.noWarranty}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 2. Categories Related */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-blue-600" />
+                    Category Insights
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Active Warranties</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-600 h-2 rounded-full" 
-                            style={{ width: `${(analyticsData.activeWarranties / analyticsData.totalProducts) * 100}%` }}
-                          ></div>
-                    </div>
-                        <span className="text-sm font-medium">{analyticsData.activeWarranties}</span>
+                    {Object.entries(analyticsData.categoryBreakdown)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 6)
+                      .map(([category, count]) => {
+                        const totalValue = products
+                          .filter(p => p.category === category)
+                          .reduce((sum, p) => sum + (p.purchase_price || 0), 0);
+                        return (
+                          <div key={category} className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm text-gray-600">{category}</span>
+                                <span className="text-sm font-medium">${totalValue.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full" 
+                                    style={{ width: `${(count / analyticsData.totalProducts) * 100}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500">{count} items</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 3. Product Related */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-purple-600" />
+                    Product Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <p className="text-2xl font-bold text-blue-600">{analyticsData.totalProducts}</p>
+                        <p className="text-sm text-gray-600">Total Products</p>
+                      </div>
+                      <div className="text-center p-3 bg-purple-50 rounded-lg">
+                        <p className="text-2xl font-bold text-purple-600">${analyticsData.totalValue.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600">Total Value</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Expiring Soon</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-orange-600 h-2 rounded-full" 
-                            style={{ width: `${(analyticsData.expiringWarranties / analyticsData.totalProducts) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{analyticsData.expiringWarranties}</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Average Price</span>
+                        <span className="font-medium">${(analyticsData.totalValue / analyticsData.totalProducts).toFixed(0)}</span>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Expired</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-red-600 h-2 rounded-full" 
-                            style={{ width: `${(analyticsData.expiredWarranties / analyticsData.totalProducts) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{analyticsData.expiredWarranties}</span>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Most Expensive</span>
+                        <span className="font-medium">${Math.max(...products.map(p => p.purchase_price || 0)).toLocaleString()}</span>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">No Warranty</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-gray-600 h-2 rounded-full" 
-                            style={{ width: `${(analyticsData.noWarranty / analyticsData.totalProducts) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{analyticsData.noWarranty}</span>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">This Month</span>
+                        <span className="font-medium">${analyticsData.monthlySpending.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">This Year</span>
+                        <span className="font-medium">${analyticsData.yearlySpending.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
+
+              {/* 4. Payments Related */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" />
-                    Payment Method Insights
+                    <CreditCard className="w-5 h-5 text-green-600" />
+                    Payment Insights
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -952,11 +979,11 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                                   {method.replace('_', ' ')}
                                 </span>
                                 <span className="text-sm font-medium">${totalSpent.toLocaleString()}</span>
-                    </div>
+                              </div>
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                                   <div 
-                                    className="bg-blue-600 h-2 rounded-full" 
+                                    className="bg-green-600 h-2 rounded-full" 
                                     style={{ width: `${percentage}%` }}
                                   ></div>
                                 </div>
@@ -969,36 +996,6 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                   </div>
                 </CardContent>
               </Card>
-
-            <Card>
-              <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5" />
-                    Top Categories
-                  </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                    {Object.entries(analyticsData.categoryBreakdown)
-                  .sort(([,a], [,b]) => b - a)
-                      .slice(0, 5)
-                  .map(([category, count]) => (
-                    <div key={category} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">{category}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${(count / analyticsData.totalProducts) * 100}%` }}
-                              ></div>
-                        </div>
-                            <span className="text-sm font-medium">{count}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
             </div>
           </TabsContent>
         </Tabs>

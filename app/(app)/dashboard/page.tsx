@@ -348,22 +348,7 @@ export default function DashboardPage() {
 
       {/* Products Section */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {products.length} product{products.length !== 1 ? 's' : ''} in your collection
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleRefresh}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+                <CardContent className="p-0">
           {products.length === 0 ? (
             <EmptyState
               type="products"
