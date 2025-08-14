@@ -15,7 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import type { Product, UserConnection } from '@/lib/types/common';
-import CategoryDeck from '@/components/domain/products/CategoryDeck';
+import LivingCard from '@/components/domain/products/LivingCard';
 import EmptyState from '@/components/shared/EmptyState';
 
 // ==============================================================================
@@ -373,14 +373,7 @@ export default function DashboardPage() {
               }}
             />
           ) : (
-            <CategoryDeck
-              products={products}
-              onEditProduct={handleEditProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onFileClaim={handleFileClaim}
-              onQuickCash={handleQuickCash}
-              onWarrantyDatabase={handleWarrantyDatabase}
-            />
+            <LivingCard />
           )}
         </CardContent>
       </Card>
