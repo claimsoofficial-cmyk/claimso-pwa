@@ -26,9 +26,13 @@ import {
   Search,
   SortAsc,
   SortDesc,
-  HelpCircle
+  HelpCircle,
+  Download,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { Product } from '@/lib/types/common';
 import RetailerConnect from './RetailerConnect';
 import QuickCashModal from './QuickCashModal';
@@ -63,6 +67,37 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   const [resolutionFlowProduct, setResolutionFlowProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
+
+  // ==============================================================================
+  // CALENDAR FUNCTIONALITY
+  // ==============================================================================
+
+  const downloadCalendar = async (product: Product) => {
+    try {
+      toast.loading('Generating calendar file...');
+      
+      const response = await fetch(`/api/calendar/generate-ics?productId=${product.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate calendar');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `claimso_warranty_${product.product_name?.replace(/[^a-zA-Z0-9]/g, '_')}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Calendar file downloaded!');
+    } catch (error) {
+      console.error('Error downloading calendar:', error);
+      toast.error('Failed to download calendar file');
+    }
+  };
 
   // ==============================================================================
   // DATA FETCHING
@@ -100,137 +135,161 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
   }, [supabase]);
 
   // ==============================================================================
-  // FILTERING AND SORTING
+  // HELPER FUNCTIONS
   // ==============================================================================
 
-  useEffect(() => {
-    let filtered = [...products];
+  const getWarrantyStatus = (product: Product) => {
+    const warranties = product.warranties || [];
+    const activeWarranties = warranties.filter(w => {
+      if (!w.warranty_end_date) return true;
+      return new Date(w.warranty_end_date) > new Date();
+    });
 
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (activeWarranties.length === 0) {
+      return { label: 'No Warranty', color: 'gray' };
     }
 
-    // Apply status filter
-    switch (activeFilter) {
+    const expiringWarranties = activeWarranties.filter(w => {
+      if (!w.warranty_end_date) return false;
+      const daysUntilExpiry = Math.ceil((new Date(w.warranty_end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 30;
+    });
+
+    if (expiringWarranties.length > 0) {
+      return { label: 'Expiring Soon', color: 'orange' };
+    }
+
+    return { label: 'Active', color: 'green' };
+  };
+
+  const getDaysUntilExpiry = (product: Product) => {
+    const warranties = product.warranties || [];
+    const activeWarranties = warranties.filter(w => w.warranty_end_date);
+    
+    if (activeWarranties.length === 0) return null;
+    
+    const earliestExpiry = activeWarranties.reduce((earliest, current) => {
+      if (!current.warranty_end_date) return earliest;
+      if (!earliest) return current.warranty_end_date;
+      return new Date(current.warranty_end_date) < new Date(earliest) ? current.warranty_end_date : earliest;
+    }, null as string | null);
+    
+    if (!earliestExpiry) return null;
+    
+    const daysUntilExpiry = Math.ceil((new Date(earliestExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry > 0 ? daysUntilExpiry : 0;
+  };
+
+  const handleFilterChange = (filter: FilterType) => {
+    setActiveFilter(filter);
+    let filtered = [...products];
+    
+    switch (filter) {
       case 'active-warranties':
-        filtered = filtered.filter(product => 
-          product.warranties?.some(w => {
-            if (!w.warranty_end_date) return true;
-            return new Date(w.warranty_end_date) > new Date();
-          })
-        );
+        filtered = products.filter(p => getWarrantyStatus(p).color === 'green');
         break;
       case 'expiring-soon':
-        filtered = filtered.filter(product =>
-          product.warranties?.some(w => {
-            if (!w.warranty_end_date) return false;
-            const endDate = new Date(w.warranty_end_date);
-            const now = new Date();
-            const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-          })
-        );
+        filtered = products.filter(p => getWarrantyStatus(p).color === 'orange');
         break;
       case 'expired':
-        filtered = filtered.filter(product =>
-          product.warranties?.some(w => {
-            if (!w.warranty_end_date) return false;
-            return new Date(w.warranty_end_date) < new Date();
-          })
-        );
+        filtered = products.filter(p => getWarrantyStatus(p).color === 'red');
         break;
       case 'no-warranty':
-        filtered = filtered.filter(product => 
-          !product.warranties || product.warranties.length === 0
-        );
+        filtered = products.filter(p => getWarrantyStatus(p).color === 'gray');
         break;
+      default:
+        filtered = products;
     }
+    
+    setFilteredProducts(filtered);
+  };
 
-    // Apply sorting
-    filtered.sort((a, b) => {
+  const handleSort = (sort: SortType) => {
+    setSortBy(sort);
+    const sorted = [...filteredProducts].sort((a, b) => {
       let aValue: any, bValue: any;
-
-      switch (sortBy) {
+      
+      switch (sort) {
         case 'name':
-          aValue = a.product_name.toLowerCase();
-          bValue = b.product_name.toLowerCase();
+          aValue = a.product_name || '';
+          bValue = b.product_name || '';
           break;
         case 'date':
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
+          aValue = new Date(a.created_at || '');
+          bValue = new Date(b.created_at || '');
           break;
         case 'value':
           aValue = a.purchase_price || 0;
           bValue = b.purchase_price || 0;
           break;
         case 'warranty':
-          aValue = a.warranties?.length || 0;
-          bValue = b.warranties?.length || 0;
+          aValue = getDaysUntilExpiry(a) || 999;
+          bValue = getDaysUntilExpiry(b) || 999;
           break;
         default:
           return 0;
       }
-
+      
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
       }
     });
-
-    setFilteredProducts(filtered);
-  }, [products, activeFilter, sortBy, sortOrder, searchQuery]);
-
-  // ==============================================================================
-  // HELPER FUNCTIONS
-  // ==============================================================================
-
-  const getWarrantyStatus = (product: Product) => {
-    if (!product.warranties || product.warranties.length === 0) {
-      return { status: 'no-warranty', label: 'No Warranty', color: 'gray' };
-    }
-
-    const activeWarranties = product.warranties.filter(w => {
-      if (!w.warranty_end_date) return true;
-      return new Date(w.warranty_end_date) > new Date();
-    });
-
-    const expiringWarranties = product.warranties.filter(w => {
-      if (!w.warranty_end_date) return false;
-      const endDate = new Date(w.warranty_end_date);
-      const now = new Date();
-      const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-    });
-
-    if (expiringWarranties.length > 0) {
-      return { status: 'expiring', label: 'Expiring Soon', color: 'orange' };
-    } else if (activeWarranties.length > 0) {
-      return { status: 'active', label: 'Active', color: 'green' };
-    } else {
-      return { status: 'expired', label: 'Expired', color: 'red' };
-    }
+    
+    setFilteredProducts(sorted);
   };
 
-  const getDaysUntilExpiry = (product: Product) => {
-    if (!product.warranties || product.warranties.length === 0) return null;
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      handleFilterChange(activeFilter);
+      return;
+    }
+    
+    const filtered = products.filter(product =>
+      product.product_name?.toLowerCase().includes(query.toLowerCase()) ||
+      product.brand?.toLowerCase().includes(query.toLowerCase()) ||
+      product.category?.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    setFilteredProducts(filtered);
+  };
 
-    const activeWarranty = product.warranties.find(w => {
-      if (!w.warranty_end_date) return false;
-      const endDate = new Date(w.warranty_end_date);
-      return endDate > new Date();
-    });
+  // ==============================================================================
+  // ANALYTICS DATA
+  // ==============================================================================
 
-    if (!activeWarranty?.warranty_end_date) return null;
+  const getAnalyticsData = () => {
+    const totalProducts = products.length;
+    const totalValue = products.reduce((sum, p) => sum + (p.purchase_price || 0), 0);
+    const activeWarranties = products.filter(p => getWarrantyStatus(p).color === 'green').length;
+    const expiringWarranties = products.filter(p => getWarrantyStatus(p).color === 'orange').length;
+    const expiredWarranties = products.filter(p => getWarrantyStatus(p).color === 'red').length;
+    const noWarranty = products.filter(p => getWarrantyStatus(p).color === 'gray').length;
+    
+    const categoryBreakdown = products.reduce((acc, product) => {
+      const category = product.category || 'Other';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    const endDate = new Date(activeWarranty.warranty_end_date);
-    const now = new Date();
-    return Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const brandBreakdown = products.reduce((acc, product) => {
+      const brand = product.brand || 'Unknown';
+      acc[brand] = (acc[brand] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      totalProducts,
+      totalValue,
+      activeWarranties,
+      expiringWarranties,
+      expiredWarranties,
+      noWarranty,
+      categoryBreakdown,
+      brandBreakdown
+    };
   };
 
   // ==============================================================================
@@ -241,109 +300,107 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
     fetchProducts();
   }, [fetchProducts]);
 
+  useEffect(() => {
+    handleSort(sortBy);
+  }, [sortBy, sortOrder, products]);
+
   // ==============================================================================
   // RENDER
   // ==============================================================================
 
-  return (
-    <div>
+  if (isLoading) {
+    return (
       <Card className={cn("w-full", className)}>
-                   <CardHeader>
-               <div className="flex items-center justify-between mb-4">
-                 <CardTitle className="flex items-center gap-2">
-                   <Package className="w-5 h-5 text-blue-600" />
-                   Product Vault
-                 </CardTitle>
-                 <div className="flex items-center gap-2">
-                   <RetailerConnect 
-                     userId={userId || undefined}
-                     onProductsImported={(count) => {
-                       // Refresh products after import
-                       fetchProducts();
-                     }} 
-                   />
-                   <Button
-                     variant="gradient"
-                     size="sm"
-                     onClick={() => window.location.href = '/products/add'}
-                   >
-                     <Plus className="w-4 h-4 mr-2" />
-                     Add Product
-                   </Button>
-                 </div>
-               </div>
-               
-               {/* Search and Filters Row */}
-               <div className="flex gap-3">
-                 {/* Search Bar - 50% */}
-                 <div className="relative flex-1">
-                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                   <input
-                     type="text"
-                     placeholder="Search products..."
-                     value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
-                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                   />
-                 </div>
-                 
-                 {/* Filters - 50% */}
-                 <div className="flex gap-2 flex-1">
-                   <select
-                     value={activeFilter}
-                     onChange={(e) => setActiveFilter(e.target.value as FilterType)}
-                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                   >
-                     <option value="all">All Products</option>
-                     <option value="active-warranties">Active Warranties</option>
-                     <option value="expiring-soon">Expiring Soon</option>
-                     <option value="expired">Expired</option>
-                     <option value="no-warranty">No Warranty</option>
-                   </select>
-                   
-                   <select
-                     value={sortBy}
-                     onChange={(e) => setSortBy(e.target.value as SortType)}
-                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                   >
-                     <option value="date">Date Added</option>
-                     <option value="name">Name</option>
-                     <option value="value">Value</option>
-                     <option value="warranty">Warranty Status</option>
-                   </select>
-                   
-                   <Button
-                     variant="outline"
-                     size="icon"
-                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                   >
-                     {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-                   </Button>
-                 </div>
-               </div>
-             </CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Your Products</CardTitle>
+              <p className="text-sm text-gray-500">Manage your warranties and claims</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const analyticsData = getAnalyticsData();
+
+  return (
+    <Card className={cn("w-full", className)}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Your Products</CardTitle>
+            <p className="text-sm text-gray-500">Manage your warranties and claims</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+            
+            <select
+              value={activeFilter}
+              onChange={(e) => handleFilterChange(e.target.value as FilterType)}
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">All Products</option>
+              <option value="active-warranties">Active Warranties</option>
+              <option value="expiring-soon">Expiring Soon</option>
+              <option value="expired">Expired</option>
+              <option value="no-warranty">No Warranty</option>
+            </select>
+            
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortType)}
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="date">Date Added</option>
+              <option value="name">Name</option>
+              <option value="value">Value</option>
+              <option value="warranty">Warranty Status</option>
+            </select>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            >
+              {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
       
       <CardContent>
         <Tabs defaultValue="products" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               Products ({filteredProducts.length})
             </TabsTrigger>
-            <TabsTrigger value="warranties" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Warranties
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="insights" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              Analytics
+              Insights
             </TabsTrigger>
           </TabsList>
 
-                 <TabsContent value="products" className="mt-6">
-
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <TabsContent value="products" className="mt-6">
+            {/* Products Grid - Horizontal Scrollable */}
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {filteredProducts.map((product) => {
                 const warrantyStatus = getWarrantyStatus(product);
                 const daysUntilExpiry = getDaysUntilExpiry(product);
@@ -351,7 +408,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 return (
                   <Card 
                     key={product.id} 
-                    className="cursor-pointer hover:shadow-md transition-all duration-200 border-l-4"
+                    className="cursor-pointer hover:shadow-md transition-all duration-200 border-l-4 min-w-[320px] flex-shrink-0"
                     style={{ borderLeftColor: warrantyStatus.color === 'green' ? '#10b981' : 
                            warrantyStatus.color === 'orange' ? '#f59e0b' : 
                            warrantyStatus.color === 'red' ? '#ef4444' : '#6b7280' }}
@@ -377,7 +434,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                         </Badge>
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-2 mb-4">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">Value:</span>
                           <span className="font-medium">
@@ -406,72 +463,96 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                         </div>
                       </div>
                       
-                                                   <div className="flex gap-2 mt-4">
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="flex-1"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   window.location.href = `/products/${product.id}`;
-                                 }}
-                               >
-                                 <Edit className="w-3 h-3 mr-1" />
-                                 Edit
-                               </Button>
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="flex-1"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setClaimFilingProduct(product);
-                                   setIsClaimFilingModalOpen(true);
-                                 }}
-                               >
-                                 <FileText className="w-3 h-3 mr-1" />
-                                 Claim
-                               </Button>
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="flex-1"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setQuickCashProduct(product);
-                                   setIsQuickCashModalOpen(true);
-                                 }}
-                               >
-                                 <DollarSign className="w-3 h-3 mr-1" />
-                                 Get Cash
-                               </Button>
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="flex-1"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setWarrantyDatabaseProduct(product);
-                                   setIsWarrantyDatabaseModalOpen(true);
-                                 }}
-                               >
-                                 <Shield className="w-3 h-3 mr-1" />
-                                 Warranty
-                               </Button>
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="flex-1"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setResolutionFlowProduct(product);
-                                   setIsResolutionFlowOpen(true);
-                                 }}
-                               >
-                                 <HelpCircle className="w-3 h-3 mr-1" />
-                                 Need Help?
-                               </Button>
-                             </div>
+                      {/* Action Buttons - Restructured */}
+                      <div className="space-y-2">
+                        {/* Primary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/products/${product.id}`;
+                            }}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setClaimFilingProduct(product);
+                              setIsClaimFilingModalOpen(true);
+                            }}
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Claim
+                          </Button>
+                        </div>
+                        
+                        {/* Secondary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setQuickCashProduct(product);
+                              setIsQuickCashModalOpen(true);
+                            }}
+                          >
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            Get Cash
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWarrantyDatabaseProduct(product);
+                              setIsWarrantyDatabaseModalOpen(true);
+                            }}
+                          >
+                            <Shield className="w-3 h-3 mr-1" />
+                            Warranty
+                          </Button>
+                        </div>
+                        
+                        {/* Tertiary Actions Row */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadCalendar(product);
+                            }}
+                          >
+                            <Calendar className="w-3 h-3 mr-1" />
+                            Calendar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setResolutionFlowProduct(product);
+                              setIsResolutionFlowOpen(true);
+                            }}
+                          >
+                            <HelpCircle className="w-3 h-3 mr-1" />
+                            Help
+                          </Button>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -499,96 +580,14 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
             )}
           </TabsContent>
 
-          <TabsContent value="warranties" className="mt-6">
-            {/* Warranty Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Active Warranties</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {products.filter(p => getWarrantyStatus(p).status === 'active').length}
-                      </p>
-                    </div>
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
-                      <p className="text-2xl font-bold text-orange-600">
-                        {products.filter(p => getWarrantyStatus(p).status === 'expiring').length}
-                      </p>
-                    </div>
-                    <AlertTriangle className="w-8 h-8 text-orange-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Expired</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        {products.filter(p => getWarrantyStatus(p).status === 'expired').length}
-                      </p>
-                    </div>
-                    <XCircle className="w-8 h-8 text-red-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Warranty Details */}
-            <div className="space-y-4">
-              {products
-                .filter(p => p.warranties && p.warranties.length > 0)
-                .map(product => (
-                  <Card key={product.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium text-gray-900">{product.product_name}</h3>
-                        <Badge variant={getWarrantyStatus(product).color === 'green' ? 'default' : 'secondary'}>
-                          {getWarrantyStatus(product).label}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {product.warranties?.map(warranty => (
-                          <div key={warranty.id} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">
-                              {warranty.warranty_type || 'Standard'} Warranty
-                            </span>
-                            <span className="font-medium">
-                              {warranty.warranty_end_date 
-                                ? new Date(warranty.warranty_end_date).toLocaleDateString()
-                                : 'Lifetime'
-                              }
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="mt-6">
-            {/* Analytics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <TabsContent value="insights" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Products</p>
-                      <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.totalProducts}</p>
                     </div>
                     <Package className="w-8 h-8 text-blue-600" />
                   </div>
@@ -600,9 +599,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Value</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${products.reduce((sum, p) => sum + (p.purchase_price || 0), 0).toLocaleString()}
-                      </p>
+                      <p className="text-2xl font-bold text-gray-900">${analyticsData.totalValue.toLocaleString()}</p>
                     </div>
                     <DollarSign className="w-8 h-8 text-green-600" />
                   </div>
@@ -613,15 +610,10 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Avg Value</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${products.length > 0 
-                          ? Math.round(products.reduce((sum, p) => sum + (p.purchase_price || 0), 0) / products.length).toLocaleString()
-                          : '0'
-                        }
-                      </p>
+                      <p className="text-sm font-medium text-gray-600">Active Warranties</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.activeWarranties}</p>
                     </div>
-                    <BarChart3 className="w-8 h-8 text-purple-600" />
+                    <Shield className="w-8 h-8 text-green-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -630,96 +622,138 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Coverage</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {products.length > 0 
-                          ? Math.round((products.filter(p => getWarrantyStatus(p).status === 'active').length / products.length) * 100)
-                          : 0
-                        }%
-                      </p>
+                      <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.expiringWarranties}</p>
                     </div>
-                    <Shield className="w-8 h-8 text-blue-600" />
+                    <AlertTriangle className="w-8 h-8 text-orange-600" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Category Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Category Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Object.entries(
-                    products.reduce((acc, product) => {
-                      const category = product.category || 'Uncategorized';
-                      acc[category] = (acc[category] || 0) + 1;
-                      return acc;
-                    }, {} as Record<string, number>)
-                  )
-                  .sort(([,a], [,b]) => b - a)
-                  .map(([category, count]) => (
-                    <div key={category} className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{category}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Warranty Status Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Active Warranties</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${(count / products.length) * 100}%` }}
-                          />
+                            className="bg-green-600 h-2 rounded-full" 
+                            style={{ width: `${(analyticsData.activeWarranties / analyticsData.totalProducts) * 100}%` }}
+                          ></div>
                         </div>
-                        <span className="text-sm text-gray-500 w-8 text-right">{count}</span>
+                        <span className="text-sm font-medium">{analyticsData.activeWarranties}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Expiring Soon</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-orange-600 h-2 rounded-full" 
+                            style={{ width: `${(analyticsData.expiringWarranties / analyticsData.totalProducts) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium">{analyticsData.expiringWarranties}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Expired</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-red-600 h-2 rounded-full" 
+                            style={{ width: `${(analyticsData.expiredWarranties / analyticsData.totalProducts) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium">{analyticsData.expiredWarranties}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">No Warranty</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-gray-600 h-2 rounded-full" 
+                            style={{ width: `${(analyticsData.noWarranty / analyticsData.totalProducts) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium">{analyticsData.noWarranty}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Top Categories
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(analyticsData.categoryBreakdown)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 5)
+                      .map(([category, count]) => (
+                        <div key={category} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">{category}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${(count / analyticsData.totalProducts) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium">{count}</span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Modals */}
+      <QuickCashModal
+        isOpen={isQuickCashModalOpen}
+        onClose={() => setIsQuickCashModalOpen(false)}
+        product={quickCashProduct}
+      />
+      
+      <ClaimFilingModal
+        isOpen={isClaimFilingModalOpen}
+        onClose={() => setIsClaimFilingModalOpen(false)}
+        product={claimFilingProduct}
+      />
+      
+      <WarrantyDatabaseModal
+        isOpen={isWarrantyDatabaseModalOpen}
+        onClose={() => setIsWarrantyDatabaseModalOpen(false)}
+        product={warrantyDatabaseProduct}
+      />
+      
+      <ResolutionFlow
+        isOpen={isResolutionFlowOpen}
+        onClose={() => setIsResolutionFlowOpen(false)}
+        product={resolutionFlowProduct}
+      />
     </Card>
-
-    {/* Quick Cash Modal */}
-    <QuickCashModal
-      isOpen={isQuickCashModalOpen}
-      onClose={() => {
-        setIsQuickCashModalOpen(false);
-        setQuickCashProduct(null);
-      }}
-      product={quickCashProduct}
-    />
-
-    {/* Claim Filing Modal */}
-    <ClaimFilingModal
-      isOpen={isClaimFilingModalOpen}
-      onClose={() => {
-        setIsClaimFilingModalOpen(false);
-        setClaimFilingProduct(null);
-      }}
-      product={claimFilingProduct}
-    />
-
-    {/* Warranty Database Modal */}
-    <WarrantyDatabaseModal
-      isOpen={isWarrantyDatabaseModalOpen}
-      onClose={() => {
-        setIsWarrantyDatabaseModalOpen(false);
-        setWarrantyDatabaseProduct(null);
-      }}
-      product={warrantyDatabaseProduct}
-    />
-
-    {/* Resolution Flow Modal */}
-    <ResolutionFlow
-      isOpen={isResolutionFlowOpen}
-      onClose={() => {
-        setIsResolutionFlowOpen(false);
-        setResolutionFlowProduct(null);
-      }}
-      product={resolutionFlowProduct}
-    />
-  </div>
   );
 }
