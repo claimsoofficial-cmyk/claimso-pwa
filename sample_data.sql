@@ -61,7 +61,7 @@ DECLARE
     categories TEXT[] := ARRAY['Automotive', 'Electronics', 'Clothing', 'Home & Garden', 'Sports & Fitness', 'Books', 'Toys', 'Health & Beauty', 'Food & Beverage', 'Tools'];
     
     i INTEGER;
-    product_name TEXT;
+    current_product_name TEXT;
     brand TEXT;
     category TEXT;
     purchase_price DECIMAL(10,2);
@@ -87,63 +87,63 @@ BEGIN
         CASE (i % 10)
             WHEN 0 THEN -- Cars (10%)
                 brand := car_brands[1 + (i % array_length(car_brands, 1))];
-                product_name := brand || ' ' || car_models[1 + (i % array_length(car_models, 1))];
+                current_product_name := brand || ' ' || car_models[1 + (i % array_length(car_models, 1))];
                 category := 'Automotive';
                 purchase_price := 15000 + (i % 50000);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 1 THEN -- Car Parts (10%)
                 brand := car_brands[1 + (i % array_length(car_brands, 1))];
-                product_name := brand || ' ' || car_parts[1 + (i % array_length(car_parts, 1))];
+                current_product_name := brand || ' ' || car_parts[1 + (i % array_length(car_parts, 1))];
                 category := 'Automotive';
                 purchase_price := 50 + (i % 500);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 2 THEN -- Phones (10%)
                 brand := phone_brands[1 + (i % array_length(phone_brands, 1))];
-                product_name := brand || ' ' || phone_models[1 + (i % array_length(phone_models, 1))];
+                current_product_name := brand || ' ' || phone_models[1 + (i % array_length(phone_models, 1))];
                 category := 'Electronics';
                 purchase_price := 500 + (i % 1500);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 3 THEN -- Clothing (10%)
                 brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
-                product_name := brand || ' ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
+                current_product_name := brand || ' ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
                 category := 'Clothing';
                 purchase_price := 20 + (i % 200);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 4 THEN -- Electronics (10%)
                 brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
-                product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))];
+                current_product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))];
                 category := 'Electronics';
                 purchase_price := 100 + (i % 2000);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 5 THEN -- Home & Garden (10%)
                 brand := home_brands[1 + (i % array_length(home_brands, 1))];
-                product_name := brand || ' ' || home_items[1 + (i % array_length(home_items, 1))];
+                current_product_name := brand || ' ' || home_items[1 + (i % array_length(home_items, 1))];
                 category := 'Home & Garden';
                 purchase_price := 50 + (i % 1000);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 6 THEN -- Sports & Fitness (10%)
                 brand := sports_brands[1 + (i % array_length(sports_brands, 1))];
-                product_name := brand || ' ' || sports_items[1 + (i % array_length(sports_items, 1))];
+                current_product_name := brand || ' ' || sports_items[1 + (i % array_length(sports_items, 1))];
                 category := 'Sports & Fitness';
                 purchase_price := 30 + (i % 800);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 7 THEN -- Mixed Electronics (10%)
                 brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
-                product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))] || ' Pro';
+                current_product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))] || ' Pro';
                 category := 'Electronics';
                 purchase_price := 200 + (i % 3000);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
                 
             WHEN 8 THEN -- Premium Clothing (10%)
                 brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
-                product_name := brand || ' Premium ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
+                current_product_name := brand || ' Premium ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
                 category := 'Clothing';
                 purchase_price := 50 + (i % 300);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
@@ -155,7 +155,7 @@ BEGIN
                     WHEN 2 THEN clothing_brands[1 + (i % array_length(clothing_brands, 1))]
                     ELSE electronics_brands[1 + (i % array_length(electronics_brands, 1))]
                 END;
-                product_name := brand || ' Special Edition Product ' || i;
+                current_product_name := brand || ' Special Edition Product ' || i;
                 category := categories[1 + (i % array_length(categories, 1))];
                 purchase_price := 25 + (i % 1000);
                 condition := conditions[1 + (i % array_length(conditions, 1))];
@@ -191,15 +191,15 @@ BEGIN
         ) VALUES (
             gen_random_uuid(),
             user_id,
-            product_name,
+            current_product_name,
             brand,
             category,
             purchase_date,
             purchase_price,
             'USD',
             serial_number,
-            condition::text::product_condition_enum,
-            'Sample product for testing - ' || product_name,
+            condition,
+            'Sample product for testing - ' || current_product_name,
             NOW() - INTERVAL '1 day' * (i % 30),
             NOW(),
             FALSE,
@@ -242,7 +242,7 @@ BEGIN
                 NOW(),
                 NOW()
             FROM products p 
-            WHERE p.product_name = product_name 
+            WHERE p.product_name = current_product_name 
             AND p.user_id = user_id
             LIMIT 1;
         END IF;
