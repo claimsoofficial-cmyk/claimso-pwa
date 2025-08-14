@@ -16,7 +16,7 @@ export default async function AppLayout({
     redirect('/');
   }
 
-  // Fetch user profile for navbar (simplified)
+  // Fetch user profile for navbar
   let profile = null;
   try {
     const { data } = await supabase
@@ -29,13 +29,38 @@ export default async function AppLayout({
     console.warn('Profile fetch failed:', error);
   }
 
-  // Simplified stats to avoid complex queries
-  const stats = {
+  // Fetch user stats for navigation badges (without claims table)
+  let stats = {
     totalProducts: 0,
     activeWarranties: 0,
     pendingClaims: 0,
     notifications: 0
   };
+
+  try {
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, warranties(*)')
+      .eq('user_id', user.id)
+      .eq('is_archived', false);
+
+    if (products) {
+      stats = {
+        totalProducts: products.length,
+        activeWarranties: products.filter(p => {
+          if (!p.warranties || !Array.isArray(p.warranties)) return false;
+          return p.warranties.some(w => {
+            if (!w.warranty_end_date) return true;
+            return new Date(w.warranty_end_date) > new Date();
+          });
+        }).length,
+        pendingClaims: 0, // Claims table doesn't exist yet
+        notifications: 0
+      };
+    }
+  } catch (error) {
+    console.warn('Stats fetch failed:', error);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
