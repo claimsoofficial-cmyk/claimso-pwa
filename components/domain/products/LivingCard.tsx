@@ -272,7 +272,7 @@ export default function LivingCard({ className = '', products: passedProducts }:
 
   const handleSort = (sort: SortType) => {
     setSortBy(sort);
-    const sorted = [...filteredProducts].sort((a, b) => {
+    const sorted = [...products].sort((a, b) => {
       let aValue: any, bValue: any;
 
       switch (sort) {
@@ -416,8 +416,18 @@ export default function LivingCard({ className = '', products: passedProducts }:
     }
   }, [fetchProducts, passedProducts]);
 
+  // Ensure filteredProducts is updated when products change
   useEffect(() => {
-    handleSort(sortBy);
+    if (products.length > 0 && filteredProducts.length === 0) {
+      console.log('Setting filteredProducts to match products');
+      setFilteredProducts(products);
+    }
+  }, [products, filteredProducts.length]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      handleSort(sortBy);
+    }
   }, [sortBy, sortOrder, products]);
 
   // ==============================================================================
