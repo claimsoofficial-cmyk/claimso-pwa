@@ -218,48 +218,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200/50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                Welcome back, {displayName}!
-              </h1>
-              <p className="text-gray-600">
-                {stats.totalProducts} products • {stats.connectedRetailers} retailers connected
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.location.href = '/products/add'}
-                className="hover-lift"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </Button>
-              
-              <Button 
-                variant="ghost"
-                size="icon"
-                onClick={() => window.location.href = '/settings/account'}
-                className="hover-lift"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Living Card - Unified Product Management */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border border-green-200">
-        <h2 className="text-lg font-bold text-green-800 mb-2">🎉 NEW REDESIGN DEPLOYED! 🎉</h2>
-        <p className="text-green-700">The app has been completely redesigned with a unified dashboard experience!</p>
-      </div>
       <LivingCard />
     </div>
   );

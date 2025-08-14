@@ -67,19 +67,6 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
   // Simplified navigation - only essential pages
   const navigationItems: NavigationItem[] = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: Home,
-      description: 'Overview of your products and warranties'
-    },
-    {
-      name: 'Products',
-      href: '/products',
-      icon: Package,
-      badge: stats?.totalProducts,
-      description: 'Manage your product inventory'
-    },
-    {
       name: 'Settings',
       href: '/settings/account',
       icon: Settings,
@@ -114,7 +101,7 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  🚀 CLAIMSO REDESIGNED v2.0 🚀
+                  Welcome back, {displayName}!
                 </h1>
               </div>
             </div>
@@ -150,23 +137,8 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
               })}
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-3">
-              {/* Search - Hidden on mobile */}
-              <div className="hidden sm:block">
-                <SearchBar />
-              </div>
-
-              {/* Quick Add Button */}
-              <Button 
-                variant="gradient" 
-                size="sm"
-                onClick={() => window.location.href = '/products/add'}
-                className="hidden sm:flex items-center gap-2 shadow-md"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden lg:inline">Add Product</span>
-              </Button>
+                               {/* Right Side Actions */}
+                   <div className="flex items-center gap-3">
 
               {/* Notifications */}
               <Button
@@ -282,20 +254,7 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
                 })}
               </div>
 
-              {/* Mobile Quick Actions */}
-              <div className="mt-4 pt-4 border-t border-gray-200/50">
-                <Button 
-                  variant="gradient" 
-                  className="w-full justify-start"
-                  onClick={() => {
-                    window.location.href = '/products/add';
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
+              
             </div>
           </div>
         )}
