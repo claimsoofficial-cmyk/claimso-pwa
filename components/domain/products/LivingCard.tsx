@@ -146,8 +146,7 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
         .from('products')
         .select(`
           *,
-          warranties (*),
-          documents (*)
+          warranties (*)
         `)
         .eq('user_id', user.id)
         .eq('is_archived', false)
