@@ -1,0 +1,271 @@
+-- ==============================================================================
+-- CLAIMSO SIMPLE SAMPLE DATA SCRIPT FOR SUPABASE
+-- ==============================================================================
+-- This script creates 1000+ sample products across various categories
+-- Run this AFTER running database_migration.sql
+-- This version works with the current database schema
+
+-- First, let's create some sample users if they don't exist
+INSERT INTO auth.users (id, email, created_at, updated_at)
+VALUES 
+  ('00000000-0000-0000-0000-000000000001', 'demo@claimso.com', NOW(), NOW()),
+  ('00000000-0000-0000-0000-000000000002', 'test@claimso.com', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- ==============================================================================
+-- SAMPLE PRODUCTS DATA
+-- ==============================================================================
+
+-- Clear existing sample data (optional - comment out if you want to keep existing data)
+-- DELETE FROM products WHERE user_id IN ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002');
+
+-- Sample data arrays for generating varied products
+DO $$
+DECLARE
+    -- Car brands and models
+    car_brands TEXT[] := ARRAY['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Tesla', 'Nissan', 'Hyundai', 'Kia', 'Volkswagen', 'Chevrolet', 'Dodge', 'Jeep', 'Subaru'];
+    car_models TEXT[] := ARRAY['Camry', 'Civic', 'F-150', '3 Series', 'C-Class', 'A4', 'Model 3', 'Altima', 'Sonata', 'Optima', 'Golf', 'Malibu', 'Charger', 'Wrangler', 'Outback'];
+    
+    -- Car parts
+    car_parts TEXT[] := ARRAY['Brake Pads', 'Oil Filter', 'Air Filter', 'Spark Plugs', 'Battery', 'Tires', 'Windshield Wipers', 'Headlights', 'Taillights', 'Mirrors', 'Seat Covers', 'Floor Mats', 'Steering Wheel', 'Gear Shift', 'Dashboard'];
+    
+    -- Phone brands and models
+    phone_brands TEXT[] := ARRAY['Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Huawei', 'Sony', 'LG', 'Motorola', 'Nokia', 'ASUS', 'OPPO', 'Vivo', 'Realme', 'Nothing'];
+    phone_models TEXT[] := ARRAY['iPhone 15 Pro', 'Galaxy S24', 'Pixel 8', 'OnePlus 12', 'Redmi Note 13', 'P50 Pro', 'Xperia 1 V', 'G8 ThinQ', 'Edge 40', 'G50', 'ROG Phone 8', 'Find X7', 'X100 Pro', 'GT Neo 5', 'Phone 2'];
+    
+    -- Clothing brands and items
+    clothing_brands TEXT[] := ARRAY['Nike', 'Adidas', 'Under Armour', 'Puma', 'Reebok', 'New Balance', 'Converse', 'Vans', 'Levi''s', 'Gap', 'H&M', 'Zara', 'Uniqlo', 'Lululemon', 'Patagonia'];
+    clothing_items TEXT[] := ARRAY['T-Shirt', 'Hoodie', 'Sweatshirt', 'Jeans', 'Shorts', 'Jacket', 'Sweater', 'Polo Shirt', 'Tank Top', 'Long Sleeve', 'Crop Top', 'Dress Shirt', 'Blazer', 'Cardigan', 'Windbreaker'];
+    
+    -- Electronics
+    electronics TEXT[] := ARRAY['Laptop', 'Tablet', 'Smartwatch', 'Headphones', 'Speaker', 'Camera', 'Gaming Console', 'TV', 'Monitor', 'Keyboard', 'Mouse', 'Webcam', 'Microphone', 'Router', 'Power Bank'];
+    electronics_brands TEXT[] := ARRAY['Apple', 'Samsung', 'Dell', 'HP', 'Lenovo', 'ASUS', 'Acer', 'Sony', 'LG', 'Bose', 'JBL', 'Canon', 'Nikon', 'Microsoft', 'Logitech'];
+    
+    -- Home & Garden
+    home_items TEXT[] := ARRAY['Coffee Maker', 'Blender', 'Toaster', 'Microwave', 'Refrigerator', 'Dishwasher', 'Washing Machine', 'Dryer', 'Vacuum Cleaner', 'Air Purifier', 'Fan', 'Heater', 'Garden Tools', 'Grill', 'Furniture'];
+    home_brands TEXT[] := ARRAY['KitchenAid', 'Ninja', 'Cuisinart', 'Breville', 'Samsung', 'LG', 'Whirlpool', 'Maytag', 'Dyson', 'Shark', 'Honeywell', 'DeLonghi', 'Black+Decker', 'Weber', 'IKEA'];
+    
+    -- Sports & Fitness
+    sports_items TEXT[] := ARRAY['Treadmill', 'Exercise Bike', 'Dumbbells', 'Yoga Mat', 'Resistance Bands', 'Foam Roller', 'Jump Rope', 'Medicine Ball', 'Kettlebell', 'Bench Press', 'Pull-up Bar', 'Tennis Racket', 'Golf Clubs', 'Basketball', 'Soccer Ball'];
+    sports_brands TEXT[] := ARRAY['Bowflex', 'Peloton', 'NordicTrack', 'Life Fitness', 'Precor', 'Concept2', 'Rogue Fitness', 'CAP Barbell', 'Lululemon', 'Manduka', 'TriggerPoint', 'Crossrope', 'Wilson', 'Callaway', 'Spalding'];
+    
+    -- Conditions
+    conditions TEXT[] := ARRAY['new', 'used', 'refurbished', 'damaged'];
+    
+    -- Categories
+    categories TEXT[] := ARRAY['Automotive', 'Electronics', 'Clothing', 'Home & Garden', 'Sports & Fitness', 'Books', 'Toys', 'Health & Beauty', 'Food & Beverage', 'Tools'];
+    
+    i INTEGER;
+    product_name TEXT;
+    brand TEXT;
+    category TEXT;
+    purchase_price DECIMAL(10,2);
+    condition TEXT;
+    serial_number TEXT;
+    purchase_date DATE;
+    warranty_count INTEGER;
+    user_id UUID;
+    
+BEGIN
+    -- Generate 1000+ sample products
+    FOR i IN 1..1000 LOOP
+        -- Randomly select user
+        user_id := CASE WHEN i % 2 = 0 THEN 
+            '00000000-0000-0000-0000-000000000001'::UUID 
+        ELSE 
+            '00000000-0000-0000-0000-000000000002'::UUID 
+        END;
+        
+        -- Generate product based on category
+        CASE (i % 10)
+            WHEN 0 THEN -- Cars (10%)
+                brand := car_brands[1 + (i % array_length(car_brands, 1))];
+                product_name := brand || ' ' || car_models[1 + (i % array_length(car_models, 1))];
+                category := 'Automotive';
+                purchase_price := 15000 + (i % 50000);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 1 THEN -- Car Parts (10%)
+                brand := car_brands[1 + (i % array_length(car_brands, 1))];
+                product_name := brand || ' ' || car_parts[1 + (i % array_length(car_parts, 1))];
+                category := 'Automotive';
+                purchase_price := 50 + (i % 500);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 2 THEN -- Phones (10%)
+                brand := phone_brands[1 + (i % array_length(phone_brands, 1))];
+                product_name := brand || ' ' || phone_models[1 + (i % array_length(phone_models, 1))];
+                category := 'Electronics';
+                purchase_price := 500 + (i % 1500);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 3 THEN -- Clothing (10%)
+                brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
+                product_name := brand || ' ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
+                category := 'Clothing';
+                purchase_price := 20 + (i % 200);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 4 THEN -- Electronics (10%)
+                brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
+                product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))];
+                category := 'Electronics';
+                purchase_price := 100 + (i % 2000);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 5 THEN -- Home & Garden (10%)
+                brand := home_brands[1 + (i % array_length(home_brands, 1))];
+                product_name := brand || ' ' || home_items[1 + (i % array_length(home_items, 1))];
+                category := 'Home & Garden';
+                purchase_price := 50 + (i % 1000);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 6 THEN -- Sports & Fitness (10%)
+                brand := sports_brands[1 + (i % array_length(sports_brands, 1))];
+                product_name := brand || ' ' || sports_items[1 + (i % array_length(sports_items, 1))];
+                category := 'Sports & Fitness';
+                purchase_price := 30 + (i % 800);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 7 THEN -- Mixed Electronics (10%)
+                brand := electronics_brands[1 + (i % array_length(electronics_brands, 1))];
+                product_name := brand || ' ' || electronics[1 + (i % array_length(electronics, 1))] || ' Pro';
+                category := 'Electronics';
+                purchase_price := 200 + (i % 3000);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            WHEN 8 THEN -- Premium Clothing (10%)
+                brand := clothing_brands[1 + (i % array_length(clothing_brands, 1))];
+                product_name := brand || ' Premium ' || clothing_items[1 + (i % array_length(clothing_items, 1))];
+                category := 'Clothing';
+                purchase_price := 50 + (i % 300);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+                
+            ELSE -- Mixed Categories (10%)
+                brand := CASE (i % 4)
+                    WHEN 0 THEN car_brands[1 + (i % array_length(car_brands, 1))]
+                    WHEN 1 THEN phone_brands[1 + (i % array_length(phone_brands, 1))]
+                    WHEN 2 THEN clothing_brands[1 + (i % array_length(clothing_brands, 1))]
+                    ELSE electronics_brands[1 + (i % array_length(electronics_brands, 1))]
+                END;
+                product_name := brand || ' Special Edition Product ' || i;
+                category := categories[1 + (i % array_length(categories, 1))];
+                purchase_price := 25 + (i % 1000);
+                condition := conditions[1 + (i % array_length(conditions, 1))];
+        END CASE;
+        
+        -- Generate other random data
+        serial_number := 'SN' || LPAD(i::TEXT, 6, '0') || '-' || brand;
+        purchase_date := CURRENT_DATE - INTERVAL '1 day' * (i % 365);
+        warranty_count := (i % 3) + 1;
+        
+        -- Insert the product (without new columns)
+        INSERT INTO products (
+            id,
+            user_id,
+            product_name,
+            brand,
+            category,
+            purchase_date,
+            purchase_price,
+            currency,
+            serial_number,
+            condition,
+            notes,
+            created_at,
+            updated_at,
+            is_archived
+        ) VALUES (
+            gen_random_uuid(),
+            user_id,
+            product_name,
+            brand,
+            category,
+            purchase_date,
+            purchase_price,
+            'USD',
+            serial_number,
+            condition::text::product_condition_enum,
+            'Sample product for testing - ' || product_name,
+            NOW() - INTERVAL '1 day' * (i % 30),
+            NOW(),
+            FALSE
+        );
+        
+        -- Add warranties for some products
+        IF warranty_count > 0 THEN
+            INSERT INTO warranties (
+                id,
+                product_id,
+                warranty_start_date,
+                warranty_end_date,
+                warranty_duration_months,
+                warranty_type,
+                coverage_details,
+                claim_process,
+                contact_info,
+                created_at,
+                updated_at
+            )
+            SELECT 
+                gen_random_uuid(),
+                p.id,
+                p.purchase_date,
+                p.purchase_date + INTERVAL '1 year',
+                12,
+                CASE (i % 4)
+                    WHEN 0 THEN 'manufacturer'
+                    WHEN 1 THEN 'extended'
+                    WHEN 2 THEN 'store'
+                    ELSE 'insurance'
+                END,
+                'Standard warranty coverage for ' || p.product_name,
+                'Contact manufacturer or retailer for claims',
+                'support@' || LOWER(REPLACE(p.brand, ' ', '')) || '.com',
+                NOW(),
+                NOW()
+            FROM products p 
+            WHERE p.product_name = product_name 
+            AND p.user_id = user_id
+            LIMIT 1;
+        END IF;
+        
+    END LOOP;
+    
+    RAISE NOTICE 'Generated 1000 sample products successfully!';
+END $$;
+
+-- ==============================================================================
+-- VERIFICATION QUERIES
+-- ==============================================================================
+
+-- Check the data
+SELECT 
+    'Total Products' as metric,
+    COUNT(*) as count
+FROM products
+UNION ALL
+SELECT 
+    'Products by Category' as metric,
+    category || ': ' || COUNT(*) as count
+FROM products 
+GROUP BY category
+UNION ALL
+SELECT 
+    'Products by Brand' as metric,
+    brand || ': ' || COUNT(*) as count
+FROM products 
+GROUP BY brand
+ORDER BY metric, count DESC;
+
+-- Show sample products
+SELECT 
+    product_name,
+    brand,
+    category,
+    purchase_price,
+    condition,
+    created_at
+FROM products 
+ORDER BY created_at DESC 
+LIMIT 10;
