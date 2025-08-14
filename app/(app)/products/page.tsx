@@ -113,11 +113,12 @@ export default function ProductsPage() {
   };
 
   const getWarrantyStatus = (product: Product) => {
-    if (!product.warranties || product.warranties.length === 0) {
+    const warranties = product.warranties || [];
+    if (warranties.length === 0) {
       return { status: 'none', label: 'No Warranty', color: 'bg-red-100 text-red-700' };
     }
 
-    const activeWarranty = product.warranties.find(w => {
+    const activeWarranty = warranties.find(w => {
       if (!w.warranty_end_date) return true;
       return new Date(w.warranty_end_date) > new Date();
     });

@@ -58,26 +58,38 @@ export default function DashboardPage() {
 
   const fetchProducts = useCallback(async () => {
     try {
+      console.log('🔍 Starting fetchProducts...');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      console.log('👤 User:', user?.id);
+      if (!user) {
+        console.log('❌ No user found');
+        return;
+      }
 
-      // Simplified query without complex joins
+      console.log('📦 Fetching products for user:', user.id);
+      // Fetch products with warranties
       const { data: productsData, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          warranties (*)
+        `)
         .eq('user_id', user.id)
         .eq('is_archived', false)
         .order('created_at', { ascending: false });
 
+      console.log('📊 Products query result:', { data: productsData?.length, error });
+
       if (error) {
-        console.error('Error fetching products:', error);
-        setError('Failed to fetch products');
+        console.error('❌ Error fetching products:', error);
+        setError('Failed to fetch products: ' + error.message);
       } else {
+        console.log('✅ Products fetched successfully:', productsData?.length);
         setProducts(productsData || []);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
-      setError('Failed to fetch products');
+      console.error('💥 Exception in fetchProducts:', error);
+      setError('Failed to fetch products: ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
