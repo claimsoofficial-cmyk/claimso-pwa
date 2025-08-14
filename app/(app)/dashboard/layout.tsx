@@ -1,7 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import TopNavigation from '@/components/shared/TopNavigation';
-
 
 export default async function AppLayout({
   children,
@@ -14,50 +12,22 @@ export default async function AppLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    // This check is now redundant because our middleware handles it,
-    // but it provides an extra layer of "defense in depth."
     redirect('/');
   }
 
-  // Fetch user profile for navbar
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, avatar_url')
-    .eq('id', user.id)
-    .single();
-
-  // Fetch user stats for navigation badges
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, warranties(*)')
-    .eq('user_id', user.id)
-    .eq('is_archived', false);
-
-  const { data: claims } = await supabase
-    .from('claims')
-    .select('id, status')
-    .eq('user_id', user.id)
-    .eq('status', 'pending');
-
-  // Calculate stats
-  const stats = {
-    totalProducts: products?.length || 0,
-    activeWarranties: products?.filter(p => p.warranties?.some(w => {
-      if (!w.warranty_end_date) return true;
-      return new Date(w.warranty_end_date) > new Date();
-    })).length || 0,
-    pendingClaims: claims?.length || 0,
-    notifications: 0 // TODO: Implement notification count
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      {/* Top Navigation */}
-      <TopNavigation 
-        user={user} 
-        profile={profile} 
-        stats={stats}
-      />
+      {/* Simple header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+            <div className="text-sm text-gray-500">
+              Welcome, {user.email?.split('@')[0] || 'User'}
+            </div>
+          </div>
+        </div>
+      </header>
       
       {/* Main Content Area */}
       <div className="min-h-screen">
