@@ -64,15 +64,8 @@ export default function TopNavigation({ user, profile, stats }: TopNavigationPro
     .join('')
     .slice(0, 2);
 
-  // Simplified navigation - only essential pages
-  const navigationItems: NavigationItem[] = [
-    {
-      name: 'Settings',
-      href: '/settings/account',
-      icon: Settings,
-      description: 'Manage your account and preferences'
-    },
-  ];
+  // Simplified navigation - no navigation items needed
+  const navigationItems: NavigationItem[] = [];
 
   // Check if item is active
   const isActive = (href: string) => {

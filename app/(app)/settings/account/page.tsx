@@ -373,14 +373,7 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start hover-lift"
-                onClick={() => window.location.href = '/help'}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Help & Support
-              </Button>
+
               
               <Button 
                 variant="outline" 

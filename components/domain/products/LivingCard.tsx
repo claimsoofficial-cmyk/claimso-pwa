@@ -246,16 +246,53 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
                  </Button>
                </div>
                
-               {/* Search Bar */}
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                 <input
-                   type="text"
-                   placeholder="Search products..."
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                 />
+               {/* Search and Filters Row */}
+               <div className="flex gap-3">
+                 {/* Search Bar - 50% */}
+                 <div className="relative flex-1">
+                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                   <input
+                     type="text"
+                     placeholder="Search products..."
+                     value={searchQuery}
+                     onChange={(e) => setSearchQuery(e.target.value)}
+                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                   />
+                 </div>
+                 
+                 {/* Filters - 50% */}
+                 <div className="flex gap-2 flex-1">
+                   <select
+                     value={activeFilter}
+                     onChange={(e) => setActiveFilter(e.target.value as FilterType)}
+                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                   >
+                     <option value="all">All Products</option>
+                     <option value="active-warranties">Active Warranties</option>
+                     <option value="expiring-soon">Expiring Soon</option>
+                     <option value="expired">Expired</option>
+                     <option value="no-warranty">No Warranty</option>
+                   </select>
+                   
+                   <select
+                     value={sortBy}
+                     onChange={(e) => setSortBy(e.target.value as SortType)}
+                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                   >
+                     <option value="date">Date Added</option>
+                     <option value="name">Name</option>
+                     <option value="value">Value</option>
+                     <option value="warranty">Warranty Status</option>
+                   </select>
+                   
+                   <Button
+                     variant="outline"
+                     size="icon"
+                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                   >
+                     {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                   </Button>
+                 </div>
                </div>
              </CardHeader>
       
@@ -277,39 +314,6 @@ export default function LivingCard({ className = '' }: LivingCardProps) {
           </TabsList>
 
                  <TabsContent value="products" className="mt-6">
-                   {/* Filters */}
-                   <div className="flex gap-2 mb-6">
-                     <select
-                       value={activeFilter}
-                       onChange={(e) => setActiveFilter(e.target.value as FilterType)}
-                       className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     >
-                       <option value="all">All Products</option>
-                       <option value="active-warranties">Active Warranties</option>
-                       <option value="expiring-soon">Expiring Soon</option>
-                       <option value="expired">Expired</option>
-                       <option value="no-warranty">No Warranty</option>
-                     </select>
-                     
-                     <select
-                       value={sortBy}
-                       onChange={(e) => setSortBy(e.target.value as SortType)}
-                       className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     >
-                       <option value="date">Date Added</option>
-                       <option value="name">Name</option>
-                       <option value="value">Value</option>
-                       <option value="warranty">Warranty Status</option>
-                     </select>
-                     
-                     <Button
-                       variant="outline"
-                       size="icon"
-                       onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                     >
-                       {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-                     </Button>
-                   </div>
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
