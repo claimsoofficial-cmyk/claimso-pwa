@@ -76,12 +76,8 @@ DECLARE
 BEGIN
     -- Generate 1000+ sample products
     FOR i IN 1..1000 LOOP
-        -- Randomly select user
-        current_user_id := CASE WHEN i % 2 = 0 THEN 
-            '00000000-0000-0000-0000-000000000001'::UUID 
-        ELSE 
-            '00000000-0000-0000-0000-000000000002'::UUID 
-        END;
+        -- Use your specific user ID
+        current_user_id := '5cbd0756-963e-4777-96d7-629edf66e0ca'::UUID;
         
         -- Generate product based on category
         CASE (i % 10)
@@ -316,11 +312,11 @@ INSERT INTO user_connections (
     updated_at
 )
 VALUES 
-    ('00000000-0000-0000-0000-000000000001', 'amazon', 'connected', NOW(), NOW(), NOW()),
-    ('00000000-0000-0000-0000-000000000001', 'best buy', 'connected', NOW(), NOW(), NOW()),
-    ('00000000-0000-0000-0000-000000000001', 'walmart', 'connected', NOW(), NOW(), NOW()),
-    ('00000000-0000-0000-0000-000000000002', 'amazon', 'connected', NOW(), NOW(), NOW()),
-    ('00000000-0000-0000-0000-000000000002', 'target', 'connected', NOW(), NOW(), NOW())
+    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'amazon', 'connected', NOW(), NOW(), NOW()),
+    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'best buy', 'connected', NOW(), NOW(), NOW()),
+    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'walmart', 'connected', NOW(), NOW(), NOW()),
+    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'target', 'connected', NOW(), NOW(), NOW()),
+    ('5cbd0756-963e-4777-96d7-629edf66e0ca', 'apple', 'connected', NOW(), NOW(), NOW())
 ON CONFLICT (user_id, retailer) DO NOTHING;
 
 -- ==============================================================================

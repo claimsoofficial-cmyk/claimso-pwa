@@ -1,5 +1,5 @@
 -- ==============================================================================
-// DEBUG DASHBOARD ISSUES
+-- DEBUG DASHBOARD ISSUES
 -- ==============================================================================
 -- This script helps debug what might be causing the dashboard to fail
 
