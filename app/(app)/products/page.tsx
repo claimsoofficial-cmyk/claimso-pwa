@@ -1,55 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Plus, 
   Search, 
-  Filter, 
   Grid, 
   List,
   Package,
-  Shield,
   Calendar,
   DollarSign,
-  MoreHorizontal,
-  Edit,
-  Trash2,
   Eye,
   ArrowRight,
-  AlertTriangle
+  Edit
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-
-interface Product {
-  id: string;
-  product_name: string;
-  brand: string | null;
-  category: string | null;
-  purchase_date: string | null;
-  purchase_price: number | null;
-  condition: 'new' | 'used' | 'refurbished' | 'damaged';
-  created_at: string;
-  warranties?: Array<{
-    id: string;
-    warranty_end_date: string | null;
-    warranty_type: string;
-  }>;
-  documents?: Array<{
-    id: string;
-    file_name: string;
-    file_url: string;
-    document_type: string;
-    is_primary: boolean;
-  }>;
-}
+import type { Product } from '@/lib/types/common';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -62,15 +35,7 @@ export default function ProductsPage() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortProducts();
-  }, [products, searchQuery, selectedCategory, sortBy]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -98,9 +63,13 @@ export default function ProductsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const filterAndSortProducts = () => {
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const filterAndSortProducts = useCallback(() => {
     let filtered = products;
 
     // Filter by search query
@@ -132,7 +101,11 @@ export default function ProductsPage() {
     });
 
     setFilteredProducts(filtered);
-  };
+  }, [products, searchQuery, selectedCategory, sortBy]);
+
+  useEffect(() => {
+    filterAndSortProducts();
+  }, [filterAndSortProducts]);
 
   const getCategories = () => {
     const categories = products.map(p => p.category).filter(Boolean) as string[];

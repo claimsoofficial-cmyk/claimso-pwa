@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
+import type { Product, AnalyticsData } from '@/lib/types/common';
 import { 
   ConsumerBehaviorData, 
   ProductPerformanceData, 
-  FinancialIntelligenceData,
-  AnalyticsResponse 
+  FinancialIntelligenceData
 } from '@/lib/types/analytics';
 
 // ==============================================================================
@@ -144,7 +144,12 @@ export async function generateFinancialIntelligenceData(category: string): Promi
 // ANALYSIS FUNCTIONS
 // ==============================================================================
 
-function analyzeBrandPreferences(products: any[]): any {
+function analyzeBrandPreferences(products: Product[]): {
+  brand_ranking: Record<string, number>;
+  loyalty_score: number;
+  switching_frequency: number;
+  price_sensitivity: number;
+} {
   const brandCounts: Record<string, number> = {};
   const totalProducts = products.length;
 
@@ -166,13 +171,19 @@ function analyzeBrandPreferences(products: any[]): any {
   };
 }
 
-function analyzeUpgradeBehavior(products: any[]): any {
-  const categories = [...new Set(products.map(p => p.category))];
+function analyzeUpgradeBehavior(products: Product[]): {
+  product_category: string;
+  average_upgrade_cycle: number;
+  upgrade_triggers: string[];
+  price_sensitivity: number;
+  brand_loyalty_impact: number;
+} {
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
   const upgradeCycles: Record<string, number> = {};
 
   categories.forEach(category => {
     const categoryProducts = products.filter(p => p.category === category);
-    upgradeCycles[category] = calculateAverageUpgradeCycle(categoryProducts);
+    upgradeCycles[category as string] = calculateAverageUpgradeCycle(categoryProducts);
   });
 
   return {
@@ -184,7 +195,13 @@ function analyzeUpgradeBehavior(products: any[]): any {
   };
 }
 
-function analyzeWarrantyInsights(products: any[]): any {
+function analyzeWarrantyInsights(products: Product[]): {
+  purchase_rate: number;
+  claim_frequency: number;
+  satisfaction_score: number;
+  renewal_rate: number;
+  average_warranty_value: number;
+} {
   const productsWithWarranty = products.filter(p => p.warranties && p.warranties.length > 0);
   const totalProducts = products.length;
 
@@ -197,7 +214,12 @@ function analyzeWarrantyInsights(products: any[]): any {
   };
 }
 
-function analyzePurchasePatterns(products: any[]): any {
+function analyzePurchasePatterns(products: Product[]): {
+  seasonal_trends: Record<string, number>;
+  category_preferences: Record<string, number>;
+  price_ranges: Record<string, number>;
+  retailer_preferences: Record<string, number>;
+} {
   const seasonalTrends: Record<string, number> = {
     'Q1': 0.25,
     'Q2': 0.20,
@@ -234,12 +256,18 @@ function analyzePurchasePatterns(products: any[]): any {
   };
 }
 
-function analyzeFailureRates(product: any, similarProducts: any[]): any {
+function analyzeFailureRates(product: Product, similarProducts: Product[]): {
+  overall_rate: number;
+  time_to_failure: number;
+  common_failures: string[];
+  repair_costs: number;
+  failure_by_component: Record<string, number>;
+} {
   return {
     overall_rate: 0.08, // 8% failure rate
     time_to_failure: 24, // 24 months average
     common_failures: ['battery_degradation', 'screen_damage', 'performance_issues'],
-    repair_costs: product.purchase_price * 0.3, // 30% of purchase price
+    repair_costs: (product.purchase_price || 0) * 0.3, // 30% of purchase price
     failure_by_component: {
       'battery': 0.4,
       'screen': 0.3,

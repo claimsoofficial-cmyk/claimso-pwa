@@ -1,71 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
 import { 
   Plus, 
-  Download, 
   Settings, 
   CheckCircle, 
   Package,
   Shield,
   FileText,
   BarChart3,
-  TrendingUp,
   AlertTriangle,
   Sparkles,
   Zap,
   DollarSign,
-  Calendar,
   ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// ==============================================================================
-// TYPESCRIPT INTERFACES
-// ==============================================================================
-
-interface Product {
-  id: string;
-  product_name: string;
-  brand: string | null;
-  category: string | null;
-  purchase_date: string | null;
-  purchase_price: number | null;
-  currency: string;
-  serial_number: string | null;
-  condition: 'new' | 'used' | 'refurbished' | 'damaged';
-  notes: string | null;
-  created_at: string;
-  warranties?: Array<{
-    id: string;
-    warranty_start_date: string | null;
-    warranty_end_date: string | null;
-    warranty_duration_months: number | null;
-    warranty_type: 'manufacturer' | 'extended' | 'store' | 'insurance';
-    coverage_details: string | null;
-    ai_confidence_score: number | null;
-  }>;
-  documents?: Array<{
-    id: string;
-    file_name: string;
-    file_url: string;
-    document_type: 'receipt' | 'warranty_pdf' | 'manual' | 'insurance' | 'photo' | 'other';
-    is_primary: boolean;
-  }>;
-}
-
-interface UserConnection {
-  retailer: string;
-  status: string;
-  last_synced_at?: string;
-}
+import type { Product, UserConnection } from '@/lib/types/common';
 
 // ==============================================================================
 // MAIN COMPONENT
@@ -83,7 +40,7 @@ export default function DashboardPage() {
   // DATA FETCHING
   // ==============================================================================
   
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -103,9 +60,9 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
-  };
+  }, [supabase]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -131,16 +88,16 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const fetchUserConnections = async () => {
+  const fetchUserConnections = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: connectionsData, error: connError } = await supabase
         .from('user_connections')
-        .select('retailer, status, last_synced_at')
+        .select('retailer, status, last_synced_at, user_id')
         .eq('user_id', user.id);
       
       if (connError) {
@@ -151,7 +108,7 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error fetching connections:', error);
     }
-  };
+  }, [supabase]);
 
   // ==============================================================================
   // HELPER FUNCTIONS
@@ -207,7 +164,7 @@ export default function DashboardPage() {
     };
 
     initializeData();
-  }, []);
+  }, [fetchUserData, fetchProducts, fetchUserConnections]);
 
   // ==============================================================================
   // LOADING STATE
