@@ -67,16 +67,14 @@ export default function DashboardPage() {
       }
 
       console.log('📦 Fetching products for user:', user.id);
-      // Fetch products with warranties
+      // Simplified query - just get products without warranties first
       const { data: productsData, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          warranties (*)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_archived', false)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10); // Limit to 10 products for testing
 
       console.log('📊 Products query result:', { data: productsData?.length, error });
 
@@ -252,7 +250,14 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Living Card - Unified Product Management */}
-      <LivingCard />
+      {/* Temporarily disabled for debugging */}
+      <div className="p-6 bg-gray-100 rounded-lg">
+        <h2 className="text-lg font-semibold">Dashboard Content</h2>
+        <p>LivingCard temporarily disabled for debugging</p>
+        <p>Products loaded: {products.length}</p>
+        <p>User: {displayName}</p>
+      </div>
+      {/* <LivingCard /> */}
     </div>
   );
 }
