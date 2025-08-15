@@ -1,0 +1,143 @@
+service: claimso-agents
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    SUPABASE_URL: ${env:SUPABASE_URL, ''}
+    SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY, ''}
+    NODE_ENV: ${self:provider.stage}
+    AGENT_LOG_LEVEL: ${env:AGENT_LOG_LEVEL, 'info'}
+    AGENT_BATCH_SIZE: ${env:AGENT_BATCH_SIZE, '10'}
+    AGENT_MAX_RETRIES: ${env:AGENT_MAX_RETRIES, '3'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource: "*"
+
+functions:
+  emailMonitoringAgent:
+    handler: dist/handlers/email-monitoring-agent.handler
+    events:
+      - schedule: rate(1 hour)
+    timeout: 300
+    memorySize: 512
+
+  browserExtensionAgent:
+    handler: dist/handlers/browser-extension-agent.handler
+    events:
+      - http:
+          path: /browser-extension
+          method: post
+          cors: true
+    timeout: 30
+    memorySize: 256
+
+  mobileAppAgent:
+    handler: dist/handlers/mobile-app-agent.handler
+    events:
+      - http:
+          path: /mobile-app
+          method: post
+          cors: true
+    timeout: 30
+    memorySize: 256
+
+  productIntelligenceAgent:
+    handler: dist/handlers/product-intelligence-agent.handler
+    events:
+      - sqs:
+          arn: !GetAtt ProductEnrichmentQueue.Arn
+    timeout: 300
+    memorySize: 512
+
+  warrantyIntelligenceAgent:
+    handler: dist/handlers/warranty-intelligence-agent.handler
+    events:
+      - sqs:
+          arn: !GetAtt WarrantyEnrichmentQueue.Arn
+    timeout: 300
+    memorySize: 512
+
+  warrantyClaimAgent:
+    handler: dist/handlers/warranty-claim-agent.handler
+    events:
+      - schedule: rate(1 day)
+    timeout: 300
+    memorySize: 512
+
+  cashExtractionAgent:
+    handler: dist/handlers/cash-extraction-agent.handler
+    events:
+      - schedule: rate(1 day)
+    timeout: 300
+    memorySize: 512
+
+  retailerAPIAgent:
+    handler: dist/handlers/retailer-api-agent.handler
+    events:
+      - schedule: rate(1 hour)
+    timeout: 300
+    memorySize: 512
+
+  bankIntegrationAgent:
+    handler: dist/handlers/bank-integration-agent.handler
+    events:
+      - schedule: rate(2 hours)
+    timeout: 300
+    memorySize: 512
+
+  duplicateDetectionAgent:
+    handler: dist/handlers/duplicate-detection-agent.handler
+    events:
+      - schedule: rate(6 hours)
+    timeout: 300
+    memorySize: 512
+
+resources:
+  Resources:
+    ProductEnrichmentQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-product-enrichment-${self:provider.stage}
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+
+    WarrantyEnrichmentQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-warranty-enrichment-${self:provider.stage}
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+
+    AgentDataBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-agent-data-${self:provider.stage}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+custom:
+  dotenv:
+    path: .env

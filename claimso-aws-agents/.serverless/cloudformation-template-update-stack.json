@@ -1,0 +1,1435 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ServerlessDeploymentBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ServerlessDeploymentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "EmailMonitoringAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-emailMonitoringAgent"
+      }
+    },
+    "BrowserExtensionAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-browserExtensionAgent"
+      }
+    },
+    "MobileAppAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-mobileAppAgent"
+      }
+    },
+    "ProductIntelligenceAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-productIntelligenceAgent"
+      }
+    },
+    "WarrantyIntelligenceAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-warrantyIntelligenceAgent"
+      }
+    },
+    "WarrantyClaimAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-warrantyClaimAgent"
+      }
+    },
+    "CashExtractionAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-cashExtractionAgent"
+      }
+    },
+    "RetailerAPIAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-retailerAPIAgent"
+      }
+    },
+    "BankIntegrationAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-bankIntegrationAgent"
+      }
+    },
+    "DuplicateDetectionAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-test-duplicateDetectionAgent"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "claimso-agents",
+                  "test",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:TagResource"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-test*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-test*:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:SendMessage",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ProductEnrichmentQueue",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "WarrantyEnrichmentQueue",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "claimso-agents",
+              "test",
+              {
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "EmailMonitoringAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/email-monitoring-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-emailMonitoringAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "EmailMonitoringAgentLogGroup"
+      ]
+    },
+    "BrowserExtensionAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/browser-extension-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-browserExtensionAgent",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "BrowserExtensionAgentLogGroup"
+      ]
+    },
+    "MobileAppAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/mobile-app-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-mobileAppAgent",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "MobileAppAgentLogGroup"
+      ]
+    },
+    "ProductIntelligenceAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/product-intelligence-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-productIntelligenceAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ProductIntelligenceAgentLogGroup"
+      ]
+    },
+    "WarrantyIntelligenceAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/warranty-intelligence-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-warrantyIntelligenceAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WarrantyIntelligenceAgentLogGroup"
+      ]
+    },
+    "WarrantyClaimAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/warranty-claim-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-warrantyClaimAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WarrantyClaimAgentLogGroup"
+      ]
+    },
+    "CashExtractionAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/cash-extraction-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-cashExtractionAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "CashExtractionAgentLogGroup"
+      ]
+    },
+    "RetailerAPIAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/retailer-api-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-retailerAPIAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "RetailerAPIAgentLogGroup"
+      ]
+    },
+    "BankIntegrationAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/bank-integration-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-bankIntegrationAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "BankIntegrationAgentLogGroup"
+      ]
+    },
+    "DuplicateDetectionAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/duplicate-detection-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-test-duplicateDetectionAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "NODE_ENV": "test",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "DuplicateDetectionAgentLogGroup"
+      ]
+    },
+    "EmailMonitoringAgentLambdaVersionuLa1yIGFVekLULGqZ2rAADYgAwW2aZCDnsxR040": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "EmailMonitoringAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "BrowserExtensionAgentLambdaVersionoAD7eFRBkyarb3qLCDnToVZbo8syZ0xbI4O1dLOumbA": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "BrowserExtensionAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "MobileAppAgentLambdaVersionH1BE4JmAa569w8MWU9CZSyTTJYJFTjqsbFP8e4TOY": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "MobileAppAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "ProductIntelligenceAgentLambdaVersionYqivUHXvbwe9keWBuRN6C5kUHLxxX0wHD2tUQy5igw": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ProductIntelligenceAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "WarrantyIntelligenceAgentLambdaVersionzkvGAfyFKQD0wIwSmSfbJcuXWFjXD8pqS5xcfcQ3v1M": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WarrantyIntelligenceAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "WarrantyClaimAgentLambdaVersionh8RfkRPoa21eDlp8r3WCxmA9812tgD95RSz7ZW2DLmE": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WarrantyClaimAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "CashExtractionAgentLambdaVersionQPsFi6nC7F9t37mMZvdy7GchqhTr9x78YJKli4FEp8s": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "CashExtractionAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "RetailerAPIAgentLambdaVersiongM0XPc9yXGBBKDvsuenJEVfxy73v97OzC0JwSR3x0M": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "RetailerAPIAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "BankIntegrationAgentLambdaVersionC6qUj8kd5cZKWG9BJQGx8RYyJM9sn5xQ2RCEp4oVsBM": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "BankIntegrationAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "DuplicateDetectionAgentLambdaVersionsGCaKar5RaYIxvL8M6GYz0x90AHD9MwnqsFeAHDp8uU": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DuplicateDetectionAgentLambdaFunction"
+        },
+        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+      }
+    },
+    "EmailMonitoringAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(1 hour)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "EmailMonitoringAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "emailMonitoringAgentSchedule"
+          }
+        ]
+      }
+    },
+    "EmailMonitoringAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EmailMonitoringAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "EmailMonitoringAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "WarrantyClaimAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(1 day)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "WarrantyClaimAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "warrantyClaimAgentSchedule"
+          }
+        ]
+      }
+    },
+    "WarrantyClaimAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WarrantyClaimAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "WarrantyClaimAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "CashExtractionAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(1 day)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "CashExtractionAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "cashExtractionAgentSchedule"
+          }
+        ]
+      }
+    },
+    "CashExtractionAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CashExtractionAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CashExtractionAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "RetailerAPIAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(1 hour)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "RetailerAPIAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "retailerAPIAgentSchedule"
+          }
+        ]
+      }
+    },
+    "RetailerAPIAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "RetailerAPIAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "RetailerAPIAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "BankIntegrationAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(2 hours)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "BankIntegrationAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "bankIntegrationAgentSchedule"
+          }
+        ]
+      }
+    },
+    "BankIntegrationAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "BankIntegrationAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "BankIntegrationAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "DuplicateDetectionAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(6 hours)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "DuplicateDetectionAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "duplicateDetectionAgentSchedule"
+          }
+        ]
+      }
+    },
+    "DuplicateDetectionAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DuplicateDetectionAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "DuplicateDetectionAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "test-claimso-agents",
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        },
+        "Policy": ""
+      }
+    },
+    "ApiGatewayResourceBrowserDashextension": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "browser-extension",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceMobileDashapp": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "mobile-app",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodBrowserDashextensionOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceBrowserDashextension"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodMobileDashappOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceMobileDashapp"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodBrowserDashextensionPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceBrowserDashextension"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "BrowserExtensionAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "BrowserExtensionAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodMobileDashappPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceMobileDashapp"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "MobileAppAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "MobileAppAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1755254547379": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "test"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodBrowserDashextensionOptions",
+        "ApiGatewayMethodMobileDashappOptions",
+        "ApiGatewayMethodBrowserDashextensionPost",
+        "ApiGatewayMethodMobileDashappPost"
+      ]
+    },
+    "BrowserExtensionAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "BrowserExtensionAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "MobileAppAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "MobileAppAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "ProductIntelligenceAgentEventSourceMappingSQSProductEnrichmentQueue": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": [
+        "IamRoleLambdaExecution"
+      ],
+      "Properties": {
+        "BatchSize": 10,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "ProductEnrichmentQueue",
+            "Arn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ProductIntelligenceAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Enabled": true
+      }
+    },
+    "WarrantyIntelligenceAgentEventSourceMappingSQSWarrantyEnrichmentQueue": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": [
+        "IamRoleLambdaExecution"
+      ],
+      "Properties": {
+        "BatchSize": 10,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "WarrantyEnrichmentQueue",
+            "Arn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WarrantyIntelligenceAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Enabled": true
+      }
+    },
+    "ProductEnrichmentQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "claimso-agents-product-enrichment-test",
+        "VisibilityTimeout": 300,
+        "MessageRetentionPeriod": 1209600
+      }
+    },
+    "WarrantyEnrichmentQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "claimso-agents-warranty-enrichment-test",
+        "VisibilityTimeout": 300,
+        "MessageRetentionPeriod": 1209600
+      }
+    },
+    "AgentDataBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "claimso-agents-agent-data-test",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-ServerlessDeploymentBucketName"
+      }
+    },
+    "EmailMonitoringAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "EmailMonitoringAgentLambdaVersionuLa1yIGFVekLULGqZ2rAADYgAwW2aZCDnsxR040"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-EmailMonitoringAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "BrowserExtensionAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "BrowserExtensionAgentLambdaVersionoAD7eFRBkyarb3qLCDnToVZbo8syZ0xbI4O1dLOumbA"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-BrowserExtensionAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "MobileAppAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "MobileAppAgentLambdaVersionH1BE4JmAa569w8MWU9CZSyTTJYJFTjqsbFP8e4TOY"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-MobileAppAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "ProductIntelligenceAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ProductIntelligenceAgentLambdaVersionYqivUHXvbwe9keWBuRN6C5kUHLxxX0wHD2tUQy5igw"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-ProductIntelligenceAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "WarrantyIntelligenceAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WarrantyIntelligenceAgentLambdaVersionzkvGAfyFKQD0wIwSmSfbJcuXWFjXD8pqS5xcfcQ3v1M"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-WarrantyIntelligenceAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "WarrantyClaimAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WarrantyClaimAgentLambdaVersionh8RfkRPoa21eDlp8r3WCxmA9812tgD95RSz7ZW2DLmE"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-WarrantyClaimAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "CashExtractionAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "CashExtractionAgentLambdaVersionQPsFi6nC7F9t37mMZvdy7GchqhTr9x78YJKli4FEp8s"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-CashExtractionAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "RetailerAPIAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "RetailerAPIAgentLambdaVersiongM0XPc9yXGBBKDvsuenJEVfxy73v97OzC0JwSR3x0M"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-RetailerAPIAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "BankIntegrationAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "BankIntegrationAgentLambdaVersionC6qUj8kd5cZKWG9BJQGx8RYyJM9sn5xQ2RCEp4oVsBM"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-BankIntegrationAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "DuplicateDetectionAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "DuplicateDetectionAgentLambdaVersionsGCaKar5RaYIxvL8M6GYz0x90AHD9MwnqsFeAHDp8uU"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-DuplicateDetectionAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/test"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-test-ServiceEndpoint"
+      }
+    }
+  }
+}

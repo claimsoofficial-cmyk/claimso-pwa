@@ -12,11 +12,13 @@ import {
   Package,
   Shield,
   Link,
-  DollarSign
+  DollarSign,
+  Bot
 } from 'lucide-react';
 import type { Product, UserConnection } from '@/lib/types/common';
 import LivingCard from '@/components/domain/products/LivingCard';
 import EmptyState from '@/components/shared/EmptyState';
+import AgentDashboard from '@/components/shared/AgentDashboard';
 
 // ==============================================================================
 // MAIN COMPONENT
@@ -28,6 +30,7 @@ export default function DashboardPage() {
   const [displayName, setDisplayName] = useState('');
   const [userConnections, setUserConnections] = useState<UserConnection[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showAgentDashboard, setShowAgentDashboard] = useState(false);
 
   const supabase = createClient();
 
@@ -391,16 +394,36 @@ export default function DashboardPage() {
       {/* Header */}
       <Card>
         <CardHeader>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {displayName}! 👋
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Manage your products and track your warranties
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome back, {displayName}! 👋
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage your products and track your warranties
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowAgentDashboard(!showAgentDashboard)}
+                variant={showAgentDashboard ? "default" : "outline"}
+                className="flex items-center gap-2"
+              >
+                <Bot className="h-4 w-4" />
+                {showAgentDashboard ? 'Hide' : 'Monitor'} AI Agents
+              </Button>
+              <Button onClick={handleRefresh} variant="outline" size="icon">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
+
+      {/* AI Agent Dashboard */}
+      {showAgentDashboard && (
+        <AgentDashboard />
+      )}
 
 
 
