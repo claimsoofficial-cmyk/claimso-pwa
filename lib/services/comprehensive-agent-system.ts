@@ -124,7 +124,15 @@ export class ClaimsoAgentSystem {
 // ==============================================================================
 
 class MasterOrchestrator {
-  private supabase = createClient();
+  private supabase: any;
+
+  constructor() {
+    this.initializeSupabase();
+  }
+
+  private async initializeSupabase() {
+    this.supabase = await createClient();
+  }
 
   async startPurchaseMonitoring(userId: string): Promise<void> {
     // Start email monitoring
@@ -163,6 +171,10 @@ class MasterOrchestrator {
   }
 
   async createProductFromEvent(event: PurchaseEvent): Promise<Product> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const { data: product, error } = await this.supabase
       .from('products')
       .insert({
@@ -186,6 +198,10 @@ class MasterOrchestrator {
   }
 
   async enrichProductData(product: Product): Promise<Product> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     // Enrich with product intelligence
     const productAgent = new ProductIntelligenceAgent();
     const productData = await productAgent.enrichProduct(product);
@@ -281,6 +297,10 @@ class MasterOrchestrator {
   }
 
   async maximizeProductValue(productId: string): Promise<ValueOpportunity[]> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const { data: product } = await this.supabase
       .from('products')
       .select('*')
@@ -295,6 +315,10 @@ class MasterOrchestrator {
   }
 
   private async getUserProducts(userId: string): Promise<Product[]> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const { data: products } = await this.supabase
       .from('products')
       .select('*')
@@ -305,6 +329,10 @@ class MasterOrchestrator {
   }
 
   private async createAlert(alertData: Omit<AgentAlert, 'id' | 'createdAt' | 'read'>): Promise<void> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     await this.supabase
       .from('agent_alerts')
       .insert({
@@ -320,7 +348,15 @@ class MasterOrchestrator {
 // ==============================================================================
 
 abstract class BaseAgent {
-  protected supabase = createClient();
+  protected supabase: any;
+
+  constructor() {
+    this.initializeSupabase();
+  }
+
+  protected async initializeSupabase() {
+    this.supabase = await createClient();
+  }
 
   abstract startMonitoring(userId: string): Promise<void>;
   abstract identifyOpportunities(product: Product): Promise<ValueOpportunity[]>;
@@ -644,6 +680,10 @@ class UpgradeTimingAgent extends BaseAgent {
   }
 
   async generateAlerts(userId: string): Promise<AgentAlert[]> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const alerts: AgentAlert[] = [];
 
     // Check for upgrade opportunities
@@ -694,6 +734,10 @@ class ProblemDetectionAgent extends BaseAgent {
   }
 
   async generateAlerts(userId: string): Promise<AgentAlert[]> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const alerts: AgentAlert[] = [];
 
     // Check for known issues and recalls
@@ -738,6 +782,10 @@ class OpportunityAlertAgent extends BaseAgent {
   }
 
   async generateAlerts(userId: string): Promise<AgentAlert[]> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     const alerts: AgentAlert[] = [];
 
     // Check for market opportunities
