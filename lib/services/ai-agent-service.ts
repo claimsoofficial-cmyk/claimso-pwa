@@ -199,8 +199,7 @@ export class MasterOrchestrationAgent {
           data: null,
           confidence: 0,
           sources: [],
-          processingTime: 0,
-          error: `Agent not found for type: ${task.type}`
+          processingTime: 0
         };
       }
 
@@ -213,8 +212,7 @@ export class MasterOrchestrationAgent {
           data: null,
           confidence: 0,
           sources: [],
-          processingTime: 0,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          processingTime: 0
         };
       }
     });
@@ -300,8 +298,7 @@ class EmailIntelligenceAgent extends BaseAgent {
           data: null,
           confidence: 0,
           sources: [],
-          processingTime: Date.now() - startTime,
-          error: 'No relevant emails found'
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -324,8 +321,7 @@ class EmailIntelligenceAgent extends BaseAgent {
         data: null,
         confidence: 0,
         sources: [],
-        processingTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        processingTime: Date.now() - startTime
       };
     }
   }
