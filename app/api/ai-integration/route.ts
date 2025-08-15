@@ -56,11 +56,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
+            return NextResponse.json(
         { 
-          success: false, 
+          success: false,
           message: 'Invalid request format',
-          error: 'Request body must be valid JSON'
+          error: 'Request body must be valid JSON',
+          confidence: 0,
+          sources: [],
+          processingTime: 0
         } as AIIntegrationResponse,
         { status: 400 }
       );
@@ -72,7 +75,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { 
           success: false, 
           message: 'User input is required',
-          error: 'Please provide a description of your purchase or product'
+          error: 'Please provide a description of your purchase or product',
+          confidence: 0,
+          sources: [],
+          processingTime: 0
         } as AIIntegrationResponse,
         { status: 400 }
       );
@@ -102,6 +108,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           success: false, 
           message: 'AI processing failed',
           error: aiError instanceof Error ? aiError.message : 'Unknown AI error',
+          confidence: 0,
+          sources: [],
           processingTime: Date.now() - startTime
         } as AIIntegrationResponse,
         { status: 500 }
@@ -137,6 +145,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         success: false, 
         message: 'Integration failed',
         error: error instanceof Error ? error.message : 'Unknown error',
+        confidence: 0,
+        sources: [],
         processingTime
       } as AIIntegrationResponse,
       { status: 500 }
