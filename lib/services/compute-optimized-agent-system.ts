@@ -185,7 +185,7 @@ const AGENT_COMPUTE_PROFILES: AgentComputeProfile[] = [
 // ==============================================================================
 
 export class ComputeOptimizedAgentSystem {
-  private supabase = createClient();
+  private supabase: any;
   private scheduler: ComputeScheduler;
   private userPriorities: Map<string, number> = new Map();
   private agentQueues: Map<string, string[]> = new Map();
@@ -193,7 +193,12 @@ export class ComputeOptimizedAgentSystem {
 
   constructor() {
     this.scheduler = new IntelligentComputeScheduler();
+    this.initializeSupabase();
     this.initializeAgentQueues();
+  }
+
+  private async initializeSupabase() {
+    this.supabase = await createClient();
   }
 
   private initializeAgentQueues() {
@@ -275,6 +280,10 @@ export class ComputeOptimizedAgentSystem {
   }
 
   private async processWithLightAgents(event: any): Promise<Product> {
+    if (!this.supabase) {
+      await this.initializeSupabase();
+    }
+    
     // Process with lightweight agents only
     const lightAgents = ['email-monitoring', 'browser-extension', 'mobile-app'];
     
