@@ -24,6 +24,8 @@ export interface Product {
   purchase_location?: string | null;
   retailer_url?: string | null;
   affiliate_id?: string | null;
+  source?: string | null;
+  capture_method?: string | null;
   maintenance_records?: MaintenanceRecord[];
 }
 

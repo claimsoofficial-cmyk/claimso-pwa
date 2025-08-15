@@ -35,7 +35,8 @@ import {
   CreditCard,
   RefreshCw,
   MapPin,
-  Link
+  Link,
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -663,7 +664,7 @@ export default function LivingCard({ className = '', products: passedProducts }:
                             </p>
                           )}
                           {/* Purchase Source & Retailer Information */}
-                          {(product.purchase_location || product.retailer_url) && (
+                          {(product.purchase_location || product.retailer_url || product.source || product.capture_method) && (
                             <div className="mt-2 space-y-1">
                               {product.purchase_location && (
                                 <p className="text-sm text-gray-500 flex items-center gap-1">
@@ -683,6 +684,18 @@ export default function LivingCard({ className = '', products: passedProducts }:
                                   >
                                     View Retailer
                                   </a>
+                                </p>
+                              )}
+                              {product.source && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                  <Package className="w-3 h-3" />
+                                  Source: {product.source}
+                                </p>
+                              )}
+                              {product.capture_method && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                  <Upload className="w-3 h-3" />
+                                  Captured via: {product.capture_method.replace('_', ' ')}
                                 </p>
                               )}
                             </div>
