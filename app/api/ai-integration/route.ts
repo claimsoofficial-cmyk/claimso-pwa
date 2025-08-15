@@ -36,11 +36,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data: { session }, error: authError } = await supabase.auth.getSession();
 
     if (authError || !session) {
-      return NextResponse.json(
+            return NextResponse.json(
         { 
-          success: false, 
+          success: false,
           message: 'Authentication required',
-          error: 'Please log in to use AI integration'
+          error: 'Please log in to use AI integration',
+          confidence: 0,
+          sources: [],
+          processingTime: 0
         } as AIIntegrationResponse,
         { status: 401 }
       );
