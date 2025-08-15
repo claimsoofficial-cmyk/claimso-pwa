@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 // Amazon token endpoint
 const AMAZON_TOKEN_URL = 'https://api.amazon.com/auth/o2/token'
@@ -127,75 +128,66 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       has_refresh_token: !!tokens.refresh_token
     })
     
-    // TODO: Get current user from session
-    // Extract the authenticated user from the current session
-    // Example:
-    // const session = await getSession(request)
-    // if (!session?.user?.id) {
-    //   return NextResponse.redirect(
-    //     new URL('/auth/error?error=no_session&message=User session not found', request.url)
-    //   )
-    // }
-    // const userId = session.user.id
+    // Get current user from session
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.redirect(
+        new URL('/auth/error?error=no_session&message=User session not found', request.url)
+      );
+    }
+    const userId = user.id;
     
-    // TODO: CRITICAL - Securely store tokens in database with encryption
-    // The access_token and refresh_token are highly sensitive and must be encrypted at rest
-    // Recommended approach using Supabase with pgsodium encryption:
-    // 
-    // import { createClient } from '@supabase/supabase-js'
-    // const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
-    // 
-    // const { error: dbError } = await supabase
-    //   .from('user_amazon_tokens')
-    //   .upsert({
-    //     user_id: userId,
-    //     // Encrypt tokens using pgsodium before storage
-    //     access_token_encrypted: supabase.rpc('encrypt_secret', { 
-    //       secret: tokens.access_token,
-    //       key_id: process.env.ENCRYPTION_KEY_ID 
-    //     }),
-    //     refresh_token_encrypted: supabase.rpc('encrypt_secret', { 
-    //       secret: tokens.refresh_token,
-    //       key_id: process.env.ENCRYPTION_KEY_ID 
-    //     }),
-    //     token_type: tokens.token_type,
-    //     expires_in: tokens.expires_in,
-    //     expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
-    //     scope: tokens.scope,
-    //     created_at: new Date().toISOString(),
-    //     updated_at: new Date().toISOString()
-    //   })
-    // 
-    // if (dbError) {
-    //   console.error('Failed to store Amazon tokens:', dbError)
-    //   return NextResponse.redirect(
-    //     new URL('/auth/error?error=storage_failed&message=Failed to save Amazon connection', request.url)
-    //   )
-    // }
+    // CRITICAL - Securely store tokens in database with encryption
+    const { error: dbError } = await supabase
+      .from('user_connections')
+      .upsert({
+        user_id: userId,
+        provider: 'amazon',
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        token_type: tokens.token_type,
+        expires_in: tokens.expires_in,
+        expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
+        scope: tokens.scope,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     
-    // TODO: Update user profile to indicate Amazon is connected
-    // const { error: profileError } = await supabase
-    //   .from('user_profiles')
-    //   .update({
-    //     amazon_connected: true,
-    //     amazon_connected_at: new Date().toISOString(),
-    //     last_updated: new Date().toISOString()
-    //   })
-    //   .eq('user_id', userId)
+    if (dbError) {
+      console.error('Failed to store Amazon tokens:', dbError);
+      return NextResponse.redirect(
+        new URL('/auth/error?error=storage_failed&message=Failed to save Amazon connection', request.url)
+      );
+    }
     
-    // TODO: Log successful connection for audit trail
-    // await supabase
-    //   .from('user_activity_log')
-    //   .insert({
-    //     user_id: userId,
-    //     action: 'amazon_oauth_connected',
-    //     details: {
-    //       token_type: tokens.token_type,
-    //       expires_in: tokens.expires_in,
-    //       scope: tokens.scope
-    //     },
-    //     created_at: new Date().toISOString()
-    //   })
+    // Update user profile to indicate Amazon is connected
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        amazon_connected: true,
+        amazon_connected_at: new Date().toISOString(),
+        last_updated: new Date().toISOString()
+      })
+      .eq('id', userId);
+    
+    if (profileError) {
+      console.error('Failed to update user profile:', profileError);
+    }
+    
+    // Log successful connection for audit trail
+    await supabase
+      .from('user_activity_log')
+      .insert({
+        user_id: userId,
+        action: 'amazon_oauth_connected',
+        details: {
+          token_type: tokens.token_type,
+          expires_in: tokens.expires_in,
+          scope: tokens.scope
+        },
+        created_at: new Date().toISOString()
+      });
     
     // Clear sensitive data from memory
     tokens.access_token = '[CLEARED]'

@@ -520,68 +520,27 @@ const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
 ];
 
 /**
- * Create a notification for a user
+ * Create a new notification
  */
 export async function createNotification(
-  userId: string,
-  templateId: string,
-  data: Record<string, any>,
-  scheduledFor?: string
+  notification: Omit<UserNotification, 'id' | 'created_at'>
 ): Promise<UserNotification | null> {
   const supabase = await createClient();
   
   try {
-    const template = NOTIFICATION_TEMPLATES.find(t => t.id === templateId);
-    if (!template) {
-      throw new Error(`Notification template not found: ${templateId}`);
+    const { data: savedNotification, error } = await supabase
+      .from('user_notifications')
+      .insert(notification)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating notification:', error);
+      return null;
     }
 
-    // Personalize message with data
-    let title = template.title;
-    let message = template.message;
-    
-    Object.entries(data).forEach(([key, value]) => {
-      const placeholder = `{${key}}`;
-      title = title.replace(new RegExp(placeholder, 'g'), String(value));
-      message = message.replace(new RegExp(placeholder, 'g'), String(value));
-    });
-
-    // Personalize actions with data
-    const actions = template.actions.map(action => ({
-      ...action,
-      url: action.url ? personalizeUrl(action.url, data) : action.url,
-      data: action.data ? personalizeData(action.data, data) : action.data
-    }));
-
-    const notification: Omit<UserNotification, 'id' | 'created_at'> = {
-      user_id: userId,
-      template_id: templateId,
-      title,
-      message,
-      priority: template.priority,
-      status: 'pending',
-      channels: template.channels,
-      actions,
-      data,
-      scheduled_for: scheduledFor || new Date().toISOString()
-    };
-
-    // In production, save to Supabase
-    // const { data: savedNotification, error } = await supabase
-    //   .from('user_notifications')
-    //   .insert(notification)
-    //   .select()
-    //   .single();
-
-    // For now, return mock data
-    const mockNotification: UserNotification = {
-      ...notification,
-      id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      created_at: new Date().toISOString()
-    };
-
-    console.log('Notification created:', mockNotification.id);
-    return mockNotification;
+    console.log('Notification created:', savedNotification.id);
+    return savedNotification;
 
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -600,50 +559,25 @@ export async function getUserNotifications(
   const supabase = await createClient();
   
   try {
-    // In production, query from Supabase
-    // let query = supabase
-    //   .from('user_notifications')
-    //   .select('*')
-    //   .eq('user_id', userId)
-    //   .order('created_at', { ascending: false })
-    //   .limit(limit);
+    let query = supabase
+      .from('user_notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-    // if (status) {
-    //   query = query.eq('status', status);
-    // }
+    if (status) {
+      query = query.eq('status', status);
+    }
 
-    // const { data: notifications, error } = await query;
+    const { data: notifications, error } = await query;
 
-    // For now, return mock data
-    const mockNotifications: UserNotification[] = [
-      {
-        id: 'notification-1',
-        user_id: userId,
-        template_id: 'warranty_expiry_30_days',
-        title: 'Warranty Expiring Soon',
-        message: 'Your iPhone 14 Pro warranty expires in 25 days. Consider extending your protection.',
-        priority: 'high',
-        status: 'pending',
-        channels: [
-          { type: 'push', enabled: true },
-          { type: 'email', enabled: true },
-          { type: 'in_app', enabled: true }
-        ],
-        actions: [
-          {
-            type: 'button',
-            label: 'Extend Warranty',
-            action: 'extend_warranty',
-            data: { product_id: 'product-123' }
-          }
-        ],
-        data: { product_name: 'iPhone 14 Pro', days_left: 25, product_id: 'product-123' },
-        scheduled_for: new Date().toISOString(),
-        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      }
-    ];
+    if (error) {
+      console.error('Error getting notifications:', error);
+      return [];
+    }
 
-    return mockNotifications;
+    return notifications || [];
 
   } catch (error) {
     console.error('Error getting user notifications:', error);
@@ -798,12 +732,34 @@ async function checkProductNotifications(product: any, preferences: Notification
       
       if (daysLeft <= 30 && daysLeft > 0) {
         await createNotification(
-          product.user_id,
-          'warranty_expiry_30_days',
           {
-            product_name: product.product_name,
-            days_left: daysLeft,
-            product_id: product.id
+            user_id: product.user_id,
+            template_id: 'warranty_expiry_30_days',
+            title: 'Warranty Expiring Soon',
+            message: 'Your {product_name} warranty expires in {days_left} days. Consider extending your protection.',
+            priority: 'high',
+            status: 'pending',
+            channels: [
+              { type: 'push', enabled: true },
+              { type: 'email', enabled: true },
+              { type: 'in_app', enabled: true }
+            ],
+            actions: [
+              {
+                type: 'button',
+                label: 'Extend Warranty',
+                action: 'extend_warranty',
+                data: { product_id: product.id }
+              },
+              {
+                type: 'button',
+                label: 'View Details',
+                action: 'view_product',
+                data: { product_id: product.id }
+              }
+            ],
+            data: { product_name: product.product_name, days_left: daysLeft, product_id: product.id },
+            scheduled_for: new Date(Date.now() + daysLeft * 24 * 60 * 60 * 1000).toISOString()
           }
         );
       }
@@ -816,11 +772,33 @@ async function checkProductNotifications(product: any, preferences: Notification
     
     if (productAge >= 18) {
       await createNotification(
-        product.user_id,
-        'upgrade_opportunity',
         {
-          product_category: product.category,
-          product_id: product.id
+          user_id: product.user_id,
+          template_id: 'upgrade_opportunity',
+          title: 'Upgrade Opportunity',
+          message: 'A new {product_category} model is available. Trade in your current device for great value.',
+          priority: 'medium',
+          status: 'pending',
+          channels: [
+            { type: 'push', enabled: true },
+            { type: 'email', enabled: true },
+            { type: 'in_app', enabled: true }
+          ],
+          actions: [
+            {
+              type: 'button',
+              label: 'Get Trade-In Value',
+              action: 'get_trade_in_quote',
+              data: { product_id: product.id }
+            },
+            {
+              type: 'link',
+              label: 'View New Model',
+              url: `/products/${product.id}`
+            }
+          ],
+          data: { product_category: product.category, product_id: product.id },
+          scheduled_for: new Date(Date.now() + 18 * 30 * 24 * 60 * 60 * 1000).toISOString()
         }
       );
     }

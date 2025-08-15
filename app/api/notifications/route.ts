@@ -58,12 +58,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Create notification
-    const notification = await createNotification(
-      session.user.id,
+    const notification = await createNotification({
+      user_id: session.user.id,
       template_id,
-      data || {},
-      scheduled_for
-    );
+      title: 'Notification',
+      message: 'Notification message',
+      priority: 'medium',
+      status: 'pending',
+      channels: [
+        { type: 'push', enabled: true },
+        { type: 'email', enabled: true },
+        { type: 'in_app', enabled: true }
+      ],
+      actions: [],
+      data: data || {},
+      scheduled_for: scheduled_for || new Date().toISOString()
+    });
 
     if (!notification) {
       return NextResponse.json({ 

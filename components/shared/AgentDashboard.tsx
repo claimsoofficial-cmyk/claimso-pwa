@@ -20,11 +20,15 @@ import {
   ChevronUp,
   Settings,
   Play,
-  Pause
+  Pause,
+  Plus,
+  AlertTriangle
 } from 'lucide-react';
 import {
   getAgentStatus,
   getAgentMetrics,
+  triggerAgent,
+  getAgentCreatedProducts,
   formatAgentStatus,
   formatTimeDifference,
   isAgentDueForRun,
@@ -38,6 +42,9 @@ export default function AgentDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+  const [triggeringAgent, setTriggeringAgent] = useState<string | null>(null);
+  const [agentProducts, setAgentProducts] = useState<any[]>([]);
+  const [showAgentProducts, setShowAgentProducts] = useState(false);
 
   // ==============================================================================
   // DATA FETCHING
@@ -60,15 +67,51 @@ export default function AgentDashboard() {
     }
   };
 
+  const fetchAgentProducts = async () => {
+    try {
+      // Get current user ID (you'll need to implement this)
+      const userId = 'current-user-id'; // TODO: Get from auth context
+      const products = await getAgentCreatedProducts(userId, 5);
+      setAgentProducts(products);
+    } catch (error) {
+      console.error('Error fetching agent products:', error);
+    }
+  };
+
   useEffect(() => {
     fetchAgentData();
+    fetchAgentProducts();
     // Refresh every 30 seconds to show real-time agent activity
-    const interval = setInterval(fetchAgentData, 30000);
+    const interval = setInterval(() => {
+      fetchAgentData();
+      fetchAgentProducts();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const handleManualRefresh = () => {
     fetchAgentData();
+    fetchAgentProducts();
+  };
+
+  const handleTriggerAgent = async (agentName: string) => {
+    try {
+      setTriggeringAgent(agentName);
+      const result = await triggerAgent(agentName);
+      
+      if (result.success) {
+        // Refresh data after successful trigger
+        setTimeout(() => {
+          fetchAgentData();
+        }, 2000);
+      } else {
+        console.error('Failed to trigger agent:', result.message);
+      }
+    } catch (error) {
+      console.error('Error triggering agent:', error);
+    } finally {
+      setTriggeringAgent(null);
+    }
   };
 
   const toggleErrorExpansion = (agentName: string) => {
@@ -92,6 +135,7 @@ export default function AgentDashboard() {
     const isFailed = agent.status === 'failed';
     const hasErrors = agent.errors.length > 0;
     const isExpanded = expandedErrors.has(agent.agentName);
+    const isTriggering = triggeringAgent === agent.agentName;
     
     return (
       <Card key={agent.agentName} className="hover:shadow-md transition-shadow">
@@ -198,21 +242,71 @@ export default function AgentDashboard() {
                 <Button size="sm" variant="ghost" className="h-7 px-2">
                   <Settings className="h-3 w-3" />
                 </Button>
-                {isRunning ? (
-                  <Button size="sm" variant="ghost" className="h-7 px-2">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-7 px-2"
+                  onClick={() => handleTriggerAgent(agent.agentName)}
+                  disabled={isTriggering || isRunning}
+                >
+                  {isTriggering ? (
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  ) : isRunning ? (
                     <Pause className="h-3 w-3" />
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="ghost" className="h-7 px-2">
+                  ) : (
                     <Play className="h-3 w-3" />
-                  </Button>
-                )}
+                  )}
+                </Button>
               </div>
               <div className="text-xs text-muted-foreground">
-                Auto-scheduled
+                {isTriggering ? 'Triggering...' : 'Auto-scheduled'}
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderAgentProducts = () => {
+    if (!showAgentProducts) return null;
+
+    return (
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Plus className="h-5 w-5 text-purple-600" />
+            <span>Products Created by Agents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {agentProducts.length === 0 ? (
+            <div className="text-center py-4">
+              <AlertTriangle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No products have been created by agents yet.
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Agents will automatically create products when they detect purchases.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {agentProducts.map((product, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{product.product_name || 'Unknown Product'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {product.retailer} • ${product.purchase_price} • {product.source}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {product.source}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -317,6 +411,15 @@ export default function AgentDashboard() {
         </div>
         <div className="flex items-center space-x-3">
           <Button
+            onClick={() => setShowAgentProducts(!showAgentProducts)}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{showAgentProducts ? 'Hide' : 'Show'} Agent Products</span>
+          </Button>
+          <Button
             onClick={handleManualRefresh}
             variant="outline"
             size="sm"
@@ -328,13 +431,16 @@ export default function AgentDashboard() {
           </Button>
           <div className="flex items-center space-x-2">
             <Eye className="h-4 w-4 text-blue-600" />
-            <span className="text-sm text-muted-foreground">Read-only monitoring</span>
+            <span className="text-sm text-muted-foreground">Live monitoring</span>
           </div>
         </div>
       </div>
 
       {/* Metrics Card */}
       {renderMetricsCard()}
+
+      {/* Agent Products */}
+      {renderAgentProducts()}
 
       {/* Agent Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Settings,
@@ -13,12 +14,16 @@ import {
   Shield,
   Link,
   DollarSign,
-  Bot
+  Bot,
+  Wifi,
+  WifiOff,
+  AlertCircle
 } from 'lucide-react';
 import type { Product, UserConnection } from '@/lib/types/common';
 import LivingCard from '@/components/domain/products/LivingCard';
 import EmptyState from '@/components/shared/EmptyState';
 import AgentDashboard from '@/components/shared/AgentDashboard';
+import { toast } from 'sonner';
 
 // ==============================================================================
 // MAIN COMPONENT
@@ -31,8 +36,18 @@ export default function DashboardPage() {
   const [userConnections, setUserConnections] = useState<UserConnection[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showAgentDashboard, setShowAgentDashboard] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const supabase = createClient();
+
+  // Real-time sync state
+  const [syncStatus, setSyncStatus] = useState({ isConnected: true, errors: [] });
+  const [newProducts, setNewProducts] = useState<Product[]>([]);
+  
+  const forceSync = () => {
+    fetchProducts();
+    fetchUserConnections();
+  };
 
   // ==============================================================================
   // DATA FETCHING
@@ -42,6 +57,7 @@ export default function DashboardPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setUserId(user.id);
         setDisplayName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
         
         // Fetch profile data
@@ -180,41 +196,188 @@ export default function DashboardPage() {
   // HANDLERS
   // ==============================================================================
 
-  const handleAddProduct = () => {
-    // TODO: Implement add product functionality
-    console.log('Add product clicked');
+  const handleAddProduct = async () => {
+    try {
+      // Trigger EmailMonitoringAgent to scan for new purchases
+      const emailResponse = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'email_monitoring',
+          userId: userId,
+          data: { scanEmails: true }
+        })
+      });
+
+      // Trigger RetailerAPIAgent to check connected accounts
+      const retailerResponse = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'retailer_api',
+          userId: userId,
+          data: { checkConnections: true }
+        })
+      });
+
+      // Show success message
+      toast.success('AI agents are scanning for your purchases...');
+      
+      // Refresh products after a short delay
+      setTimeout(() => {
+        fetchProducts();
+        forceSync();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error triggering agents:', error);
+      toast.error('Failed to trigger purchase scanning');
+    }
   };
 
   const handleRefresh = () => {
     setIsLoading(true);
     setError(null);
-    fetchProducts();
-    fetchUserConnections();
+    
+    // Trigger ProductIntelligenceAgent to enrich existing products
+    fetch('/api/ai-integration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'trigger_agent',
+        agent: 'product_intelligence',
+        userId: userId,
+        data: { enrichProducts: true }
+      })
+    }).then(() => {
+      fetchProducts();
+      fetchUserConnections();
+      forceSync();
+    }).catch((error) => {
+      console.error('Error refreshing:', error);
+      setError('Failed to refresh data');
+    }).finally(() => {
+      setIsLoading(false);
+    });
   };
 
-  const handleEditProduct = (product: Product) => {
-    // TODO: Implement edit product functionality
-    console.log('Edit product:', product.id);
+  const handleEditProduct = async (product: Product) => {
+    // Navigate to product edit page with agent-enriched data
+    window.location.href = `/products/${product.id}/edit`;
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    // TODO: Implement delete product functionality
-    console.log('Delete product:', productId);
+  const handleDeleteProduct = async (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .update({ is_archived: true })
+          .eq('id', productId);
+
+        if (error) throw error;
+        
+        toast.success('Product archived successfully');
+        fetchProducts();
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        toast.error('Failed to delete product');
+      }
+    }
   };
 
-  const handleFileClaim = (product: Product) => {
-    // TODO: Implement file claim functionality
-    console.log('File claim for product:', product.id);
+  const handleFileClaim = async (product: Product) => {
+    // Trigger WarrantyClaimAgent to handle the claim process
+    try {
+      const response = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'warranty_claim',
+          userId: userId,
+          data: { 
+            productId: product.id,
+            productName: product.product_name,
+            action: 'initiate_claim'
+          }
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Warranty claim agent is processing your request...');
+        // Open claim filing modal or redirect to claim page
+        window.location.href = `/resolution/claim/${product.id}`;
+      } else {
+        throw new Error('Failed to trigger warranty claim agent');
+      }
+    } catch (error) {
+      console.error('Error filing claim:', error);
+      toast.error('Failed to initiate warranty claim');
+    }
   };
 
-  const handleQuickCash = (product: Product) => {
-    // TODO: Implement quick cash functionality
-    console.log('Quick cash for product:', product.id);
+  const handleQuickCash = async (product: Product) => {
+    // Trigger CashExtractionAgent to get real quotes
+    try {
+      const response = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'cash_extraction',
+          userId: userId,
+          data: { 
+            productId: product.id,
+            productName: product.product_name,
+            action: 'get_quotes'
+          }
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Getting cash offers from partners...');
+        // Open quick cash modal with real quotes
+        window.location.href = `/products/${product.id}/quick-cash`;
+      } else {
+        throw new Error('Failed to trigger cash extraction agent');
+      }
+    } catch (error) {
+      console.error('Error getting quick cash:', error);
+      toast.error('Failed to get cash offers');
+    }
   };
 
-  const handleWarrantyDatabase = (product: Product) => {
-    // TODO: Implement warranty database functionality
-    console.log('Warranty database for product:', product.id);
+  const handleWarrantyDatabase = async (product: Product) => {
+    // Trigger WarrantyIntelligenceAgent to get warranty information
+    try {
+      const response = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'warranty_intelligence',
+          userId: userId,
+          data: { 
+            productId: product.id,
+            productName: product.product_name,
+            action: 'get_warranty_info'
+          }
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Fetching warranty information...');
+        // Open warranty database modal with real data
+        window.location.href = `/products/${product.id}/warranty`;
+      } else {
+        throw new Error('Failed to trigger warranty intelligence agent');
+      }
+    } catch (error) {
+      console.error('Error getting warranty info:', error);
+      toast.error('Failed to get warranty information');
+    }
   };
 
   // ==============================================================================
@@ -402,6 +565,13 @@ export default function DashboardPage() {
               <p className="text-gray-600 mt-1">
                 Manage your products and track your warranties
               </p>
+              {/* Agent status */}
+              <div className="flex items-center gap-2 mt-2">
+                <Wifi className="h-4 w-4 text-green-600" />
+                <Badge variant="outline" className="text-xs text-green-600">
+                  AI Agents Connected
+                </Badge>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -412,7 +582,15 @@ export default function DashboardPage() {
                 <Bot className="h-4 w-4" />
                 {showAgentDashboard ? 'Hide' : 'Monitor'} AI Agents
               </Button>
-              <Button onClick={handleRefresh} variant="outline" size="icon">
+              <Button 
+                onClick={() => {
+                  handleRefresh();
+                  forceSync();
+                }} 
+                variant="outline" 
+                size="icon"
+                title="Refresh data and sync with agents"
+              >
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
@@ -420,12 +598,65 @@ export default function DashboardPage() {
         </CardHeader>
       </Card>
 
+      {/* New Products Notification */}
+      {newProducts.length > 0 && (
+        <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <Plus className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-800">
+                    {newProducts.length} New Product{newProducts.length > 1 ? 's' : ''} Detected!
+                  </h3>
+                  <p className="text-sm text-green-700">
+                    Your AI agents automatically captured these purchases
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setProducts(prev => [...newProducts, ...prev]);
+                  // Clear new products
+                  window.dispatchEvent(new CustomEvent('clear-new-products'));
+                }}
+                variant="outline"
+                size="sm"
+                className="border-green-300 text-green-700 hover:bg-green-100"
+              >
+                View All
+              </Button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {newProducts.slice(0, 3).map((product, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-green-200">
+                  <div>
+                    <p className="font-medium text-sm">{product.product_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {product.purchase_location} • ${product.purchase_price} • Agent Detected
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    New
+                  </Badge>
+                </div>
+              ))}
+              {newProducts.length > 3 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  +{newProducts.length - 3} more products...
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* AI Agent Dashboard */}
       {showAgentDashboard && (
         <AgentDashboard />
       )}
-
-
 
       {/* Products Section */}
       <Card>

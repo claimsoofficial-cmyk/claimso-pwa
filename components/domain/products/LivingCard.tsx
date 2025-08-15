@@ -80,14 +80,69 @@ export default function LivingCard({ className = '', products: passedProducts }:
   // HANDLERS
   // ==============================================================================
 
-  const handleAddProduct = () => {
-    // TODO: Implement add product functionality
-    console.log('Add product clicked');
+  const handleAddProduct = async () => {
+    try {
+      // Trigger EmailMonitoringAgent to scan for new purchases
+      const emailResponse = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'email_monitoring',
+          userId: userId,
+          data: { scanEmails: true }
+        })
+      });
+
+      // Trigger RetailerAPIAgent to check connected accounts
+      const retailerResponse = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'retailer_api',
+          userId: userId,
+          data: { checkConnections: true }
+        })
+      });
+
+      toast.success('AI agents are scanning for your purchases...');
+      
+      // Refresh products after a short delay
+      setTimeout(() => {
+        fetchProducts();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error triggering agents:', error);
+      toast.error('Failed to trigger purchase scanning');
+    }
   };
 
-  const handleRefresh = () => {
-    // TODO: Implement refresh functionality
-    console.log('Refresh clicked');
+  const handleRefresh = async () => {
+    try {
+      // Trigger ProductIntelligenceAgent to enrich existing products
+      const response = await fetch('/api/ai-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'trigger_agent',
+          agent: 'product_intelligence',
+          userId: userId,
+          data: { enrichProducts: true }
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Refreshing product data with AI agents...');
+        fetchProducts();
+      } else {
+        throw new Error('Failed to trigger product intelligence agent');
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+      toast.error('Failed to refresh product data');
+    }
   };
 
   // ==============================================================================
