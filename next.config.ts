@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   
   // Bundle optimization
   webpack: (config, { dev, isServer }) => {
+    // Exclude AWS agents from Next.js build
+    config.watchOptions = {
+      ignored: ['**/claimso-aws-agents/**']
+    };
+    
     // Optimize bundle size in production
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
