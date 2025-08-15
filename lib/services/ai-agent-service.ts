@@ -397,7 +397,6 @@ class ProductResearchAgent extends BaseAgent {
         confidence: 0,
         sources: [],
         processingTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -478,7 +477,6 @@ class WarrantyIntelligenceAgent extends BaseAgent {
         confidence: 0,
         sources: [],
         processingTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -551,7 +549,6 @@ class ValueAssessmentAgent extends BaseAgent {
         confidence: 0,
         sources: [],
         processingTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -618,7 +615,6 @@ class ReceiptScanningAgent extends BaseAgent {
         confidence: 0,
         sources: [],
         processingTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
