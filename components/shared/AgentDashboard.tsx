@@ -259,7 +259,7 @@ export default function AgentDashboard() {
             <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
               <p className="text-sm text-green-800">
                 <strong>💡 No manual work required!</strong> Your agents work 24/7 in the background. 
-                Just live your life - we'll handle the rest.
+                Just live your life - we&apos;ll handle the rest.
               </p>
             </div>
           </div>
