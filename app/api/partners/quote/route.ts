@@ -188,7 +188,6 @@ export async function POST(request: NextRequest) {
       quotes_generated: quotes.length,
       best_quote_amount: quotes[0]?.amount || 0,
       processing_time_ms: processingTime,
-      created_at: new Date().toISOString(),
     });
 
     const response: QuickCashResponse = {

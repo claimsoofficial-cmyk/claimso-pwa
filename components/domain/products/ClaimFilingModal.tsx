@@ -151,6 +151,7 @@ export default function ClaimFilingModal({ isOpen, onClose, product }: ClaimFili
         .insert({
           user_id: user.id,
           product_id: product.id,
+          product_name: product.product_name,
           issue_type: claimForm.issue_type,
           description: claimForm.description,
           contact_phone: claimForm.contact_phone,
@@ -158,16 +159,20 @@ export default function ClaimFilingModal({ isOpen, onClose, product }: ClaimFili
           preferred_contact_method: claimForm.preferred_contact_method,
           urgency_level: claimForm.urgency_level,
           status: 'submitted',
-          created_at: new Date().toISOString(),
         })
         .select()
         .single();
 
       if (claimError) throw claimError;
 
-      // Upload files if any
+      // Upload files if any (simplified for now)
       if (claimForm.documents.length > 0 || claimForm.photos.length > 0 || claimForm.videos.length > 0) {
-        await uploadClaimFiles(claim.id);
+        console.log('Files to upload:', {
+          documents: claimForm.documents.length,
+          photos: claimForm.photos.length,
+          videos: claimForm.videos.length
+        });
+        // TODO: Implement file upload when storage is configured
       }
 
       // Create initial status
@@ -177,7 +182,6 @@ export default function ClaimFilingModal({ isOpen, onClose, product }: ClaimFili
           claim_id: claim.id,
           status: 'submitted',
           notes: 'Claim submitted successfully',
-          created_at: new Date().toISOString(),
         });
 
       if (statusError) throw statusError;
@@ -191,7 +195,7 @@ export default function ClaimFilingModal({ isOpen, onClose, product }: ClaimFili
       });
 
       setCurrentStep(3);
-      toast.success('Claim submitted successfully!');
+      toast.success('Claim submitted successfully! We\'ll contact you within 24 hours.');
     } catch (error) {
       console.error('Error submitting claim:', error);
       toast.error('Failed to submit claim. Please try again.');

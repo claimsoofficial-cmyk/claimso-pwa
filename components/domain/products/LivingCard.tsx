@@ -33,7 +33,9 @@ import {
   Wrench,
   ShoppingCart,
   CreditCard,
-  RefreshCw
+  RefreshCw,
+  MapPin,
+  Link
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -176,30 +178,54 @@ export default function LivingCard({ className = '', products: passedProducts }:
     }
   };
 
-  const handleRebuy = (product: Product) => {
-    // Generate affiliate link based on product and retailer
-    const retailer = product.purchase_location?.toLowerCase() || 'amazon';
-    const productName = encodeURIComponent(product.product_name || '');
-    const affiliateId = product.affiliate_id || 'claimso-20';
-    
-    let affiliateUrl = '';
-    
-    switch (retailer) {
-      case 'amazon':
-        affiliateUrl = `https://www.amazon.com/s?k=${productName}&tag=${affiliateId}`;
-        break;
-      case 'best buy':
-        affiliateUrl = `https://www.bestbuy.com/site/searchpage.jsp?st=${productName}`;
-        break;
-      case 'walmart':
-        affiliateUrl = `https://www.walmart.com/search?q=${productName}`;
-        break;
-      default:
-        affiliateUrl = `https://www.amazon.com/s?k=${productName}&tag=${affiliateId}`;
+  const handleRebuy = async (product: Product) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to add items to cart');
+        return;
+      }
+
+      // Check if product already in cart
+      const { data: existingItem } = await supabase
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('user_id', user.id)
+        .eq('product_id', product.id)
+        .single();
+
+      if (existingItem) {
+        // Update quantity
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + 1 })
+          .eq('id', existingItem.id);
+
+        if (error) throw error;
+        toast.success(`${product.product_name} quantity updated in cart!`);
+      } else {
+        // Add new item
+        const { error } = await supabase
+          .from('cart_items')
+          .insert({
+            user_id: user.id,
+            product_id: product.id,
+            product_name: product.product_name,
+            brand: product.brand,
+            category: product.category,
+            purchase_price: product.purchase_price,
+            purchase_location: product.purchase_location,
+            retailer_url: product.retailer_url,
+            quantity: 1
+          });
+
+        if (error) throw error;
+        toast.success(`${product.product_name} added to cart!`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart');
     }
-    
-    window.open(affiliateUrl, '_blank');
-    toast.success('Opening retailer website...');
   };
 
   // ==============================================================================
@@ -635,6 +661,31 @@ export default function LivingCard({ className = '', products: passedProducts }:
                                 day: 'numeric' 
                               })}
                             </p>
+                          )}
+                          {/* Purchase Source & Retailer Information */}
+                          {(product.purchase_location || product.retailer_url) && (
+                            <div className="mt-2 space-y-1">
+                              {product.purchase_location && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {product.purchase_location}
+                                </p>
+                              )}
+                              {product.retailer_url && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                  <Link className="w-3 h-3" />
+                                  <a 
+                                    href={product.retailer_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    View Retailer
+                                  </a>
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
                         

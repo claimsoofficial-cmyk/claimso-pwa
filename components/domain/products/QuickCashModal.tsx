@@ -73,11 +73,11 @@ export default function QuickCashModal({ isOpen, onClose, product }: QuickCashMo
         body: JSON.stringify({
           product_id: product.id,
           product_name: product.product_name,
-          category: product.category,
-          brand: product.brand,
+          category: product.category || 'Unknown',
+          brand: product.brand || 'Unknown',
           condition: product.condition || 'used',
-          purchase_price: product.purchase_price,
-          purchase_date: product.purchase_date,
+          purchase_price: product.purchase_price || 0,
+          purchase_date: product.purchase_date || new Date().toISOString(),
         }),
       });
 
@@ -136,7 +136,7 @@ export default function QuickCashModal({ isOpen, onClose, product }: QuickCashMo
                     {product.product_name}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {product.brand} • {product.category}
+                    {product.brand || 'Unknown Brand'} • {product.category || 'Uncategorized'}
                   </p>
                 </div>
                 <div className="text-right">
