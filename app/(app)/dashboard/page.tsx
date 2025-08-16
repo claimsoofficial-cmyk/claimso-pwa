@@ -29,6 +29,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import AgentDashboard from '@/components/shared/AgentDashboard';
 import QuickCashModal from '@/components/domain/products/QuickCashModal';
 import WarrantyDatabaseModal from '@/components/domain/products/WarrantyDatabaseModal';
+import RetailerConnect from '@/components/shared/RetailerConnect';
 import { toast } from 'sonner';
 
 // ==============================================================================
@@ -51,6 +52,7 @@ export default function DashboardPage() {
   
   // Insights state
   const [showInsights, setShowInsights] = useState(false);
+  const [showRetailerConnect, setShowRetailerConnect] = useState(false);
 
   const supabase = createClient();
 
@@ -607,6 +609,14 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-3">
               <Button
+                onClick={() => setShowRetailerConnect(!showRetailerConnect)}
+                variant={showRetailerConnect ? "default" : "outline"}
+                className="flex items-center gap-2"
+              >
+                <Link className="h-4 w-4" />
+                {showRetailerConnect ? 'Hide' : 'Connect'} Retailers
+              </Button>
+              <Button
                 onClick={() => setShowInsights(!showInsights)}
                 variant={showInsights ? "default" : "outline"}
                 className="flex items-center gap-2"
@@ -696,6 +706,21 @@ export default function DashboardPage() {
       {/* AI Agent Dashboard */}
       {showAgentDashboard && (
         <AgentDashboard />
+      )}
+
+      {/* Retailer Connect Section */}
+      {showRetailerConnect && (
+        <Card>
+          <CardContent className="pt-6">
+            <RetailerConnect 
+              connectedRetailers={userConnections.map(conn => conn.provider)}
+              onConnect={(retailerId) => {
+                toast.success(`Connected to ${retailerId}!`);
+                fetchUserConnections();
+              }}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Insights Section */}
