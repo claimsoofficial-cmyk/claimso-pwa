@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FixedSizeList as List } from 'react-window';
-import { ProductCard } from './ProductCard';
+import ProductCard from './ProductCard';
 import { Product } from '@/lib/types/common';
 import { useInView } from 'react-intersection-observer';
 
