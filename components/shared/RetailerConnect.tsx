@@ -279,9 +279,19 @@ export default function RetailerConnect({ onConnect, connectedRetailers = [] }: 
   };
 
   const connectAmazon = async () => {
-    // Redirect to Amazon OAuth
-    const amazonAuthUrl = `https://www.amazon.com/ap/oa?client_id=${process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID}&scope=read_orders&response_type=code&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_AMAZON_REDIRECT_URI || 'https://claimso-pwa.vercel.app/api/auth/amazon/auth')}`;
+    const clientId = process.env.NEXT_PUBLIC_AMAZON_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_AMAZON_REDIRECT_URI || 'https://claimso-pwa.vercel.app/api/auth/amazon/auth';
     
+    if (!clientId) {
+      toast.error('Amazon Client ID not configured. Please check environment variables.');
+      console.error('Amazon Client ID is undefined:', { clientId, redirectUri });
+      return;
+    }
+    
+    // Redirect to Amazon OAuth
+    const amazonAuthUrl = `https://www.amazon.com/ap/oa?client_id=${clientId}&scope=read_orders&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    
+    console.log('Redirecting to Amazon OAuth:', amazonAuthUrl);
     window.location.href = amazonAuthUrl;
   };
 
