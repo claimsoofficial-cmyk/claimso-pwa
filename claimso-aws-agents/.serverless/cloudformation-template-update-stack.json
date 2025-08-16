@@ -137,6 +137,12 @@
         "LogGroupName": "/aws/lambda/claimso-agents-dev-duplicateDetectionAgent"
       }
     },
+    "CalendarAgentLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-calendarAgent"
+      }
+    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -261,7 +267,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/email-monitoring-agent.handler",
         "Runtime": "nodejs18.x",
@@ -300,7 +306,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/browser-extension-agent.handler",
         "Runtime": "nodejs18.x",
@@ -339,7 +345,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/mobile-app-agent.handler",
         "Runtime": "nodejs18.x",
@@ -378,7 +384,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/product-intelligence-agent.handler",
         "Runtime": "nodejs18.x",
@@ -417,7 +423,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/warranty-intelligence-agent.handler",
         "Runtime": "nodejs18.x",
@@ -456,7 +462,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/warranty-claim-agent.handler",
         "Runtime": "nodejs18.x",
@@ -495,7 +501,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/cash-extraction-agent.handler",
         "Runtime": "nodejs18.x",
@@ -534,7 +540,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/master-orchestrator.handler",
         "Runtime": "nodejs18.x",
@@ -575,7 +581,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/retailer-api-agent.handler",
         "Runtime": "nodejs18.x",
@@ -614,7 +620,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/bank-integration-agent.handler",
         "Runtime": "nodejs18.x",
@@ -653,7 +659,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/duplicate-detection-agent.handler",
         "Runtime": "nodejs18.x",
@@ -685,114 +691,163 @@
         "DuplicateDetectionAgentLogGroup"
       ]
     },
-    "EmailMonitoringAgentLambdaVersionwb7XtL1KVHFoQP9TR0Ks4gsYRuygqkL4QQSCpEFQ8UY": {
+    "CalendarAgentLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/dev/1755359180024-2025-08-16T15:46:20.024Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/calendar-agent.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-dev-calendarAgent",
+        "MemorySize": 512,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "CalendarAgentLogGroup"
+      ]
+    },
+    "EmailMonitoringAgentLambdaVersion5T3Ee6ULxeZClrK1fOab28emisoRVRMIp5VXmSpr1k": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "EmailMonitoringAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "BrowserExtensionAgentLambdaVersionkmWkIQP8e5iwK3sZCwqvlbKwhs1W8XYVDtUZr6ck2pc": {
+    "BrowserExtensionAgentLambdaVersion1ymnT156EsPCiuadrC54C0M8kFJZ8AvburP650EYA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "BrowserExtensionAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "MobileAppAgentLambdaVersionInBx3HJ00STSruzgu0ps8ane3wk9PiPI9cyomsP4g": {
+    "MobileAppAgentLambdaVersionFtzUglideYJFzAv3fzUnlKVSkrwrNZetulWE0VsGDo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MobileAppAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "ProductIntelligenceAgentLambdaVersionrdsKsznM2PERKyoHbos9uiQJE9DbQ5BNhv9M3cnOQ": {
+    "ProductIntelligenceAgentLambdaVersiondrYrg7wdjtOOQYiyblnaI9QHGPwje1jeubjuZYVYQ": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ProductIntelligenceAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "WarrantyIntelligenceAgentLambdaVersionGTJL3lP0My0YKXHs4BnIjdrAskRAmGVehORIdXL4uY": {
+    "WarrantyIntelligenceAgentLambdaVersionGbGtaR6ZGtHnwcWksF78bVVGldeWBAdjJtnFTUUBo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WarrantyIntelligenceAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "WarrantyClaimAgentLambdaVersionOGuwHpRcwyzwM3m3pFHXtz6ph9hHTNtWEIgjrI5Uc": {
+    "WarrantyClaimAgentLambdaVersionennmpzZ8omsH89l30QB2TSqLn5BYy3KUB4Pzw7i7dNg": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WarrantyClaimAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "CashExtractionAgentLambdaVersion63XeqlhjIswhQrYlatKIQPYpgzaPTCXT1RdwqsN4Z5A": {
+    "CashExtractionAgentLambdaVersionhdQm47kVLWQ01q87Ah40NdWjujz8RwXWIEsoEHM0ZY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CashExtractionAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "MasterOrchestratorLambdaVersioncrCP86N9g2yBBiTG6gCyrpy7n9fPOZaKXl6qfOLAr6c": {
+    "MasterOrchestratorLambdaVersionIv9mZXAgWS8RHNDZoeTzWh9FEayl4wwbkjcIl4gjN0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MasterOrchestratorLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "RetailerAPIAgentLambdaVersionDATFG0ib4l5WJbiofPUF4LYydrgkrcYPzsnaT8cU": {
+    "RetailerAPIAgentLambdaVersionQvOjt50XTwqq3CW8MyUUBNPNyfaGjqhfrhdo2lLrY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "RetailerAPIAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "BankIntegrationAgentLambdaVersionhO3ZUmOhe2RTkWHPUCeeXJNyeRYy0Y9CYAJvnqENvw": {
+    "BankIntegrationAgentLambdaVersionAr4CcTvPyVvQ9A9wF1afttzkfCTa9DKI6OCJ9L5BRv8": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "BankIntegrationAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
-    "DuplicateDetectionAgentLambdaVersionMBi6LR2uTSPtxO9A4YtEn79eSVMmYqUR8EzWXXw": {
+    "DuplicateDetectionAgentLambdaVersionC2kxwckrJ9wxXqjRKJYJGnIXGbTReaZwmGvdB7Q2wwE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DuplicateDetectionAgentLambdaFunction"
         },
-        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
+      }
+    },
+    "CalendarAgentLambdaVersionmJ9F1jnhOwWf3Da5I62l6Lzm6BRRJEDSxcOjYYzvFw": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "CalendarAgentLambdaFunction"
+        },
+        "CodeSha256": "aTQeUbtk/5t76D+pZW0kgWya3fsEmMD4iT5brOh7DiI="
       }
     },
     "EmailMonitoringAgentEventsRuleSchedule1": {
@@ -1017,6 +1072,43 @@
         }
       }
     },
+    "CalendarAgentEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(1 day)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "CalendarAgentLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "calendarAgentSchedule"
+          }
+        ]
+      }
+    },
+    "CalendarAgentLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CalendarAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CalendarAgentEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
@@ -1201,6 +1293,21 @@
           ]
         },
         "PathPart": "duplicate-detection",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceCalendar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "calendar",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -1740,6 +1847,51 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceDuplicateDashdetection"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodCalendarOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceCalendar"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -2298,7 +2450,53 @@
         "DuplicateDetectionAgentLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1755345600710": {
+    "ApiGatewayMethodCalendarPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceCalendar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "CalendarAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "CalendarAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1755359171276": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -2319,6 +2517,7 @@
         "ApiGatewayMethodRetailerDashapiOptions",
         "ApiGatewayMethodBankDashintegrationOptions",
         "ApiGatewayMethodDuplicateDashdetectionOptions",
+        "ApiGatewayMethodCalendarOptions",
         "ApiGatewayMethodEmailDashmonitoringPost",
         "ApiGatewayMethodBrowserDashextensionPost",
         "ApiGatewayMethodMobileDashappPost",
@@ -2330,7 +2529,8 @@
         "ApiGatewayMethodOrchestratorHealthGet",
         "ApiGatewayMethodRetailerDashapiPost",
         "ApiGatewayMethodBankDashintegrationPost",
-        "ApiGatewayMethodDuplicateDashdetectionPost"
+        "ApiGatewayMethodDuplicateDashdetectionPost",
+        "ApiGatewayMethodCalendarPost"
       ]
     },
     "EmailMonitoringAgentLambdaPermissionApiGateway": {
@@ -2740,6 +2940,43 @@
         }
       }
     },
+    "CalendarAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CalendarAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
     "ProductIntelligenceAgentEventSourceMappingSQSProductEnrichmentQueue": {
       "Type": "AWS::Lambda::EventSourceMapping",
       "DependsOn": [
@@ -2825,7 +3062,7 @@
     "EmailMonitoringAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "EmailMonitoringAgentLambdaVersionwb7XtL1KVHFoQP9TR0Ks4gsYRuygqkL4QQSCpEFQ8UY"
+        "Ref": "EmailMonitoringAgentLambdaVersion5T3Ee6ULxeZClrK1fOab28emisoRVRMIp5VXmSpr1k"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-EmailMonitoringAgentLambdaFunctionQualifiedArn"
@@ -2834,7 +3071,7 @@
     "BrowserExtensionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "BrowserExtensionAgentLambdaVersionkmWkIQP8e5iwK3sZCwqvlbKwhs1W8XYVDtUZr6ck2pc"
+        "Ref": "BrowserExtensionAgentLambdaVersion1ymnT156EsPCiuadrC54C0M8kFJZ8AvburP650EYA"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-BrowserExtensionAgentLambdaFunctionQualifiedArn"
@@ -2843,7 +3080,7 @@
     "MobileAppAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MobileAppAgentLambdaVersionInBx3HJ00STSruzgu0ps8ane3wk9PiPI9cyomsP4g"
+        "Ref": "MobileAppAgentLambdaVersionFtzUglideYJFzAv3fzUnlKVSkrwrNZetulWE0VsGDo"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-MobileAppAgentLambdaFunctionQualifiedArn"
@@ -2852,7 +3089,7 @@
     "ProductIntelligenceAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ProductIntelligenceAgentLambdaVersionrdsKsznM2PERKyoHbos9uiQJE9DbQ5BNhv9M3cnOQ"
+        "Ref": "ProductIntelligenceAgentLambdaVersiondrYrg7wdjtOOQYiyblnaI9QHGPwje1jeubjuZYVYQ"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-ProductIntelligenceAgentLambdaFunctionQualifiedArn"
@@ -2861,7 +3098,7 @@
     "WarrantyIntelligenceAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WarrantyIntelligenceAgentLambdaVersionGTJL3lP0My0YKXHs4BnIjdrAskRAmGVehORIdXL4uY"
+        "Ref": "WarrantyIntelligenceAgentLambdaVersionGbGtaR6ZGtHnwcWksF78bVVGldeWBAdjJtnFTUUBo"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-WarrantyIntelligenceAgentLambdaFunctionQualifiedArn"
@@ -2870,7 +3107,7 @@
     "WarrantyClaimAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WarrantyClaimAgentLambdaVersionOGuwHpRcwyzwM3m3pFHXtz6ph9hHTNtWEIgjrI5Uc"
+        "Ref": "WarrantyClaimAgentLambdaVersionennmpzZ8omsH89l30QB2TSqLn5BYy3KUB4Pzw7i7dNg"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-WarrantyClaimAgentLambdaFunctionQualifiedArn"
@@ -2879,7 +3116,7 @@
     "CashExtractionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CashExtractionAgentLambdaVersion63XeqlhjIswhQrYlatKIQPYpgzaPTCXT1RdwqsN4Z5A"
+        "Ref": "CashExtractionAgentLambdaVersionhdQm47kVLWQ01q87Ah40NdWjujz8RwXWIEsoEHM0ZY"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-CashExtractionAgentLambdaFunctionQualifiedArn"
@@ -2888,7 +3125,7 @@
     "MasterOrchestratorLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MasterOrchestratorLambdaVersioncrCP86N9g2yBBiTG6gCyrpy7n9fPOZaKXl6qfOLAr6c"
+        "Ref": "MasterOrchestratorLambdaVersionIv9mZXAgWS8RHNDZoeTzWh9FEayl4wwbkjcIl4gjN0"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-MasterOrchestratorLambdaFunctionQualifiedArn"
@@ -2897,7 +3134,7 @@
     "RetailerAPIAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "RetailerAPIAgentLambdaVersionDATFG0ib4l5WJbiofPUF4LYydrgkrcYPzsnaT8cU"
+        "Ref": "RetailerAPIAgentLambdaVersionQvOjt50XTwqq3CW8MyUUBNPNyfaGjqhfrhdo2lLrY"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-RetailerAPIAgentLambdaFunctionQualifiedArn"
@@ -2906,7 +3143,7 @@
     "BankIntegrationAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "BankIntegrationAgentLambdaVersionhO3ZUmOhe2RTkWHPUCeeXJNyeRYy0Y9CYAJvnqENvw"
+        "Ref": "BankIntegrationAgentLambdaVersionAr4CcTvPyVvQ9A9wF1afttzkfCTa9DKI6OCJ9L5BRv8"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-BankIntegrationAgentLambdaFunctionQualifiedArn"
@@ -2915,10 +3152,19 @@
     "DuplicateDetectionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DuplicateDetectionAgentLambdaVersionMBi6LR2uTSPtxO9A4YtEn79eSVMmYqUR8EzWXXw"
+        "Ref": "DuplicateDetectionAgentLambdaVersionC2kxwckrJ9wxXqjRKJYJGnIXGbTReaZwmGvdB7Q2wwE"
       },
       "Export": {
         "Name": "sls-claimso-agents-dev-DuplicateDetectionAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "CalendarAgentLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "CalendarAgentLambdaVersionmJ9F1jnhOwWf3Da5I62l6Lzm6BRRJEDSxcOjYYzvFw"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-dev-CalendarAgentLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {

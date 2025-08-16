@@ -51,7 +51,7 @@ function getAgentPermissions(agentType: AgentType): string[] {
 }
 
 // Create secure Supabase client for agents
-async function createSecureAgentClient(agentType: AgentType, userId?: string) {
+export async function createSecureAgentClient(agentType: AgentType, userId?: string) {
   const token = await generateAgentToken(agentType, userId);
   
   return createClient(

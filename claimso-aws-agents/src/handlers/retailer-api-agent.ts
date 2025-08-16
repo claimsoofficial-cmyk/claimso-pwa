@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { getActiveUsers, createProduct, type AgentType } from '../shared/database';
 import { PurchaseEvent, generateOrderNumber, logAgentActivity } from '../shared/utils';
+import { AmazonAPIClient, mapAmazonOrderToRetailerOrder } from './amazon-api-client';
 
 const AGENT_TYPE: AgentType = 'retailer-api';
 
@@ -224,20 +225,36 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 };
 
 async function getUserRetailerConnections(userId: string): Promise<RetailerConnection[]> {
-  // TODO: Implement database query to get user's retailer connections
-  // For now, return mock data
-  return [
-    {
-      userId,
-      retailer: 'amazon',
-      region: 'US',
-      accessToken: 'mock_access_token',
-      refreshToken: 'mock_refresh_token',
-      expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      lastSync: new Date().toISOString(),
-      isActive: true
+  try {
+    // Get real connections from database
+    const supabase = await import('../shared/database').then(m => m.createSecureAgentClient(AGENT_TYPE, userId));
+    
+    const { data: connections, error } = await supabase
+      .from('user_connections')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error fetching user connections:', error);
+      return [];
     }
-  ];
+
+    return connections?.map((conn: any) => ({
+      userId: conn.user_id,
+      retailer: conn.provider,
+      region: conn.region || 'US',
+      accessToken: conn.access_token,
+      refreshToken: conn.refresh_token,
+      expiresAt: conn.expires_at,
+      lastSync: conn.last_sync || new Date().toISOString(),
+      isActive: conn.is_active
+    })) || [];
+    
+  } catch (error) {
+    console.error('Error in getUserRetailerConnections:', error);
+    return [];
+  }
 }
 
 async function syncRetailerOrders(userId: string, connection: RetailerConnection): Promise<number> {
@@ -334,35 +351,81 @@ async function syncRetailerOrders(userId: string, connection: RetailerConnection
 }
 
 async function refreshRetailerToken(connection: RetailerConnection): Promise<void> {
-  // TODO: Implement OAuth2 token refresh for each retailer
-  // This will vary by retailer - some use standard OAuth2, others have custom flows
-  
-  const config = RETAILER_CONFIGS[connection.retailer as keyof typeof RETAILER_CONFIGS];
-  if (!config) {
-    throw new Error(`Unknown retailer: ${connection.retailer}`);
+  try {
+    if (connection.retailer === 'amazon') {
+      await refreshAmazonToken(connection);
+    } else {
+      // For other retailers, use mock refresh for now
+      const config = RETAILER_CONFIGS[connection.retailer as keyof typeof RETAILER_CONFIGS];
+      if (!config) {
+        throw new Error(`Unknown retailer: ${connection.retailer}`);
+      }
+
+      logAgentActivity('RetailerAPIAgent', 'Refreshing retailer token (mock)', {
+        retailer: connection.retailer,
+        userId: connection.userId
+      });
+
+      // Mock implementation for other retailers
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      connection.accessToken = 'new_mock_access_token';
+      connection.expiresAt = new Date(Date.now() + 3600000).toISOString();
+    }
+  } catch (error) {
+    console.error(`Error refreshing token for ${connection.retailer}:`, error);
+    throw error;
   }
+}
 
-  // Mock implementation - in reality, this would make API calls to refresh tokens
-  logAgentActivity('RetailerAPIAgent', 'Refreshing retailer token', {
-    retailer: connection.retailer,
-    userId: connection.userId
-  });
-
-  // Update connection with new token
-  connection.accessToken = 'new_mock_access_token';
-  connection.expiresAt = new Date(Date.now() + 3600000).toISOString();
+async function refreshAmazonToken(connection: RetailerConnection): Promise<void> {
+  try {
+    const amazonClient = new AmazonAPIClient(connection.accessToken, connection.region);
+    
+    const newTokens = await amazonClient.refreshToken(connection.refreshToken);
+    
+    // Update connection with new tokens
+    connection.accessToken = newTokens.accessToken;
+    connection.refreshToken = newTokens.refreshToken;
+    connection.expiresAt = new Date(Date.now() + (newTokens.expiresIn * 1000)).toISOString();
+    
+    // Update tokens in database
+    const supabase = await import('../shared/database').then(m => m.createSecureAgentClient(AGENT_TYPE, connection.userId));
+    
+    await supabase
+      .from('user_connections')
+      .update({
+        access_token: newTokens.accessToken,
+        refresh_token: newTokens.refreshToken,
+        expires_at: connection.expiresAt,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', connection.userId)
+      .eq('provider', 'amazon');
+      
+    logAgentActivity('RetailerAPIAgent', 'Amazon token refreshed successfully', {
+      retailer: 'amazon',
+      userId: connection.userId
+    });
+      
+  } catch (error) {
+    console.error('Error refreshing Amazon token:', error);
+    throw error;
+  }
 }
 
 async function fetchRetailerOrders(connection: RetailerConnection): Promise<RetailerOrder[]> {
-  // TODO: Implement actual API calls to each retailer
-  // This will vary significantly by retailer - each has different APIs
-  
   const config = RETAILER_CONFIGS[connection.retailer as keyof typeof RETAILER_CONFIGS];
   if (!config) {
     throw new Error(`Unknown retailer: ${connection.retailer}`);
   }
 
-  // Mock implementation - simulate API response
+  // Handle Amazon specifically with real API
+  if (connection.retailer === 'amazon') {
+    return await fetchAmazonOrders(connection);
+  }
+
+  // For other retailers, use mock data for now
+  // TODO: Implement real APIs for other retailers
   return [
     {
       orderId: `ORDER-${Date.now()}`,
@@ -384,6 +447,75 @@ async function fetchRetailerOrders(connection: RetailerConnection): Promise<Reta
       ]
     }
   ];
+}
+
+async function fetchAmazonOrders(connection: RetailerConnection): Promise<RetailerOrder[]> {
+  try {
+    const amazonClient = new AmazonAPIClient(connection.accessToken, connection.region);
+    
+    // Get orders from last 30 days
+    const createdAfter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    const orders = await amazonClient.getOrders({
+      marketplaceIds: ['ATVPDKIKX0DER'], // US marketplace
+      createdAfter,
+      maxResults: 50
+    });
+
+    const retailerOrders: RetailerOrder[] = [];
+
+    // Process each order
+    for (const order of orders) {
+      try {
+        // Get order items for this order
+        const items = await amazonClient.getOrderItems(order.AmazonOrderId);
+        
+        // Map to our RetailerOrder format
+        const retailerOrder = mapAmazonOrderToRetailerOrder(order, items);
+        retailerOrders.push(retailerOrder);
+        
+        // Rate limiting - don't overwhelm Amazon API
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        console.error(`Error fetching items for order ${order.AmazonOrderId}:`, error);
+        // Continue with other orders
+      }
+    }
+
+    return retailerOrders;
+    
+  } catch (error) {
+    console.error('Error fetching Amazon orders:', error);
+    
+    // If real API fails, fall back to mock data for development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Falling back to mock Amazon data for development');
+      return [
+        {
+          orderId: `MOCK-AMAZON-${Date.now()}`,
+          orderDate: new Date().toISOString(),
+          totalAmount: 299.99,
+          currency: 'USD',
+          status: 'delivered',
+          items: [
+            {
+              productId: 'B08N5WRWNW',
+              productName: 'Sony WH-1000XM4 Wireless Headphones',
+              brand: 'Sony',
+              model: 'WH-1000XM4',
+              category: 'Electronics',
+              price: 299.99,
+              quantity: 1,
+              serialNumber: 'SN123456789'
+            }
+          ]
+        }
+      ];
+    }
+    
+    throw error;
+  }
 }
 
 async function checkOrderExists(userId: string, orderId: string): Promise<boolean> {
