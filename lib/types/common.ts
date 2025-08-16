@@ -59,10 +59,17 @@ export interface Document {
 }
 
 export interface UserConnection {
-  retailer: string;
+  id?: string;
+  user_id: string;
+  provider: string; // OAuth provider (amazon, apple, etc.)
+  retailer?: string; // Legacy field, use provider instead
   status: string;
   last_synced_at?: string;
-  user_id: string;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AnalyticsData {

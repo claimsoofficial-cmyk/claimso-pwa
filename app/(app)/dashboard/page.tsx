@@ -189,13 +189,24 @@ export default function DashboardPage() {
 
       const { data: connectionsData, error: connError } = await supabase
         .from('user_connections')
-        .select('retailer, status, last_synced_at, user_id')
+        .select('id, user_id, provider, retailer, status, last_synced_at, created_at, updated_at')
         .eq('user_id', user.id);
       
       if (connError) {
         console.error('Error fetching connections:', connError);
       } else {
-        setUserConnections(connectionsData || []);
+        // Map the data to match our UserConnection type
+        const mappedConnections = (connectionsData || []).map(conn => ({
+          id: conn.id,
+          user_id: conn.user_id,
+          provider: conn.provider || conn.retailer, // Use provider if available, fallback to retailer
+          retailer: conn.retailer,
+          status: conn.status,
+          last_synced_at: conn.last_synced_at,
+          created_at: conn.created_at,
+          updated_at: conn.updated_at
+        }));
+        setUserConnections(mappedConnections);
       }
     } catch (error) {
       console.error('Error fetching connections:', error);
