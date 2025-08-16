@@ -95,15 +95,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle different types of requests
+  // Skip RSC (React Server Components) requests - let them go through normally
+  if (url.searchParams.has('_rsc')) {
+    return;
+  }
+
+  // Skip auth-related requests completely
+  if (url.pathname.startsWith('/auth/') || 
+      url.pathname.includes('callback') || 
+      url.pathname.includes('error')) {
+    return;
+  }
+
+  // Skip API requests during development or when they might fail
   if (url.pathname.startsWith('/api/')) {
-    // API requests - cache with network-first strategy
-    event.respondWith(handleApiRequest(request));
-  } else if (url.pathname.startsWith('/_next/') || url.pathname.includes('.')) {
+    return;
+  }
+
+  // Handle different types of requests
+  if (url.pathname.startsWith('/_next/') || url.pathname.includes('.')) {
     // Static assets - cache-first strategy
     event.respondWith(handleStaticRequest(request));
   } else {
-    // Page requests - network-first strategy
+    // Page requests - network-first strategy (but only for existing pages)
     event.respondWith(handlePageRequest(request));
   }
 });
@@ -182,16 +196,23 @@ async function handleStaticRequest(request) {
 async function handlePageRequest(request) {
   const url = new URL(request.url);
   
-  // Don't intercept auth-related pages or API routes
-  if (url.pathname.startsWith('/auth/') || 
-      url.pathname.includes('callback') || 
-      url.pathname.includes('error') ||
-      url.pathname.startsWith('/api/')) {
-    return fetch(request);
-  }
+  // List of known existing pages
+  const existingPages = [
+    '/',
+    '/dashboard',
+    '/products',
+    '/cart',
+    '/settings/account',
+    '/settings/notifications',
+    '/admin/data-dashboard',
+    '/share/product'
+  ];
 
-  // Don't intercept the root page during auth flow
-  if (url.pathname === '/' && url.searchParams.has('auth_required')) {
+  // Check if this is a known page
+  const isKnownPage = existingPages.some(page => url.pathname.startsWith(page));
+  
+  // If it's not a known page, let it fail normally (don't intercept)
+  if (!isKnownPage) {
     return fetch(request);
   }
 
@@ -215,12 +236,12 @@ async function handlePageRequest(request) {
     return cachedResponse;
   }
 
-  // Only return offline page for non-auth pages and when we're sure we're offline
-  if (!url.pathname.startsWith('/auth/') && !navigator.onLine) {
+  // Only return offline page for known pages when offline
+  if (!navigator.onLine) {
     return caches.match('/offline.html');
   }
   
-  // For auth pages or when online, let the request fail normally
+  // Let the request fail normally
   throw new Error('Network request failed');
 }
 
