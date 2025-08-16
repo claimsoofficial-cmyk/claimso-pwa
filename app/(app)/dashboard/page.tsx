@@ -20,9 +20,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import type { Product, UserConnection } from '@/lib/types/common';
-import LivingCard from '@/components/domain/products/LivingCard';
+import ProductGrid from '@/components/products/ProductGrid';
+import ViewToggle from '@/components/products/ViewToggle';
 import EmptyState from '@/components/shared/EmptyState';
 import AgentDashboard from '@/components/shared/AgentDashboard';
+import QuickCashModal from '@/components/domain/products/QuickCashModal';
+import WarrantyDatabaseModal from '@/components/domain/products/WarrantyDatabaseModal';
 import { toast } from 'sonner';
 
 // ==============================================================================
@@ -37,6 +40,11 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAgentDashboard, setShowAgentDashboard] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Modal states
+  const [quickCashModalOpen, setQuickCashModalOpen] = useState(false);
+  const [warrantyModalOpen, setWarrantyModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const supabase = createClient();
 
@@ -263,120 +271,47 @@ export default function DashboardPage() {
     });
   };
 
-  const handleEditProduct = async (product: Product) => {
-    // Navigate to product edit page with agent-enriched data
-    window.location.href = `/products/${product.id}/edit`;
-  };
+  const handleProductAction = async (productId: string, action: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      try {
-        const { error } = await supabase
-          .from('products')
-          .update({ is_archived: true })
-          .eq('id', productId);
+    switch (action) {
+      case 'view':
+        window.location.href = `/products/${productId}`;
+        break;
+      case 'edit':
+        window.location.href = `/products/${productId}/edit`;
+        break;
+      case 'delete':
+        if (confirm('Are you sure you want to delete this product?')) {
+          try {
+            const { error } = await supabase
+              .from('products')
+              .update({ is_archived: true })
+              .eq('id', productId);
 
-        if (error) throw error;
-        
-        toast.success('Product archived successfully');
-        fetchProducts();
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        toast.error('Failed to delete product');
-      }
-    }
-  };
-
-  const handleFileClaim = async (product: Product) => {
-    // Trigger WarrantyClaimAgent to handle the claim process
-    try {
-      const response = await fetch('/api/ai-integration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'trigger_agent',
-          agent: 'warranty_claim',
-          userId: userId,
-          data: { 
-            productId: product.id,
-            productName: product.product_name,
-            action: 'initiate_claim'
+            if (error) throw error;
+            
+            toast.success('Product archived successfully');
+            fetchProducts();
+          } catch (error) {
+            console.error('Error deleting product:', error);
+            toast.error('Failed to delete product');
           }
-        })
-      });
-
-      if (response.ok) {
-        toast.success('Warranty claim agent is processing your request...');
-        // Open claim filing modal or redirect to claim page
-        window.location.href = `/resolution/claim/${product.id}`;
-      } else {
-        throw new Error('Failed to trigger warranty claim agent');
-      }
-    } catch (error) {
-      console.error('Error filing claim:', error);
-      toast.error('Failed to initiate warranty claim');
-    }
-  };
-
-  const handleQuickCash = async (product: Product) => {
-    // Trigger CashExtractionAgent to get real quotes
-    try {
-      const response = await fetch('/api/ai-integration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'trigger_agent',
-          agent: 'cash_extraction',
-          userId: userId,
-          data: { 
-            productId: product.id,
-            productName: product.product_name,
-            action: 'get_quotes'
-          }
-        })
-      });
-
-      if (response.ok) {
-        toast.success('Getting cash offers from partners...');
-        // Open quick cash modal with real quotes
-        window.location.href = `/products/${product.id}/quick-cash`;
-      } else {
-        throw new Error('Failed to trigger cash extraction agent');
-      }
-    } catch (error) {
-      console.error('Error getting quick cash:', error);
-      toast.error('Failed to get cash offers');
-    }
-  };
-
-  const handleWarrantyDatabase = async (product: Product) => {
-    // Trigger WarrantyIntelligenceAgent to get warranty information
-    try {
-      const response = await fetch('/api/ai-integration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'trigger_agent',
-          agent: 'warranty_intelligence',
-          userId: userId,
-          data: { 
-            productId: product.id,
-            productName: product.product_name,
-            action: 'get_warranty_info'
-          }
-        })
-      });
-
-      if (response.ok) {
-        toast.success('Fetching warranty information...');
-        // Open warranty database modal with real data
-        window.location.href = `/products/${product.id}/warranty`;
-      } else {
-        throw new Error('Failed to trigger warranty intelligence agent');
-      }
-    } catch (error) {
-      console.error('Error getting warranty info:', error);
-      toast.error('Failed to get warranty information');
+        }
+        break;
+      case 'quick_cash':
+        // Open Quick Cash modal
+        setSelectedProduct(product);
+        setQuickCashModalOpen(true);
+        break;
+      case 'warranty':
+        // Open Warranty Database modal
+        setSelectedProduct(product);
+        setWarrantyModalOpen(true);
+        break;
+      default:
+        console.warn('Unknown action:', action);
     }
   };
 
@@ -660,7 +595,18 @@ export default function DashboardPage() {
 
       {/* Products Section */}
       <Card>
-                <CardContent className="p-0">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {products.length} product{products.length !== 1 ? 's' : ''} in your vault
+              </p>
+            </div>
+            <ViewToggle />
+          </div>
+        </CardHeader>
+        <CardContent>
           {products.length === 0 ? (
             <EmptyState
               type="products"
@@ -670,10 +616,33 @@ export default function DashboardPage() {
               }}
             />
           ) : (
-            <LivingCard products={products} />
+            <ProductGrid 
+              products={products} 
+              onActionClick={handleProductAction}
+              isLoading={isLoading}
+            />
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <QuickCashModal
+        isOpen={quickCashModalOpen}
+        onClose={() => {
+          setQuickCashModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct}
+      />
+
+      <WarrantyDatabaseModal
+        isOpen={warrantyModalOpen}
+        onClose={() => {
+          setWarrantyModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { updateProduct, getActiveUsers } from '../shared/database';
+import { SQSEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { getActiveUsers, getProductsByUserId, updateProduct, type AgentType } from '../shared/database';
 import { logAgentActivity } from '../shared/utils';
+
+const AGENT_TYPE: AgentType = 'product-intelligence';
 
 export const handler = async (event: SQSEvent): Promise<void> => {
   const agentName = 'ProductIntelligenceAgent';
@@ -36,7 +38,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
   }
 };
 
-async function processProductEnrichment(record: SQSRecord): Promise<void> {
+async function processProductEnrichment(record: any): Promise<void> {
   const agentName = 'ProductIntelligenceAgent';
   
   try {
@@ -60,7 +62,7 @@ async function processProductEnrichment(record: SQSRecord): Promise<void> {
     }
 
     // Update product with enriched data
-    const updateSuccess = await updateProduct(productId, {
+    const updateSuccess = await updateProduct(AGENT_TYPE, productId, {
       description: enrichedData.description,
       warranty_info: enrichedData.warrantyInfo,
       market_value: enrichedData.currentMarketValue,

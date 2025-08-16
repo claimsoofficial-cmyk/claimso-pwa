@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getActiveUsers, createProduct, getProductsByUserId } from '../shared/database';
+import { getActiveUsers, getProductsByUserId, updateProduct, type AgentType } from '../shared/database';
 import { PurchaseEvent, generateOrderNumber, logAgentActivity } from '../shared/utils';
+
+const AGENT_TYPE: AgentType = 'duplicate-detection';
 
 interface DuplicateCheckResult {
   isDuplicate: boolean;
@@ -30,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     logAgentActivity(agentName, 'Starting duplicate detection scan', {});
 
     // Get all active users
-    const users = await getActiveUsers();
+    const users = await getActiveUsers(AGENT_TYPE);
     
     if (!users || users.length === 0) {
       logAgentActivity(agentName, 'No active users found', {});
@@ -61,7 +63,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
 
         // Get user's existing products
-        const existingProducts = await getProductsByUserId(user.id);
+        const existingProducts = await getProductsByUserId(AGENT_TYPE, user.id);
         
         if (!existingProducts || existingProducts.length === 0) {
           logAgentActivity(agentName, 'No existing products found for user', {
@@ -138,7 +140,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 export async function checkForDuplicate(purchaseEvent: PurchaseEvent): Promise<DuplicateCheckResult> {
   try {
     // Get user's existing products
-    const existingProducts = await getProductsByUserId(purchaseEvent.userId);
+    const existingProducts = await getProductsByUserId(AGENT_TYPE, purchaseEvent.userId);
     
     if (!existingProducts || existingProducts.length === 0) {
       return {

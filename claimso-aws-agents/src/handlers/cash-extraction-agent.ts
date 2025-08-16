@@ -1,82 +1,117 @@
-import { ScheduledEvent } from 'aws-lambda';
-import { supabase } from '../shared/database';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { getActiveUsers, getProductsByUserId, updateProduct, type AgentType } from '../shared/database';
 import { logAgentActivity } from '../shared/utils';
 
-export const handler = async (event: ScheduledEvent): Promise<void> => {
+const AGENT_TYPE: AgentType = 'cash-extraction';
+
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const agentName = 'CashExtractionAgent';
   
   try {
     logAgentActivity(agentName, 'Starting daily cash extraction scan', { 
       timestamp: new Date().toISOString(),
-      eventSource: event.source
+      eventSource: event.requestContext?.stage || 'unknown'
     });
 
-    // Get all products that are not groceries/consumables
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('*')
-      .not('category', 'eq', 'Groceries')
-      .not('category', 'eq', 'Consumables')
-      .not('is_archived', 'eq', true);
-
-    if (error) {
-      logAgentActivity(agentName, 'Error fetching products', { error: error.message });
-      return;
+    // Get all active users first
+    const activeUsers = await getActiveUsers(AGENT_TYPE);
+    
+    if (!activeUsers || activeUsers.length === 0) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'No active users found' })
+      };
     }
-
-    logAgentActivity(agentName, 'Found products to analyze for selling opportunities', { count: products?.length || 0 });
 
     let totalOpportunities = 0;
     let totalHighValueOpportunities = 0;
 
-    for (const product of products || []) {
+    // Process each user's products
+    for (const user of activeUsers) {
       try {
-        const opportunities = await analyzeSellingOpportunities(product);
+        const products = await getProductsByUserId(AGENT_TYPE, user.id);
         
-        if (opportunities.length > 0) {
-          totalOpportunities += opportunities.length;
-          
-          // Count high-value opportunities (potential profit > $100)
-          const highValueCount = opportunities.filter(opp => opp.potentialProfit > 100).length;
-          totalHighValueOpportunities += highValueCount;
-          
-          // Create selling opportunities in database
-          for (const opportunity of opportunities) {
-            await createSellingOpportunity(product.user_id, product.id, opportunity);
+        // Filter out groceries and consumables
+        const eligibleProducts = products.filter(product => 
+          product.category !== 'Groceries' && 
+          product.category !== 'Consumables' && 
+          !product.is_archived
+        );
+
+        logAgentActivity(agentName, 'Found eligible products for cash extraction', { 
+          userId: user.id, 
+          totalProducts: products.length,
+          eligibleProducts: eligibleProducts.length
+        });
+
+        for (const product of eligibleProducts) {
+          try {
+            const opportunities = await analyzeCashExtractionOpportunities(product);
+            
+            if (opportunities.length > 0) {
+              totalOpportunities += opportunities.length;
+              
+              // Count high-value opportunities (>$100 potential)
+              const highValueOpportunities = opportunities.filter(opp => opp.potentialValue > 100);
+              totalHighValueOpportunities += highValueOpportunities.length;
+              
+              // Create cash extraction opportunities in database
+              for (const opportunity of opportunities) {
+                await createCashExtractionOpportunity(product.user_id, product.id, opportunity);
+              }
+
+              logAgentActivity(agentName, 'Found cash extraction opportunities', {
+                productId: product.id,
+                productName: product.product_name,
+                opportunitiesCount: opportunities.length,
+                highValueCount: highValueOpportunities.length
+              });
+            }
+
+          } catch (error) {
+            logAgentActivity(agentName, 'Error analyzing product for cash extraction', {
+              productId: product.id,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            });
           }
-
-          logAgentActivity(agentName, 'Found selling opportunities', {
-            productId: product.id,
-            productName: product.product_name,
-            opportunitiesCount: opportunities.length,
-            highValueCount
-          });
         }
-
       } catch (error) {
-        logAgentActivity(agentName, 'Error analyzing product for selling', {
-          productId: product.id,
+        logAgentActivity(agentName, 'Error processing user products for cash extraction', {
+          userId: user.id,
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     }
 
     logAgentActivity(agentName, 'Completed cash extraction scan', {
-      productsAnalyzed: products?.length || 0,
+      usersProcessed: activeUsers.length,
       totalOpportunities,
       totalHighValueOpportunities
     });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ 
+        message: 'Cash extraction scan completed', 
+        usersProcessed: activeUsers.length,
+        totalOpportunities, 
+        totalHighValueOpportunities 
+      })
+    };
 
   } catch (error) {
     logAgentActivity(agentName, 'Fatal error in cash extraction agent', {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Fatal error in cash extraction agent', error: error instanceof Error ? error.message : 'Unknown error' })
+    };
   }
 };
 
-async function analyzeSellingOpportunities(product: any): Promise<any[]> {
+async function analyzeCashExtractionOpportunities(product: any): Promise<any[]> {
   const agentName = 'CashExtractionAgent';
   const opportunities: any[] = [];
 
@@ -311,10 +346,10 @@ function getRecommendedPlatforms(category: string): string[] {
   return platformMap[category] || ['eBay', 'Facebook Marketplace', 'Craigslist'];
 }
 
-async function createSellingOpportunity(userId: string, productId: string, opportunity: any): Promise<boolean> {
+async function createCashExtractionOpportunity(userId: string, productId: string, opportunity: any): Promise<boolean> {
   try {
     // In a real implementation, this would create a record in a selling_opportunities table
-    logAgentActivity('CashExtractionAgent', 'Created selling opportunity', {
+    logAgentActivity('CashExtractionAgent', 'Created cash extraction opportunity', {
       userId,
       productId,
       opportunityType: opportunity.type,
@@ -327,7 +362,7 @@ async function createSellingOpportunity(userId: string, productId: string, oppor
     
     return true;
   } catch (error) {
-    logAgentActivity('CashExtractionAgent', 'Error creating selling opportunity', {
+    logAgentActivity('CashExtractionAgent', 'Error creating cash extraction opportunity', {
       userId,
       productId,
       error: error instanceof Error ? error.message : 'Unknown error'

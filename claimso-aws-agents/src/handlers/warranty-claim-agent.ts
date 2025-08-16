@@ -1,75 +1,98 @@
-import { ScheduledEvent } from 'aws-lambda';
-import { supabase } from '../shared/database';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { getActiveUsers, getProductsByUserId, updateProduct, type AgentType } from '../shared/database';
 import { logAgentActivity } from '../shared/utils';
 
-export const handler = async (event: ScheduledEvent): Promise<void> => {
+const AGENT_TYPE: AgentType = 'warranty-claim';
+
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const agentName = 'WarrantyClaimAgent';
   
   try {
     logAgentActivity(agentName, 'Starting daily warranty claim scan', { 
       timestamp: new Date().toISOString(),
-      eventSource: event.source
+      eventSource: event.requestContext?.stage || 'unknown'
     });
 
-    // Get all products with active warranties
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('*')
-      .not('warranty_length_months', 'eq', 0)
-      .not('is_archived', 'eq', true);
-
-    if (error) {
-      logAgentActivity(agentName, 'Error fetching products', { error: error.message });
-      return;
+    // Get all active users first
+    const activeUsers = await getActiveUsers(AGENT_TYPE);
+    
+    if (!activeUsers || activeUsers.length === 0) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'No active users found' })
+      };
     }
-
-    logAgentActivity(agentName, 'Found products to analyze', { count: products?.length || 0 });
 
     let totalOpportunities = 0;
     let totalClaimsIdentified = 0;
 
-    for (const product of products || []) {
+    // Process each user's products
+    for (const user of activeUsers) {
       try {
-        const opportunities = await analyzeWarrantyOpportunities(product);
+        const products = await getProductsByUserId(AGENT_TYPE, user.id);
         
-        if (opportunities.length > 0) {
-          totalOpportunities += opportunities.length;
-          
-          // Create warranty claim opportunities in database
-          for (const opportunity of opportunities) {
-            const success = await createWarrantyOpportunity(product.user_id, product.id, opportunity);
-            if (success) {
-              totalClaimsIdentified++;
+        logAgentActivity(agentName, 'Found products to analyze', { 
+          userId: user.id, 
+          count: products?.length || 0 
+        });
+
+        for (const product of products || []) {
+          try {
+            const opportunities = await analyzeWarrantyOpportunities(product);
+            
+            if (opportunities.length > 0) {
+              totalOpportunities += opportunities.length;
+              
+              // Create warranty claim opportunities in database
+              for (const opportunity of opportunities) {
+                const success = await createWarrantyOpportunity(product.user_id, product.id, opportunity);
+                if (success) {
+                  totalClaimsIdentified++;
+                }
+              }
+
+              logAgentActivity(agentName, 'Found warranty opportunities', {
+                productId: product.id,
+                productName: product.product_name,
+                opportunitiesCount: opportunities.length
+              });
             }
+
+          } catch (error) {
+            logAgentActivity(agentName, 'Error analyzing product', {
+              productId: product.id,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            });
           }
-
-          logAgentActivity(agentName, 'Found warranty opportunities', {
-            productId: product.id,
-            productName: product.product_name,
-            opportunitiesCount: opportunities.length
-          });
         }
-
       } catch (error) {
-        logAgentActivity(agentName, 'Error analyzing product', {
-          productId: product.id,
+        logAgentActivity(agentName, 'Error processing user products', {
+          userId: user.id,
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     }
 
     logAgentActivity(agentName, 'Completed warranty claim scan', {
-      productsAnalyzed: products?.length || 0,
+      usersProcessed: activeUsers.length,
       totalOpportunities,
       totalClaimsIdentified
     });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Warranty claim scan completed' })
+    };
 
   } catch (error) {
     logAgentActivity(agentName, 'Fatal error in warranty claim agent', {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal server error' })
+    };
   }
 };
 

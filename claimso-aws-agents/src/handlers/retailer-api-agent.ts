@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getActiveUsers, createProduct } from '../shared/database';
+import { getActiveUsers, createProduct, type AgentType } from '../shared/database';
 import { PurchaseEvent, generateOrderNumber, logAgentActivity } from '../shared/utils';
+
+const AGENT_TYPE: AgentType = 'retailer-api';
 
 // Global retailer configurations
 const RETAILER_CONFIGS = {
@@ -108,7 +110,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     logAgentActivity(agentName, 'Starting retailer API sync', {});
 
     // Get all active users
-    const users = await getActiveUsers();
+    const users = await getActiveUsers(AGENT_TYPE);
     
     if (!users || users.length === 0) {
       logAgentActivity(agentName, 'No active users found', {});
@@ -426,7 +428,7 @@ async function createProductFromPurchaseEvent(purchaseEvent: PurchaseEvent): Pro
       source: purchaseEvent.source
     };
 
-    return await createProduct(product);
+    return await createProduct(AGENT_TYPE, product, purchaseEvent.userId);
   } catch (error) {
     console.error('Error creating product from purchase event:', error);
     return null;

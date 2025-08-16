@@ -1,0 +1,367 @@
+{
+  "passed": 58,
+  "failed": 2,
+  "total": 60,
+  "details": [
+    {
+      "name": "Agent authentication system exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.167Z"
+    },
+    {
+      "name": "RLS policies SQL file exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.175Z"
+    },
+    {
+      "name": "Secure database service exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.175Z"
+    },
+    {
+      "name": "RLS policy application script exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.176Z"
+    },
+    {
+      "name": "Security usage examples exist",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.176Z"
+    },
+    {
+      "name": "Security fix documentation exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.177Z"
+    },
+    {
+      "name": "Agent auth contains token functions",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.177Z"
+    },
+    {
+      "name": "RLS policies contain required functions",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.178Z"
+    },
+    {
+      "name": "Secure database service contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.179Z"
+    },
+    {
+      "name": "Orchestration types exist",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.179Z"
+    },
+    {
+      "name": "Master orchestrator Lambda exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Intent recognizer exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Workflow engine exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Agent coordinator exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Event processor exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Orchestrator usage examples exist",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Orchestrator documentation exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.180Z"
+    },
+    {
+      "name": "Orchestration types contain main interfaces",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.181Z"
+    },
+    {
+      "name": "Master orchestrator contains main functions",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.181Z"
+    },
+    {
+      "name": "Intent recognizer contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.182Z"
+    },
+    {
+      "name": "Workflow engine contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.182Z"
+    },
+    {
+      "name": "Agent coordinator contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.183Z"
+    },
+    {
+      "name": "Event processor contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.184Z"
+    },
+    {
+      "name": "Serverless config includes orchestrator",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.185Z"
+    },
+    {
+      "name": "Virtualized product list exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.187Z"
+    },
+    {
+      "name": "Product cache hook exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.188Z"
+    },
+    {
+      "name": "Lazy loading utilities exist",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.188Z"
+    },
+    {
+      "name": "Service worker exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.188Z"
+    },
+    {
+      "name": "Performance monitor exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.188Z"
+    },
+    {
+      "name": "Virtualized list contains main component",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.189Z"
+    },
+    {
+      "name": "Product cache contains React Query hooks",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.190Z"
+    },
+    {
+      "name": "Lazy loading contains main utilities",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.191Z"
+    },
+    {
+      "name": "Service worker contains main functionality",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.192Z"
+    },
+    {
+      "name": "Performance monitor contains main class",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.192Z"
+    },
+    {
+      "name": "react-window package installed",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.193Z"
+    },
+    {
+      "name": "react-intersection-observer package installed",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.194Z"
+    },
+    {
+      "name": "@tanstack/react-query package installed",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Testing checklist exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Implementation plan exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Project reality document exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Security fix summary exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Master orchestrator summary exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.195Z"
+    },
+    {
+      "name": "Testing checklist contains all phases",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.196Z"
+    },
+    {
+      "name": "Implementation plan shows completed phases",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.196Z"
+    },
+    {
+      "name": "Project reality contains status sections",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.199Z"
+    },
+    {
+      "name": "Components directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Lib directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "AWS agents directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Examples directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Scripts directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Products components directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Shared components directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "UI components directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Hooks directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Supabase directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Services directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Agent handlers directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Agent shared directory exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2025-08-16T11:08:39.200Z"
+    },
+    {
+      "name": "Project builds successfully",
+      "passed": false,
+      "details": "Build failed: Command failed: npm run build\n<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)\n\nFailed to compile.\n\n./app/(app)/admin/data-dashboard/page.tsx\n22:11  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n23:15  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n30:9  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n31:13  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n36:12  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n44:9  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n55:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n61:6  Warning: React Hook useEffect has a missing dependency: 'fetchUserProducts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n188:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/(app)/cart/page.tsx\n8:10  Warning: 'Badge' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n9:10  Warning: 'Input' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n10:10  Warning: 'Label' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n47:6  Warning: React Hook useEffect has a missing dependency: 'fetchCartItems'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./app/(app)/dashboard/page.tsx\n11:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Package' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n14:3  Warning: 'Shield' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:3  Warning: 'Link' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'DollarSign' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n19:3  Warning: 'WifiOff' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n45:10  Warning: 'syncStatus' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n45:22  Warning: 'setSyncStatus' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n46:23  Warning: 'setNewProducts' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n173:9  Warning: 'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n203:13  Warning: 'emailResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n215:13  Warning: 'retailerResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/(app)/products/[id]/edit/page.tsx\n40:6  Warning: React Hook useEffect has a missing dependency: 'fetchProduct'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n231:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/(app)/settings/account/page.tsx\n12:3  Warning: 'Mail' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Phone' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n52:6  Warning: React Hook useEffect has a missing dependency: 'fetchProfile'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./app/(app)/settings/notifications/page.tsx\n82:6  Warning: React Hook useEffect has a missing dependency: 'loadPreferences'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n133:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/api/ai-integration/route.ts\n54:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/api/warranty/analyze/route.ts\n23:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n130:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n131:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n132:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n133:17  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n134:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n142:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n142:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n147:57  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n218:37  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n218:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n218:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n227:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n227:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n228:9  Warning: 'brand' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n238:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n238:64  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:79  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:71  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n256:80  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:94  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n314:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n314:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n325:10  Warning: 'generateMockWarrantyAnalysis' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/api/warranty-database/stats/route.ts\n5:27  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/api/webhooks/email-inbound/route.ts\n151:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n257:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n284:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/products/ClaimFilingModal.tsx\n21:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n24:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n60:10  Warning: 'isLoading' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n60:21  Warning: 'setIsLoading' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n82:6  Warning: React Hook useEffect has a missing dependency: 'loadUserProfile'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n207:9  Warning: 'uploadClaimFiles' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n328:101  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/products/LivingCard.tsx\n4:8  Warning: 'Image' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Trash2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n23:3  Warning: 'XCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n24:3  Warning: 'ChevronRight' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n25:3  Warning: 'Filter' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n30:3  Warning: 'Download' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n31:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n44:8  Warning: 'RetailerConnect' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n68:10  Warning: 'selectedProduct' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n89:13  Warning: 'emailResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n101:13  Warning: 'retailerResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n358:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n358:32  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n513:6  Warning: React Hook useEffect has a missing dependency: 'handleSort'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/MaintenanceModal.tsx\n16:3  Warning: 'DialogTrigger' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n30:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n78:6  Warning: React Hook useEffect has missing dependencies: 'fetchMaintenanceRecords' and 'fetchServiceProviders'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/QuickCashModal.tsx\n55:10  Warning: 'selectedQuote' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n61:6  Warning: React Hook useEffect has a missing dependency: 'fetchQuickCashQuotes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/RetailerConnect.tsx\n5:29  Warning: 'CardHeader' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n5:41  Warning: 'CardTitle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n65:43  Warning: 'onProductsImported' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n68:30  Warning: 'setConnectedRetailers' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n70:9  Warning: 'handleAmazonConnect' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/domain/products/WarrantyDatabaseModal.tsx\n8:10  Warning: 'Input' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Clock' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'FileText' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n25:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n95:10  Warning: 'searchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n95:23  Warning: 'setSearchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n97:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n103:6  Warning: React Hook useEffect has a missing dependency: 'fetchWarrantyInfo'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n141:11  Warning: 'isLaptop' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n365:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/resolution/ResolutionFlow.tsx\n16:3  Warning: 'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n18:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Zap' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n23:3  Warning: 'ExternalLink' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n28:10  Warning: 'Textarea' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n52:10  Warning: 'selectedOption' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/domain/resolution/ResolutionManager.tsx\n164:9  Warning: 'createLivingCardProduct' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n240:9  Warning: 'handleProblemClick' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n246:9  Warning: 'handleEditClick' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/Header.tsx\n9:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n11:3  Warning: 'X' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n41:11  Warning: 'isSidebarOpen' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/Sidebar.tsx\n40:46  Warning: 'isDesktop' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/UIStateContext.tsx\n15:33  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n16:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n35:69  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/products/ProductCard.tsx\n4:8  Warning: 'Image' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Edit' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n18:3  Warning: 'Eye' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n19:3  Warning: 'Share2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Trash2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/shared/AgentDashboard.tsx\n11:3  Warning: 'Clock' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'XCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Zap' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n46:54  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/shared/EmptyState.tsx\n6:10  Warning: 'Badge' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n236:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/shared/NotificationDropdown.tsx\n14:3  Warning: 'DollarSign' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n58:6  Warning: React Hook useEffect has a missing dependency: 'fetchNotifications'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/shared/SearchBar.tsx\n177:6  Warning: React Hook useEffect has a missing dependency: 'performSearch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/shared/TopNavigation.tsx\n7:3  Warning: 'Home' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n9:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n10:3  Warning: 'Plus' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:3  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'ChevronDown' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n59:35  Warning: 'setUnreadNotificationCount' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/hooks/useProductCache.ts\n246:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n257:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/lazy-loading.tsx\n15:22  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n57:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n74:58  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n239:5  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n./lib/performance-monitor.ts\n30:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n90:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n135:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n149:9  Error: 'totalSize' is never reassigned. Use 'const' instead.  prefer-const\n200:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n223:78  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n319:83  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n370:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/agent-integration-service.ts\n3:7  Warning: 'AWS_AGENT_BASE_URL' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n42:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n182:63  Warning: 'limit' is assigned a value but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/services/analytics-service.ts\n2:24  Warning: 'AnalyticsData' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n259:48  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n280:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n280:46  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n280:63  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n280:71  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n303:27  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n303:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n303:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:38  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n317:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:52  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n317:69  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n326:48  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n326:58  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n326:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n343:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n343:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n355:30  Warning: 'category' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n355:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:37  Warning: 'category' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n365:55  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n365:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:73  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n378:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n392:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n397:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n404:39  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n404:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n408:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/compute-optimized-agent-system.ts\n188:21  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:76  Warning: 'priority' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n270:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n282:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n288:11  Warning: 'lightAgents' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n326:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n332:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n346:71  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n379:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n396:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n413:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n430:80  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n499:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n543:17  Warning: 'agentId' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n551:17  Warning: 'agentId' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n635:33  Warning: 'userId' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n656:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n660:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n668:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/notification-service.ts\n6:3  Warning: 'NotificationTrigger' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n84:109  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n310:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n350:7  Warning: 'NOTIFICATION_TEMPLATES' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n595:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n621:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n672:3  Warning: 'preferences' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n674:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n727:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n812:10  Warning: 'personalizeUrl' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n812:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:10  Warning: 'personalizeData' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n821:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:78  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:100  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n834:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/partner-service.ts\n189:80  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n259:51  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/services/real-time-sync.ts\n34:13  Warning: 'subscription' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n101:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n149:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/secure-agent-database.ts\n86:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n104:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n147:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n165:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n208:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n226:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n269:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n287:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n330:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n348:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/types/notifications.ts\n27:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n33:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n47:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\ninfo  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules\n",
+      "timestamp": "2025-08-16T11:08:50.542Z"
+    },
+    {
+      "name": "Code passes linting",
+      "passed": false,
+      "details": "Linting failed: Command failed: npm run lint\n\n./app/(app)/admin/data-dashboard/page.tsx\n22:11  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n23:15  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n30:9  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n31:13  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n36:12  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n44:9  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n55:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n61:6  Warning: React Hook useEffect has a missing dependency: 'fetchUserProducts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n188:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/(app)/cart/page.tsx\n8:10  Warning: 'Badge' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n9:10  Warning: 'Input' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n10:10  Warning: 'Label' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n47:6  Warning: React Hook useEffect has a missing dependency: 'fetchCartItems'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./app/(app)/dashboard/page.tsx\n11:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Package' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n14:3  Warning: 'Shield' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:3  Warning: 'Link' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'DollarSign' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n19:3  Warning: 'WifiOff' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n45:10  Warning: 'syncStatus' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n45:22  Warning: 'setSyncStatus' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n46:23  Warning: 'setNewProducts' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n173:9  Warning: 'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n203:13  Warning: 'emailResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n215:13  Warning: 'retailerResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/(app)/products/[id]/edit/page.tsx\n40:6  Warning: React Hook useEffect has a missing dependency: 'fetchProduct'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n231:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/(app)/settings/account/page.tsx\n12:3  Warning: 'Mail' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Phone' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n52:6  Warning: React Hook useEffect has a missing dependency: 'fetchProfile'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./app/(app)/settings/notifications/page.tsx\n82:6  Warning: React Hook useEffect has a missing dependency: 'loadPreferences'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n133:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/api/ai-integration/route.ts\n54:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./app/api/warranty/analyze/route.ts\n23:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n130:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n131:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n132:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n133:17  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n134:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n142:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n142:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n147:57  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n218:37  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n218:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n218:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n227:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n227:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n228:9  Warning: 'brand' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n238:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n238:64  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n247:79  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:71  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n256:80  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:94  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n314:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n314:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n325:10  Warning: 'generateMockWarrantyAnalysis' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/api/warranty-database/stats/route.ts\n5:27  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./app/api/webhooks/email-inbound/route.ts\n151:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n257:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n284:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/products/ClaimFilingModal.tsx\n21:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n24:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n60:10  Warning: 'isLoading' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n60:21  Warning: 'setIsLoading' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n82:6  Warning: React Hook useEffect has a missing dependency: 'loadUserProfile'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n207:9  Warning: 'uploadClaimFiles' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n328:101  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/products/LivingCard.tsx\n4:8  Warning: 'Image' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Trash2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n23:3  Warning: 'XCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n24:3  Warning: 'ChevronRight' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n25:3  Warning: 'Filter' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n30:3  Warning: 'Download' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n31:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n44:8  Warning: 'RetailerConnect' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n68:10  Warning: 'selectedProduct' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n89:13  Warning: 'emailResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n101:13  Warning: 'retailerResponse' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n358:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n358:32  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n513:6  Warning: React Hook useEffect has a missing dependency: 'handleSort'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/MaintenanceModal.tsx\n16:3  Warning: 'DialogTrigger' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n30:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n78:6  Warning: React Hook useEffect has missing dependencies: 'fetchMaintenanceRecords' and 'fetchServiceProviders'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/QuickCashModal.tsx\n55:10  Warning: 'selectedQuote' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n61:6  Warning: React Hook useEffect has a missing dependency: 'fetchQuickCashQuotes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/domain/products/RetailerConnect.tsx\n5:29  Warning: 'CardHeader' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n5:41  Warning: 'CardTitle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n65:43  Warning: 'onProductsImported' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n68:30  Warning: 'setConnectedRetailers' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n70:9  Warning: 'handleAmazonConnect' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/domain/products/WarrantyDatabaseModal.tsx\n8:10  Warning: 'Input' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'Clock' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Calendar' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'FileText' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n25:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n95:10  Warning: 'searchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n95:23  Warning: 'setSearchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n97:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n103:6  Warning: React Hook useEffect has a missing dependency: 'fetchWarrantyInfo'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n141:11  Warning: 'isLaptop' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n365:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/domain/resolution/ResolutionFlow.tsx\n16:3  Warning: 'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n18:3  Warning: 'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Zap' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n21:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n23:3  Warning: 'ExternalLink' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n28:10  Warning: 'Textarea' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n52:10  Warning: 'selectedOption' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/domain/resolution/ResolutionManager.tsx\n164:9  Warning: 'createLivingCardProduct' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n240:9  Warning: 'handleProblemClick' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n246:9  Warning: 'handleEditClick' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/Header.tsx\n9:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n11:3  Warning: 'X' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n41:11  Warning: 'isSidebarOpen' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/Sidebar.tsx\n40:46  Warning: 'isDesktop' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/layout/UIStateContext.tsx\n15:33  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n16:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n35:69  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/products/ProductCard.tsx\n4:8  Warning: 'Image' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Edit' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n18:3  Warning: 'Eye' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n19:3  Warning: 'Share2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n20:3  Warning: 'Trash2' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./components/shared/AgentDashboard.tsx\n11:3  Warning: 'Clock' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n12:3  Warning: 'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'XCircle' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n17:3  Warning: 'Zap' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n46:54  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/shared/EmptyState.tsx\n6:10  Warning: 'Badge' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n236:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./components/shared/NotificationDropdown.tsx\n14:3  Warning: 'DollarSign' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n58:6  Warning: React Hook useEffect has a missing dependency: 'fetchNotifications'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/shared/SearchBar.tsx\n177:6  Warning: React Hook useEffect has a missing dependency: 'performSearch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps\n\n./components/shared/TopNavigation.tsx\n7:3  Warning: 'Home' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n9:3  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n10:3  Warning: 'Plus' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n13:3  Warning: 'User' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:3  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n16:3  Warning: 'ChevronDown' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n59:35  Warning: 'setUnreadNotificationCount' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/hooks/useProductCache.ts\n246:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n257:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/lazy-loading.tsx\n15:22  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n57:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n74:58  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n239:5  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n./lib/performance-monitor.ts\n30:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n90:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n135:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n149:9  Error: 'totalSize' is never reassigned. Use 'const' instead.  prefer-const\n200:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n223:78  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n319:83  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n370:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/agent-integration-service.ts\n3:7  Warning: 'AWS_AGENT_BASE_URL' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n42:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n182:63  Warning: 'limit' is assigned a value but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/services/analytics-service.ts\n2:24  Warning: 'AnalyticsData' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n259:48  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n280:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n280:46  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n280:63  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n280:71  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n303:27  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n303:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n303:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:38  Warning: 'product' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n317:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:52  Warning: 'similarProducts' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n317:69  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n317:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n326:48  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n326:58  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n326:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n343:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n343:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n355:30  Warning: 'category' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n355:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:37  Warning: 'category' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n365:55  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n365:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n365:73  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n378:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n392:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n397:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n404:39  Warning: 'products' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n404:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n408:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/compute-optimized-agent-system.ts\n188:21  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n256:76  Warning: 'priority' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n270:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n282:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n288:11  Warning: 'lightAgents' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n326:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n332:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n346:71  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n379:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n396:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n413:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n430:80  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n499:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n543:17  Warning: 'agentId' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n551:17  Warning: 'agentId' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n635:33  Warning: 'userId' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n656:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n660:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n668:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/notification-service.ts\n6:3  Warning: 'NotificationTrigger' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n15:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n84:109  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n310:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n350:7  Warning: 'NOTIFICATION_TEMPLATES' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n595:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n621:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n672:3  Warning: 'preferences' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n674:9  Warning: 'supabase' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n727:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n812:10  Warning: 'personalizeUrl' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n812:59  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:10  Warning: 'personalizeData' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n821:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:78  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n821:100  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n834:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/partner-service.ts\n189:80  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n259:51  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars\n\n./lib/services/real-time-sync.ts\n34:13  Warning: 'subscription' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars\n101:40  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n149:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/services/secure-agent-database.ts\n86:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n104:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n147:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n165:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n208:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n226:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n269:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n287:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n330:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n348:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\n./lib/types/notifications.ts\n27:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n33:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n47:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any\n\ninfo  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules\n",
+      "timestamp": "2025-08-16T11:08:52.370Z"
+    }
+  ]
+}

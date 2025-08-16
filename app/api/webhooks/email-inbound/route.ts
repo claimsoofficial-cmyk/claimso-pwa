@@ -1,5 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { generateAgentToken } from '@/lib/supabase/agent-auth';
 
 // ==============================================================================
 // TYPESCRIPT INTERFACES
@@ -55,18 +56,30 @@ interface EmailParseResponse {
 // CONFIGURATION & ENVIRONMENT VALIDATION
 // ==============================================================================
 
-function initializeClients() {
+async function initializeClients() {
   const WEBHOOK_SECRET = process.env.EMAIL_WEBHOOK_SECRET;
   const SERVICES_URL = process.env.SERVICES_URL;
   const SERVICES_API_KEY = process.env.SERVICES_API_KEY;
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!WEBHOOK_SECRET || !SERVICES_URL || !SERVICES_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!WEBHOOK_SECRET || !SERVICES_URL || !SERVICES_API_KEY || !SUPABASE_URL) {
     throw new Error('Missing required environment variables for email webhook');
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  // Generate agent token for email monitoring agent
+  const agentToken = await generateAgentToken({
+    agentId: 'email-webhook-' + Date.now(),
+    agentType: 'email-monitoring',
+    permissions: ['read:emails', 'create:products', 'read:users']
+  });
+
+  const supabase = createClient(SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${agentToken}`,
+      },
+    },
+  });
 
   return { WEBHOOK_SECRET, SERVICES_URL, SERVICES_API_KEY, supabase };
 }
@@ -412,7 +425,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     // Step 1: Initialize clients
-    const { WEBHOOK_SECRET, SERVICES_URL, SERVICES_API_KEY, supabase } = initializeClients();
+    const { WEBHOOK_SECRET, SERVICES_URL, SERVICES_API_KEY, supabase } = await initializeClients();
 
     // Step 2: Security Validation
     const { searchParams } = new URL(request.url);

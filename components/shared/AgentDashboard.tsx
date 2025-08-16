@@ -35,6 +35,7 @@ import {
   type AgentStatus,
   type AgentMetrics
 } from '@/lib/services/agent-integration-service';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AgentDashboard() {
   const [agents, setAgents] = useState<AgentStatus[]>([]);
@@ -69,9 +70,12 @@ export default function AgentDashboard() {
 
   const fetchAgentProducts = async () => {
     try {
-      // Get current user ID (you'll need to implement this)
-      const userId = 'current-user-id'; // TODO: Get from auth context
-      const products = await getAgentCreatedProducts(userId, 5);
+      // Get current user ID from Supabase auth
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const products = await getAgentCreatedProducts(user.id, 5);
       setAgentProducts(products);
     } catch (error) {
       console.error('Error fetching agent products:', error);

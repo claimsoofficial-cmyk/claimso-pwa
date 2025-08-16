@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-const AWS_AGENT_BASE_URL = process.env.NEXT_PUBLIC_AWS_AGENT_BASE_URL || 'https://fvcq8w581i.execute-api.us-east-1.amazonaws.com/test';
+const AWS_AGENT_BASE_URL = process.env.NEXT_PUBLIC_AWS_AGENT_BASE_URL || 'https://566lidnwj2.execute-api.us-east-1.amazonaws.com/dev';
 
 export async function POST(request: NextRequest) {
   try {

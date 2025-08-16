@@ -1,7 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getActiveUsers, createProduct } from '../shared/database';
+import { getActiveUsers, createProduct, type AgentType } from '../shared/database';
 import { parseEmailContent, generateOrderNumber, logAgentActivity } from '../shared/utils';
 import { PurchaseEvent } from '../shared/types';
+
+const AGENT_TYPE: AgentType = 'email-monitoring';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const agentName = 'EmailMonitoringAgent';
@@ -10,7 +12,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     logAgentActivity(agentName, 'Starting email monitoring cycle', { timestamp: new Date().toISOString() });
 
     // Step 1: Get all active users
-    const activeUsers = await getActiveUsers();
+    const activeUsers = await getActiveUsers(AGENT_TYPE);
     logAgentActivity(agentName, 'Fetched active users', { count: activeUsers.length });
 
     let totalProcessed = 0;
@@ -98,41 +100,44 @@ async function processUserEmails(userId: string, userEmail: string): Promise<{ e
       // Step 3: Parse email content
       const parsedData = parseEmailContent(email.content);
       
-      if (!parsedData || !parsedData.isPurchase) {
-        continue; // Skip non-purchase emails
+      if (parsedData) {
+        // Step 4: Create product from email data
+        const productId = await createProduct(AGENT_TYPE, {
+          user_id: userId,
+          product_name: parsedData.productName,
+          brand: parsedData.brand,
+          model: parsedData.model,
+          category: parsedData.category,
+          purchase_date: parsedData.purchaseDate,
+          purchase_price: parsedData.purchasePrice,
+          currency: parsedData.currency,
+          purchase_location: parsedData.retailer,
+          serial_number: parsedData.serialNumber || '',
+          condition: 'new',
+          notes: `Purchased via email confirmation from ${parsedData.retailer}`,
+          is_archived: false,
+          warranty_length_months: parsedData.warrantyLength || 12,
+          payment_method: parsedData.paymentMethod || 'unknown',
+          retailer_url: parsedData.retailerUrl || '',
+          affiliate_id: parsedData.affiliateId || '',
+          name: parsedData.productName,
+          description: parsedData.description || '',
+          retailer: parsedData.retailer,
+          order_number: generateOrderNumber(),
+          warranty_info: parsedData.warrantyInfo || {},
+          market_value: parsedData.purchasePrice,
+          source: 'email'
+        }, userId);
+
+        if (productId) {
+          productsCreated++;
+          logAgentActivity(agentName, 'Created product from email', {
+            userId,
+            productId,
+            productName: parsedData.productName
+          });
+        }
       }
-
-      // Step 4: Create purchase event
-      const productName = parsedData.productHint ? 
-        `${parsedData.productHint.charAt(0).toUpperCase() + parsedData.productHint.slice(1)} Product` : 
-        email.subject || 'Unknown Product';
-        
-      const purchaseEvent: PurchaseEvent = {
-        id: generateOrderNumber(),
-        userId,
-        productName: productName,
-        productDescription: email.content.substring(0, 200) + '...',
-        purchasePrice: parsedData.price || 0,
-        purchaseDate: parsedData.date || new Date().toISOString(),
-        retailer: extractRetailerFromEmail(email),
-        orderNumber: parsedData.orderNumber || generateOrderNumber(),
-        source: 'email',
-        rawData: email
-      };
-
-      // Step 5: Create product in database
-      const productId = await createProductFromPurchaseEvent(purchaseEvent);
-      
-      if (productId) {
-        productsCreated++;
-        logAgentActivity(agentName, 'Created product from email', {
-          productId,
-          userId,
-          productName: purchaseEvent.productName,
-          price: purchaseEvent.purchasePrice
-        });
-      }
-
     } catch (error) {
       logAgentActivity(agentName, 'Error processing email', {
         userId,
@@ -264,7 +269,7 @@ async function createProductFromPurchaseEvent(purchaseEvent: PurchaseEvent): Pro
     source: purchaseEvent.source // Track the capture source
   };
 
-  return await createProduct(product);
+  return await createProduct(AGENT_TYPE, product, purchaseEvent.userId);
 }
 
 function extractBrandFromProduct(productName: string): string {

@@ -74,61 +74,67 @@
     "EmailMonitoringAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-emailMonitoringAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-emailMonitoringAgent"
       }
     },
     "BrowserExtensionAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-browserExtensionAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-browserExtensionAgent"
       }
     },
     "MobileAppAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-mobileAppAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-mobileAppAgent"
       }
     },
     "ProductIntelligenceAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-productIntelligenceAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-productIntelligenceAgent"
       }
     },
     "WarrantyIntelligenceAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-warrantyIntelligenceAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-warrantyIntelligenceAgent"
       }
     },
     "WarrantyClaimAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-warrantyClaimAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-warrantyClaimAgent"
       }
     },
     "CashExtractionAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-cashExtractionAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-cashExtractionAgent"
+      }
+    },
+    "MasterOrchestratorLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-masterOrchestrator"
       }
     },
     "RetailerAPIAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-retailerAPIAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-retailerAPIAgent"
       }
     },
     "BankIntegrationAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-bankIntegrationAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-bankIntegrationAgent"
       }
     },
     "DuplicateDetectionAgentLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/claimso-agents-test-duplicateDetectionAgent"
+        "LogGroupName": "/aws/lambda/claimso-agents-dev-duplicateDetectionAgent"
       }
     },
     "IamRoleLambdaExecution": {
@@ -157,7 +163,7 @@
                 "-",
                 [
                   "claimso-agents",
-                  "test",
+                  "dev",
                   "lambda"
                 ]
               ]
@@ -174,7 +180,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-test*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-dev*:*"
                     }
                   ]
                 },
@@ -185,7 +191,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-test*:*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/claimso-agents-dev*:*:*"
                     }
                   ]
                 },
@@ -238,7 +244,7 @@
             "-",
             [
               "claimso-agents",
-              "test",
+              "dev",
               {
                 "Ref": "AWS::Region"
               },
@@ -255,21 +261,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/email-monitoring-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-emailMonitoringAgent",
+        "FunctionName": "claimso-agents-dev-emailMonitoringAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -290,21 +300,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/browser-extension-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-browserExtensionAgent",
+        "FunctionName": "claimso-agents-dev-browserExtensionAgent",
         "MemorySize": 256,
         "Timeout": 30,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -325,21 +339,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/mobile-app-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-mobileAppAgent",
+        "FunctionName": "claimso-agents-dev-mobileAppAgent",
         "MemorySize": 256,
         "Timeout": 30,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -360,21 +378,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/product-intelligence-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-productIntelligenceAgent",
+        "FunctionName": "claimso-agents-dev-productIntelligenceAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -395,21 +417,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/warranty-intelligence-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-warrantyIntelligenceAgent",
+        "FunctionName": "claimso-agents-dev-warrantyIntelligenceAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -430,21 +456,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/warranty-claim-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-warrantyClaimAgent",
+        "FunctionName": "claimso-agents-dev-warrantyClaimAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -465,21 +495,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/cash-extraction-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-cashExtractionAgent",
+        "FunctionName": "claimso-agents-dev-cashExtractionAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -493,6 +527,47 @@
         "CashExtractionAgentLogGroup"
       ]
     },
+    "MasterOrchestratorLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
+        },
+        "Handler": "dist/handlers/master-orchestrator.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "claimso-agents-dev-masterOrchestrator",
+        "MemorySize": 1024,
+        "Timeout": 300,
+        "Environment": {
+          "Variables": {
+            "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
+            "AGENT_LOG_LEVEL": "info",
+            "AGENT_BATCH_SIZE": "10",
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents",
+            "ORCHESTRATOR_LOG_LEVEL": "info",
+            "MAX_CONCURRENT_WORKFLOWS": "10"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "MasterOrchestratorLogGroup"
+      ]
+    },
     "RetailerAPIAgentLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -500,21 +575,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/retailer-api-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-retailerAPIAgent",
+        "FunctionName": "claimso-agents-dev-retailerAPIAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -535,21 +614,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/bank-integration-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-bankIntegrationAgent",
+        "FunctionName": "claimso-agents-dev-bankIntegrationAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -570,21 +653,25 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/claimso-agents/test/1755254554111-2025-08-15T10:42:34.111Z/claimso-agents.zip"
+          "S3Key": "serverless/claimso-agents/dev/1755345605008-2025-08-16T12:00:05.008Z/claimso-agents.zip"
         },
         "Handler": "dist/handlers/duplicate-detection-agent.handler",
         "Runtime": "nodejs18.x",
-        "FunctionName": "claimso-agents-test-duplicateDetectionAgent",
+        "FunctionName": "claimso-agents-dev-duplicateDetectionAgent",
         "MemorySize": 512,
         "Timeout": 300,
         "Environment": {
           "Variables": {
             "SUPABASE_URL": "https://fryifnzncbfeodmuziut.supabase.co",
-            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
-            "NODE_ENV": "test",
+            "SUPABASE_SERVICE_ROLE_KEY": "",
+            "NODE_ENV": "dev",
             "AGENT_LOG_LEVEL": "info",
             "AGENT_BATCH_SIZE": "10",
-            "AGENT_MAX_RETRIES": "3"
+            "AGENT_MAX_RETRIES": "3",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyeWlmbnpuY2JmZW9kbXV6aXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE1NDcyMDAzNCwiZXhwIjoyMDcwMjk2MDM0fQ.NRbzUfpPUSwfgY_QmSUoS93bTzSLXUBhzebDLz7AIoQ",
+            "AGENT_JWT_SECRET": "claimso-agent-jwt-secret-2024-change-in-production",
+            "AGENT_JWT_ISSUER": "claimso-agent-system",
+            "AGENT_JWT_AUDIENCE": "claimso-agents"
           }
         },
         "Role": {
@@ -598,104 +685,114 @@
         "DuplicateDetectionAgentLogGroup"
       ]
     },
-    "EmailMonitoringAgentLambdaVersionuLa1yIGFVekLULGqZ2rAADYgAwW2aZCDnsxR040": {
+    "EmailMonitoringAgentLambdaVersionwb7XtL1KVHFoQP9TR0Ks4gsYRuygqkL4QQSCpEFQ8UY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "EmailMonitoringAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "BrowserExtensionAgentLambdaVersionoAD7eFRBkyarb3qLCDnToVZbo8syZ0xbI4O1dLOumbA": {
+    "BrowserExtensionAgentLambdaVersionkmWkIQP8e5iwK3sZCwqvlbKwhs1W8XYVDtUZr6ck2pc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "BrowserExtensionAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "MobileAppAgentLambdaVersionH1BE4JmAa569w8MWU9CZSyTTJYJFTjqsbFP8e4TOY": {
+    "MobileAppAgentLambdaVersionInBx3HJ00STSruzgu0ps8ane3wk9PiPI9cyomsP4g": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MobileAppAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "ProductIntelligenceAgentLambdaVersionYqivUHXvbwe9keWBuRN6C5kUHLxxX0wHD2tUQy5igw": {
+    "ProductIntelligenceAgentLambdaVersionrdsKsznM2PERKyoHbos9uiQJE9DbQ5BNhv9M3cnOQ": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ProductIntelligenceAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "WarrantyIntelligenceAgentLambdaVersionzkvGAfyFKQD0wIwSmSfbJcuXWFjXD8pqS5xcfcQ3v1M": {
+    "WarrantyIntelligenceAgentLambdaVersionGTJL3lP0My0YKXHs4BnIjdrAskRAmGVehORIdXL4uY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WarrantyIntelligenceAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "WarrantyClaimAgentLambdaVersionh8RfkRPoa21eDlp8r3WCxmA9812tgD95RSz7ZW2DLmE": {
+    "WarrantyClaimAgentLambdaVersionOGuwHpRcwyzwM3m3pFHXtz6ph9hHTNtWEIgjrI5Uc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WarrantyClaimAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "CashExtractionAgentLambdaVersionQPsFi6nC7F9t37mMZvdy7GchqhTr9x78YJKli4FEp8s": {
+    "CashExtractionAgentLambdaVersion63XeqlhjIswhQrYlatKIQPYpgzaPTCXT1RdwqsN4Z5A": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CashExtractionAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "RetailerAPIAgentLambdaVersiongM0XPc9yXGBBKDvsuenJEVfxy73v97OzC0JwSR3x0M": {
+    "MasterOrchestratorLambdaVersioncrCP86N9g2yBBiTG6gCyrpy7n9fPOZaKXl6qfOLAr6c": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "MasterOrchestratorLambdaFunction"
+        },
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
+      }
+    },
+    "RetailerAPIAgentLambdaVersionDATFG0ib4l5WJbiofPUF4LYydrgkrcYPzsnaT8cU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "RetailerAPIAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "BankIntegrationAgentLambdaVersionC6qUj8kd5cZKWG9BJQGx8RYyJM9sn5xQ2RCEp4oVsBM": {
+    "BankIntegrationAgentLambdaVersionhO3ZUmOhe2RTkWHPUCeeXJNyeRYy0Y9CYAJvnqENvw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "BankIntegrationAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
-    "DuplicateDetectionAgentLambdaVersionsGCaKar5RaYIxvL8M6GYz0x90AHD9MwnqsFeAHDp8uU": {
+    "DuplicateDetectionAgentLambdaVersionMBi6LR2uTSPtxO9A4YtEn79eSVMmYqUR8EzWXXw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DuplicateDetectionAgentLambdaFunction"
         },
-        "CodeSha256": "HGVaG+IZInK+TKTetA0H/DQ5lE/xFxJrkXI0uFvMMdA="
+        "CodeSha256": "Zbun5+9vFYslNcqUya/xNkzMtld8S8rrukBgkT0IN58="
       }
     },
     "EmailMonitoringAgentEventsRuleSchedule1": {
@@ -923,13 +1020,28 @@
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Name": "test-claimso-agents",
+        "Name": "dev-claimso-agents",
         "EndpointConfiguration": {
           "Types": [
             "EDGE"
           ]
         },
         "Policy": ""
+      }
+    },
+    "ApiGatewayResourceEmailDashmonitoring": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "email-monitoring",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
       }
     },
     "ApiGatewayResourceBrowserDashextension": {
@@ -957,6 +1069,183 @@
           ]
         },
         "PathPart": "mobile-app",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceProductDashintelligence": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "product-intelligence",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceWarrantyDashintelligence": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "warranty-intelligence",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceWarrantyDashclaim": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "warranty-claim",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceCashDashextraction": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "cash-extraction",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceOrchestrator": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "orchestrator",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceOrchestratorHealth": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceOrchestrator"
+        },
+        "PathPart": "health",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceRetailerDashapi": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "retailer-api",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceBankDashintegration": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "bank-integration",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceDuplicateDashdetection": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "duplicate-detection",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodEmailDashmonitoringOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceEmailDashmonitoring"
+        },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -1052,6 +1341,457 @@
         }
       }
     },
+    "ApiGatewayMethodProductDashintelligenceOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceProductDashintelligence"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodWarrantyDashintelligenceOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceWarrantyDashintelligence"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodWarrantyDashclaimOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceWarrantyDashclaim"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodCashDashextractionOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceCashDashextraction"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodOrchestratorOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceOrchestrator"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodOrchestratorHealthOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceOrchestratorHealth"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodRetailerDashapiOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceRetailerDashapi"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodBankDashintegrationOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceBankDashintegration"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodDuplicateDashdetectionOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceDuplicateDashdetection"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodEmailDashmonitoringPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceEmailDashmonitoring"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "EmailMonitoringAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "EmailMonitoringAgentLambdaPermissionApiGateway"
+      ]
+    },
     "ApiGatewayMethodBrowserDashextensionPost": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -1144,20 +1884,491 @@
         "MobileAppAgentLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1755254547379": {
+    "ApiGatewayMethodProductDashintelligencePost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceProductDashintelligence"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "ProductIntelligenceAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "ProductIntelligenceAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodWarrantyDashintelligencePost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceWarrantyDashintelligence"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "WarrantyIntelligenceAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "WarrantyIntelligenceAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodWarrantyDashclaimPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceWarrantyDashclaim"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "WarrantyClaimAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "WarrantyClaimAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodCashDashextractionPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceCashDashextraction"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "CashExtractionAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "CashExtractionAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodOrchestratorPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceOrchestrator"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "MasterOrchestratorLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "MasterOrchestratorLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodOrchestratorHealthGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceOrchestratorHealth"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "MasterOrchestratorLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "MasterOrchestratorLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodRetailerDashapiPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceRetailerDashapi"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "RetailerAPIAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "RetailerAPIAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodBankDashintegrationPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceBankDashintegration"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "BankIntegrationAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "BankIntegrationAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodDuplicateDashdetectionPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceDuplicateDashdetection"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "DuplicateDetectionAgentLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "DuplicateDetectionAgentLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1755345600710": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         },
-        "StageName": "test"
+        "StageName": "dev"
       },
       "DependsOn": [
+        "ApiGatewayMethodEmailDashmonitoringOptions",
         "ApiGatewayMethodBrowserDashextensionOptions",
         "ApiGatewayMethodMobileDashappOptions",
+        "ApiGatewayMethodProductDashintelligenceOptions",
+        "ApiGatewayMethodWarrantyDashintelligenceOptions",
+        "ApiGatewayMethodWarrantyDashclaimOptions",
+        "ApiGatewayMethodCashDashextractionOptions",
+        "ApiGatewayMethodOrchestratorOptions",
+        "ApiGatewayMethodOrchestratorHealthOptions",
+        "ApiGatewayMethodRetailerDashapiOptions",
+        "ApiGatewayMethodBankDashintegrationOptions",
+        "ApiGatewayMethodDuplicateDashdetectionOptions",
+        "ApiGatewayMethodEmailDashmonitoringPost",
         "ApiGatewayMethodBrowserDashextensionPost",
-        "ApiGatewayMethodMobileDashappPost"
+        "ApiGatewayMethodMobileDashappPost",
+        "ApiGatewayMethodProductDashintelligencePost",
+        "ApiGatewayMethodWarrantyDashintelligencePost",
+        "ApiGatewayMethodWarrantyDashclaimPost",
+        "ApiGatewayMethodCashDashextractionPost",
+        "ApiGatewayMethodOrchestratorPost",
+        "ApiGatewayMethodOrchestratorHealthGet",
+        "ApiGatewayMethodRetailerDashapiPost",
+        "ApiGatewayMethodBankDashintegrationPost",
+        "ApiGatewayMethodDuplicateDashdetectionPost"
       ]
+    },
+    "EmailMonitoringAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EmailMonitoringAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
     },
     "BrowserExtensionAgentLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
@@ -1202,6 +2413,302 @@
         "FunctionName": {
           "Fn::GetAtt": [
             "MobileAppAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "ProductIntelligenceAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ProductIntelligenceAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "WarrantyIntelligenceAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WarrantyIntelligenceAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "WarrantyClaimAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WarrantyClaimAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "CashExtractionAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CashExtractionAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "MasterOrchestratorLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "MasterOrchestratorLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "RetailerAPIAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "RetailerAPIAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "BankIntegrationAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "BankIntegrationAgentLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "DuplicateDetectionAgentLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DuplicateDetectionAgentLambdaFunction",
             "Arn"
           ]
         },
@@ -1280,7 +2787,7 @@
     "ProductEnrichmentQueue": {
       "Type": "AWS::SQS::Queue",
       "Properties": {
-        "QueueName": "claimso-agents-product-enrichment-test",
+        "QueueName": "claimso-agents-product-enrichment-dev",
         "VisibilityTimeout": 300,
         "MessageRetentionPeriod": 1209600
       }
@@ -1288,7 +2795,7 @@
     "WarrantyEnrichmentQueue": {
       "Type": "AWS::SQS::Queue",
       "Properties": {
-        "QueueName": "claimso-agents-warranty-enrichment-test",
+        "QueueName": "claimso-agents-warranty-enrichment-dev",
         "VisibilityTimeout": 300,
         "MessageRetentionPeriod": 1209600
       }
@@ -1296,7 +2803,7 @@
     "AgentDataBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "claimso-agents-agent-data-test",
+        "BucketName": "claimso-agents-agent-data-dev",
         "PublicAccessBlockConfiguration": {
           "BlockPublicAcls": true,
           "BlockPublicPolicy": true,
@@ -1312,97 +2819,106 @@
         "Ref": "ServerlessDeploymentBucket"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-ServerlessDeploymentBucketName"
+        "Name": "sls-claimso-agents-dev-ServerlessDeploymentBucketName"
       }
     },
     "EmailMonitoringAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "EmailMonitoringAgentLambdaVersionuLa1yIGFVekLULGqZ2rAADYgAwW2aZCDnsxR040"
+        "Ref": "EmailMonitoringAgentLambdaVersionwb7XtL1KVHFoQP9TR0Ks4gsYRuygqkL4QQSCpEFQ8UY"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-EmailMonitoringAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-EmailMonitoringAgentLambdaFunctionQualifiedArn"
       }
     },
     "BrowserExtensionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "BrowserExtensionAgentLambdaVersionoAD7eFRBkyarb3qLCDnToVZbo8syZ0xbI4O1dLOumbA"
+        "Ref": "BrowserExtensionAgentLambdaVersionkmWkIQP8e5iwK3sZCwqvlbKwhs1W8XYVDtUZr6ck2pc"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-BrowserExtensionAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-BrowserExtensionAgentLambdaFunctionQualifiedArn"
       }
     },
     "MobileAppAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MobileAppAgentLambdaVersionH1BE4JmAa569w8MWU9CZSyTTJYJFTjqsbFP8e4TOY"
+        "Ref": "MobileAppAgentLambdaVersionInBx3HJ00STSruzgu0ps8ane3wk9PiPI9cyomsP4g"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-MobileAppAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-MobileAppAgentLambdaFunctionQualifiedArn"
       }
     },
     "ProductIntelligenceAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ProductIntelligenceAgentLambdaVersionYqivUHXvbwe9keWBuRN6C5kUHLxxX0wHD2tUQy5igw"
+        "Ref": "ProductIntelligenceAgentLambdaVersionrdsKsznM2PERKyoHbos9uiQJE9DbQ5BNhv9M3cnOQ"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-ProductIntelligenceAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-ProductIntelligenceAgentLambdaFunctionQualifiedArn"
       }
     },
     "WarrantyIntelligenceAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WarrantyIntelligenceAgentLambdaVersionzkvGAfyFKQD0wIwSmSfbJcuXWFjXD8pqS5xcfcQ3v1M"
+        "Ref": "WarrantyIntelligenceAgentLambdaVersionGTJL3lP0My0YKXHs4BnIjdrAskRAmGVehORIdXL4uY"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-WarrantyIntelligenceAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-WarrantyIntelligenceAgentLambdaFunctionQualifiedArn"
       }
     },
     "WarrantyClaimAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WarrantyClaimAgentLambdaVersionh8RfkRPoa21eDlp8r3WCxmA9812tgD95RSz7ZW2DLmE"
+        "Ref": "WarrantyClaimAgentLambdaVersionOGuwHpRcwyzwM3m3pFHXtz6ph9hHTNtWEIgjrI5Uc"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-WarrantyClaimAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-WarrantyClaimAgentLambdaFunctionQualifiedArn"
       }
     },
     "CashExtractionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CashExtractionAgentLambdaVersionQPsFi6nC7F9t37mMZvdy7GchqhTr9x78YJKli4FEp8s"
+        "Ref": "CashExtractionAgentLambdaVersion63XeqlhjIswhQrYlatKIQPYpgzaPTCXT1RdwqsN4Z5A"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-CashExtractionAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-CashExtractionAgentLambdaFunctionQualifiedArn"
+      }
+    },
+    "MasterOrchestratorLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "MasterOrchestratorLambdaVersioncrCP86N9g2yBBiTG6gCyrpy7n9fPOZaKXl6qfOLAr6c"
+      },
+      "Export": {
+        "Name": "sls-claimso-agents-dev-MasterOrchestratorLambdaFunctionQualifiedArn"
       }
     },
     "RetailerAPIAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "RetailerAPIAgentLambdaVersiongM0XPc9yXGBBKDvsuenJEVfxy73v97OzC0JwSR3x0M"
+        "Ref": "RetailerAPIAgentLambdaVersionDATFG0ib4l5WJbiofPUF4LYydrgkrcYPzsnaT8cU"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-RetailerAPIAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-RetailerAPIAgentLambdaFunctionQualifiedArn"
       }
     },
     "BankIntegrationAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "BankIntegrationAgentLambdaVersionC6qUj8kd5cZKWG9BJQGx8RYyJM9sn5xQ2RCEp4oVsBM"
+        "Ref": "BankIntegrationAgentLambdaVersionhO3ZUmOhe2RTkWHPUCeeXJNyeRYy0Y9CYAJvnqENvw"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-BankIntegrationAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-BankIntegrationAgentLambdaFunctionQualifiedArn"
       }
     },
     "DuplicateDetectionAgentLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DuplicateDetectionAgentLambdaVersionsGCaKar5RaYIxvL8M6GYz0x90AHD9MwnqsFeAHDp8uU"
+        "Ref": "DuplicateDetectionAgentLambdaVersionMBi6LR2uTSPtxO9A4YtEn79eSVMmYqUR8EzWXXw"
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-DuplicateDetectionAgentLambdaFunctionQualifiedArn"
+        "Name": "sls-claimso-agents-dev-DuplicateDetectionAgentLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {
@@ -1423,12 +2939,12 @@
             {
               "Ref": "AWS::URLSuffix"
             },
-            "/test"
+            "/dev"
           ]
         ]
       },
       "Export": {
-        "Name": "sls-claimso-agents-test-ServiceEndpoint"
+        "Name": "sls-claimso-agents-dev-ServiceEndpoint"
       }
     }
   }

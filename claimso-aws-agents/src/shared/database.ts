@@ -1,10 +1,72 @@
 import { createClient } from '@supabase/supabase-js';
+import { SignJWT } from 'jose';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Agent authentication configuration
+const AGENT_JWT_SECRET = process.env.AGENT_JWT_SECRET || 'your-agent-jwt-secret-change-this';
+const AGENT_JWT_ISSUER = 'claimso-agent-system';
+const AGENT_JWT_AUDIENCE = 'claimso-agents';
 
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Agent types for AWS Lambda functions
+export type AgentType = 'email-monitoring' | 'retailer-api' | 'bank-integration' | 'duplicate-detection' | 
+                       'product-intelligence' | 'warranty-intelligence' | 'warranty-claim' | 'cash-extraction' |
+                       'browser-extension' | 'mobile-app';
 
+// Generate JWT token for agent authentication
+async function generateAgentToken(agentType: AgentType, userId?: string): Promise<string> {
+  const secret = new TextEncoder().encode(AGENT_JWT_SECRET);
+  
+  const token = await new SignJWT({
+    agentId: `${agentType}-${Date.now()}`,
+    agentType: agentType,
+    permissions: getAgentPermissions(agentType),
+    userId: userId,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer(AGENT_JWT_ISSUER)
+    .setAudience(AGENT_JWT_AUDIENCE)
+    .setExpirationTime('1h') // Short-lived tokens for security
+    .sign(secret);
+    
+  return token;
+}
+
+// Get permissions for each agent type
+function getAgentPermissions(agentType: AgentType): string[] {
+  const permissions = {
+    'email-monitoring': ['read:emails', 'create:products', 'read:users'],
+    'retailer-api': ['read:retailer_data', 'create:products', 'update:products'],
+    'bank-integration': ['read:transactions', 'create:products', 'read:users'],
+    'duplicate-detection': ['read:products', 'update:products', 'delete:products'],
+    'product-intelligence': ['read:products', 'update:products', 'read:market_data'],
+    'warranty-intelligence': ['read:products', 'update:warranties', 'read:warranty_data'],
+    'warranty-claim': ['read:products', 'create:claims', 'update:claims'],
+    'cash-extraction': ['read:products', 'read:market_data', 'create:offers'],
+    'browser-extension': ['create:products', 'read:users'],
+    'mobile-app': ['create:products', 'read:users']
+  };
+  
+  return permissions[agentType] || [];
+}
+
+// Create secure Supabase client for agents
+async function createSecureAgentClient(agentType: AgentType, userId?: string) {
+  const token = await generateAgentToken(agentType, userId);
+  
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    }
+  );
+}
+
+// Export interface definitions
 export interface DatabaseUser {
   id: string;
   email: string;
@@ -44,10 +106,13 @@ export interface DatabaseProduct {
   order_number: string;
   warranty_info: any;
   market_value: number;
-  source: 'email' | 'browser' | 'mobile' | 'bank' | 'retailer_api' | 'manual' | 'unknown'; // NEW: Track capture source
+  source: 'email' | 'browser' | 'mobile' | 'bank' | 'retailer_api' | 'manual' | 'unknown';
 }
 
-export async function getActiveUsers(): Promise<DatabaseUser[]> {
+// Secure database functions
+export async function getActiveUsers(agentType: AgentType): Promise<DatabaseUser[]> {
+  const supabase = await createSecureAgentClient(agentType);
+  
   // First, get all users from auth.users
   const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
   
@@ -75,7 +140,13 @@ export async function getActiveUsers(): Promise<DatabaseUser[]> {
   return activeUsers;
 }
 
-export async function createProduct(product: Omit<DatabaseProduct, 'id' | 'created_at' | 'updated_at'>): Promise<string | null> {
+export async function createProduct(
+  agentType: AgentType, 
+  product: Omit<DatabaseProduct, 'id' | 'created_at' | 'updated_at'>,
+  userId?: string
+): Promise<string | null> {
+  const supabase = await createSecureAgentClient(agentType, userId);
+  
   const { data, error } = await supabase
     .from('products')
     .insert([product])
@@ -90,7 +161,14 @@ export async function createProduct(product: Omit<DatabaseProduct, 'id' | 'creat
   return data.id;
 }
 
-export async function updateProduct(id: string, updates: Partial<DatabaseProduct>): Promise<boolean> {
+export async function updateProduct(
+  agentType: AgentType, 
+  id: string, 
+  updates: Partial<DatabaseProduct>,
+  userId?: string
+): Promise<boolean> {
+  const supabase = await createSecureAgentClient(agentType, userId);
+  
   const { error } = await supabase
     .from('products')
     .update(updates)
@@ -104,7 +182,12 @@ export async function updateProduct(id: string, updates: Partial<DatabaseProduct
   return true;
 }
 
-export async function getProductsByUserId(userId: string): Promise<DatabaseProduct[]> {
+export async function getProductsByUserId(
+  agentType: AgentType, 
+  userId: string
+): Promise<DatabaseProduct[]> {
+  const supabase = await createSecureAgentClient(agentType, userId);
+  
   try {
     const { data, error } = await supabase
       .from('products')
@@ -123,3 +206,9 @@ export async function getProductsByUserId(userId: string): Promise<DatabaseProdu
     return [];
   }
 }
+
+// Legacy function for backward compatibility (deprecated)
+export const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);

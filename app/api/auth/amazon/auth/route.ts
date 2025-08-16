@@ -129,7 +129,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     })
     
     // Get current user from session
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.redirect(
@@ -138,8 +142,29 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     const userId = user.id;
     
+    // Generate agent token for secure database access
+    const { generateAgentToken } = await import('@/lib/supabase/agent-auth');
+    const agentToken = await generateAgentToken({
+      agentId: 'amazon-auth-' + Date.now(),
+      agentType: 'retailer-api',
+      permissions: ['read:users', 'create:user_connections', 'update:profiles'],
+      userId: userId
+    });
+    
+    const secureSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${agentToken}`,
+          },
+        },
+      }
+    );
+    
     // CRITICAL - Securely store tokens in database with encryption
-    const { error: dbError } = await supabase
+    const { error: dbError } = await secureSupabase
       .from('user_connections')
       .upsert({
         user_id: userId,
@@ -162,7 +187,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     
     // Update user profile to indicate Amazon is connected
-    const { error: profileError } = await supabase
+    const { error: profileError } = await secureSupabase
       .from('profiles')
       .update({
         amazon_connected: true,
@@ -176,7 +201,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     
     // Log successful connection for audit trail
-    await supabase
+    await secureSupabase
       .from('user_activity_log')
       .insert({
         user_id: userId,

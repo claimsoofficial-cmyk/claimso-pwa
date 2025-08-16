@@ -1,24 +1,43 @@
 // Service Worker for Claimso PWA
-const CACHE_VERSION = 'v2.0.0';
-const CACHE_NAME = `claimso-${CACHE_VERSION}`;
-const STATIC_CACHE = `claimso-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `claimso-dynamic-${CACHE_VERSION}`;
+// Provides offline support, caching, and performance optimization
+
+const CACHE_NAME = 'claimso-v1';
+const STATIC_CACHE = 'claimso-static-v1';
+const DYNAMIC_CACHE = 'claimso-dynamic-v1';
+const API_CACHE = 'claimso-api-v1';
 
 // Files to cache immediately
 const STATIC_FILES = [
   '/',
-  '/dashboard',
-  '/products',
-  '/settings/account',
+  '/offline.html',
   '/manifest.json',
-  '/offline.html'
+  '/favicon.ico',
+  '/next.svg',
+  '/vercel.svg',
+  '/file.svg',
+  '/globe.svg',
+  '/window.svg',
+  '/logos/amazon.svg',
+  '/logos/apple.svg',
+  '/logos/bestbuy.svg',
+  '/logos/decluttr.svg',
+  '/logos/default.svg',
+  '/logos/flipkart.svg',
+  '/logos/gazelle.svg',
+  '/logos/johnlewis.svg',
+  '/logos/mediamarkt.svg',
+  '/logos/swappa.svg',
+  '/logos/target.svg',
+  '/logos/walmart.svg',
 ];
 
 // API endpoints to cache
-const API_CACHE = [
+const API_ENDPOINTS = [
   '/api/products',
   '/api/warranties',
-  '/api/analytics'
+  '/api/user-connections',
+  '/api/analytics',
+  '/api/notifications',
 ];
 
 // Install event - cache static files
@@ -36,7 +55,7 @@ self.addEventListener('install', (event) => {
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('Service Worker: Error caching static files', error);
+        console.error('Service Worker: Failed to cache static files', error);
       })
   );
 });
@@ -50,8 +69,9 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            // Delete all old caches that don't match current version
-            if (!cacheName.includes(CACHE_VERSION)) {
+            if (cacheName !== STATIC_CACHE && 
+                cacheName !== DYNAMIC_CACHE && 
+                cacheName !== API_CACHE) {
               console.log('Service Worker: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
@@ -59,13 +79,13 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('Service Worker: Activated with version', CACHE_VERSION);
+        console.log('Service Worker: Activated');
         return self.clients.claim();
       })
   );
 });
 
-// Fetch event - serve cached content when offline
+// Fetch event - handle requests
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -75,20 +95,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API requests
+  // Handle different types of requests
   if (url.pathname.startsWith('/api/')) {
+    // API requests - cache with network-first strategy
     event.respondWith(handleApiRequest(request));
-    return;
+  } else if (url.pathname.startsWith('/_next/') || url.pathname.includes('.')) {
+    // Static assets - cache-first strategy
+    event.respondWith(handleStaticRequest(request));
+  } else {
+    // Page requests - network-first strategy
+    event.respondWith(handlePageRequest(request));
   }
-
-  // Handle navigation requests
-  if (request.mode === 'navigate') {
-    event.respondWith(handleNavigationRequest(request));
-    return;
-  }
-
-  // Handle static assets
-  event.respondWith(handleStaticRequest(request));
 });
 
 // Handle API requests with network-first strategy
@@ -97,147 +114,47 @@ async function handleApiRequest(request) {
     // Try network first
     const networkResponse = await fetch(request);
     
-    // Cache successful responses
     if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
+      // Cache the response
+      const cache = await caches.open(API_CACHE);
       cache.put(request, networkResponse.clone());
+      return networkResponse;
     }
-    
-    return networkResponse;
   } catch (error) {
-    console.log('Service Worker: Network failed, trying cache', error);
-    
-    // Fallback to cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline response for API calls
-    return new Response(
-      JSON.stringify({ 
-        error: 'Offline', 
-        message: 'You are offline. Please check your connection.' 
-      }),
-      {
-        status: 503,
-        statusText: 'Service Unavailable',
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    console.log('Service Worker: Network failed for API request', request.url);
   }
+
+  // Fallback to cache
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  // Return offline response for API requests
+  return new Response(
+    JSON.stringify({ 
+      error: 'Offline', 
+      message: 'No internet connection. Please check your connection and try again.' 
+    }),
+    {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
 }
 
-// Handle navigation requests with network-first strategy for fresh content
-async function handleNavigationRequest(request) {
-  try {
-    // Try network first for fresh content
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('Service Worker: Network failed, trying cache', error);
-    
-    // Fallback to cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Show offline page
-    const offlineResponse = await caches.match('/offline.html');
-    if (offlineResponse) {
-      return offlineResponse;
-    }
-    
-    // Fallback offline response
-    return new Response(
-      `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Claimso - Offline</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              min-height: 100vh;
-              margin: 0;
-              background: #f8fafc;
-              color: #1e293b;
-            }
-            .offline-container {
-              text-align: center;
-              padding: 2rem;
-              max-width: 400px;
-            }
-            .offline-icon {
-              width: 64px;
-              height: 64px;
-              background: #2563eb;
-              border-radius: 16px;
-              margin: 0 auto 1rem;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-size: 24px;
-            }
-            h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
-            p { margin: 0 0 1rem; color: #64748b; }
-            button {
-              background: #2563eb;
-              color: white;
-              border: none;
-              padding: 0.75rem 1.5rem;
-              border-radius: 8px;
-              font-size: 1rem;
-              cursor: pointer;
-            }
-            button:hover { background: #1d4ed8; }
-          </style>
-        </head>
-        <body>
-          <div class="offline-container">
-            <div class="offline-icon">📱</div>
-            <h1>You're Offline</h1>
-            <p>Please check your internet connection and try again.</p>
-            <button onclick="window.location.reload()">Retry</button>
-          </div>
-        </body>
-      </html>
-      `,
-      {
-        status: 200,
-        statusText: 'OK',
-        headers: { 'Content-Type': 'text/html' }
-      }
-    );
-  }
-}
-
-// Handle static assets with cache-first strategy
+// Handle static requests with cache-first strategy
 async function handleStaticRequest(request) {
+  const cachedResponse = await caches.match(request);
+  
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
   try {
-    // Try cache first
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Fallback to network
     const networkResponse = await fetch(request);
     
-    // Cache successful responses
     if (networkResponse.ok) {
       const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, networkResponse.clone());
@@ -245,74 +162,156 @@ async function handleStaticRequest(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('Service Worker: Static request failed', error);
-    return new Response('Offline', { status: 503 });
+    console.log('Service Worker: Failed to fetch static asset', request.url);
+    
+    // Return a placeholder for images
+    if (request.url.match(/\.(jpg|jpeg|png|gif|svg|webp)$/)) {
+      return new Response(
+        '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#f3f4f6"/><text x="100" y="100" text-anchor="middle" fill="#9ca3af">Image</text></svg>',
+        {
+          headers: { 'Content-Type': 'image/svg+xml' }
+        }
+      );
+    }
+    
+    throw error;
   }
+}
+
+// Handle page requests with network-first strategy
+async function handlePageRequest(request) {
+  try {
+    // Try network first
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Cache the response
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+  } catch (error) {
+    console.log('Service Worker: Network failed for page request', request.url);
+  }
+
+  // Fallback to cache
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  // Return offline page
+  return caches.match('/offline.html');
 }
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  console.log('Service Worker: Background sync', event.tag);
+  console.log('Service Worker: Background sync triggered', event.tag);
   
   if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
+    event.waitUntil(performBackgroundSync());
   }
 });
 
-async function doBackgroundSync() {
+// Perform background sync
+async function performBackgroundSync() {
   try {
-    // Sync any pending offline actions
-    const pendingActions = await getPendingActions();
+    // Get stored offline actions
+    const offlineActions = await getOfflineActions();
     
-    for (const action of pendingActions) {
-      await syncAction(action);
+    for (const action of offlineActions) {
+      try {
+        await performOfflineAction(action);
+        await removeOfflineAction(action.id);
+      } catch (error) {
+        console.error('Service Worker: Failed to sync action', action, error);
+      }
     }
-    
-    console.log('Service Worker: Background sync completed');
   } catch (error) {
     console.error('Service Worker: Background sync failed', error);
   }
 }
 
-// Get pending actions from IndexedDB
-async function getPendingActions() {
-  // This would typically use IndexedDB to store offline actions
-  // For now, return empty array
-  return [];
+// Store offline action
+async function storeOfflineAction(action) {
+  const db = await openIndexedDB();
+  const transaction = db.transaction(['offlineActions'], 'readwrite');
+  const store = transaction.objectStore('offlineActions');
+  
+  await store.add({
+    id: Date.now().toString(),
+    action,
+    timestamp: Date.now()
+  });
 }
 
-// Sync a single action
-async function syncAction(action) {
-  try {
-    const response = await fetch(action.url, {
-      method: action.method,
-      headers: action.headers,
-      body: action.body
-    });
-    
-    if (response.ok) {
-      // Remove from pending actions
-      await removePendingAction(action.id);
-    }
-  } catch (error) {
-    console.error('Service Worker: Failed to sync action', error);
+// Get stored offline actions
+async function getOfflineActions() {
+  const db = await openIndexedDB();
+  const transaction = db.transaction(['offlineActions'], 'readonly');
+  const store = transaction.objectStore('offlineActions');
+  
+  return await store.getAll();
+}
+
+// Remove offline action
+async function removeOfflineAction(id) {
+  const db = await openIndexedDB();
+  const transaction = db.transaction(['offlineActions'], 'readwrite');
+  const store = transaction.objectStore('offlineActions');
+  
+  await store.delete(id);
+}
+
+// Perform offline action
+async function performOfflineAction(action) {
+  const response = await fetch(action.url, {
+    method: action.method,
+    headers: action.headers,
+    body: action.body
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
+  
+  return response;
 }
 
-// Remove pending action from IndexedDB
-async function removePendingAction(id) {
-  // This would typically remove from IndexedDB
-  console.log('Service Worker: Removed pending action', id);
+// Open IndexedDB for offline storage
+async function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ClaimsoOfflineDB', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      // Create object store for offline actions
+      if (!db.objectStoreNames.contains('offlineActions')) {
+        const store = db.createObjectStore('offlineActions', { keyPath: 'id' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+      
+      // Create object store for cached data
+      if (!db.objectStoreNames.contains('cachedData')) {
+        const store = db.createObjectStore('cachedData', { keyPath: 'key' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+    };
+  });
 }
 
 // Push notification handling
 self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push notification received', event);
+  console.log('Service Worker: Push notification received');
   
   const options = {
-    body: event.data ? event.data.text() : 'You have a new notification from Claimso',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    body: event.data ? event.data.text() : 'New notification from Claimso',
+    icon: '/logos/default.svg',
+    badge: '/logos/default.svg',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -321,13 +320,13 @@ self.addEventListener('push', (event) => {
     actions: [
       {
         action: 'explore',
-        title: 'View Details',
-        icon: '/icons/checkmark.png'
+        title: 'View',
+        icon: '/logos/default.svg'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/icons/xmark.png'
+        icon: '/logos/default.svg'
       }
     ]
   };
@@ -339,22 +338,13 @@ self.addEventListener('push', (event) => {
 
 // Notification click handling
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked', event);
+  console.log('Service Worker: Notification clicked', event.action);
   
   event.notification.close();
   
   if (event.action === 'explore') {
-    // Open the app
     event.waitUntil(
-      clients.openWindow('/dashboard')
-    );
-  } else if (event.action === 'close') {
-    // Just close the notification
-    event.notification.close();
-  } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/dashboard')
+      clients.openWindow('/')
     );
   }
 });
@@ -370,33 +360,47 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CACHE_URLS') {
     event.waitUntil(
       caches.open(DYNAMIC_CACHE)
-        .then((cache) => {
-          return cache.addAll(event.data.urls);
-        })
+        .then((cache) => cache.addAll(event.data.urls))
+    );
+  }
+  
+  if (event.data && event.data.type === 'DELETE_CACHE') {
+    event.waitUntil(
+      caches.delete(event.data.cacheName)
     );
   }
 });
 
 // Periodic background sync (if supported)
 self.addEventListener('periodicsync', (event) => {
-  console.log('Service Worker: Periodic sync', event.tag);
+  console.log('Service Worker: Periodic sync triggered', event.tag);
   
-  if (event.tag === 'content-sync') {
-    event.waitUntil(syncContent());
+  if (event.tag === 'periodic-sync') {
+    event.waitUntil(performPeriodicSync());
   }
 });
 
-async function syncContent() {
+// Perform periodic sync
+async function performPeriodicSync() {
   try {
-    // Sync content in the background
-    console.log('Service Worker: Syncing content...');
-    
-    // This could include:
-    // - Syncing warranty expiration dates
-    // - Updating product information
-    // - Fetching new notifications
-    
+    // Sync data in the background
+    await syncUserData();
+    await updateCachedData();
   } catch (error) {
     console.error('Service Worker: Periodic sync failed', error);
   }
-} 
+}
+
+// Sync user data
+async function syncUserData() {
+  // This would sync user data when connection is available
+  console.log('Service Worker: Syncing user data');
+}
+
+// Update cached data
+async function updateCachedData() {
+  // This would update cached data in the background
+  console.log('Service Worker: Updating cached data');
+}
+
+console.log('Service Worker: Loaded successfully'); 

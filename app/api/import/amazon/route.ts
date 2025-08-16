@@ -199,13 +199,28 @@ async function importAmazonHistory(request: ImportRequest): Promise<ImportRespon
     
     // Process and store the scraped products in Supabase
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl) {
       throw new Error('Missing Supabase configuration')
     }
     
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Generate agent token for secure database access
+    const { generateAgentToken } = await import('@/lib/supabase/agent-auth');
+    const agentToken = await generateAgentToken({
+      agentId: 'amazon-import-' + Date.now(),
+      agentType: 'retailer-api',
+      permissions: ['read:products', 'create:products', 'update:users'],
+      userId: request.user_id
+    });
+    
+    const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${agentToken}`,
+        },
+      },
+    });
+    
     let imported = 0
     let skipped = 0
     
@@ -270,30 +285,26 @@ async function importAmazonHistory(request: ImportRequest): Promise<ImportRespon
     }
     
     // Update user's import history
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey)
-      
-      await supabase
-        .from('import_history')
-        .insert([{
-          user_id: request.user_id,
-          import_type: 'amazon_oauth',
-          total_items: products.length,
-          imported_items: imported,
-          skipped_items: skipped,
-          error_count: 0,
-          import_id: result.data!.import_id,
-          created_at: new Date().toISOString()
-        }])
-      
-      await supabase
-        .from('users')
-        .update({ 
-          last_amazon_import: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', request.user_id)
-    }
+    await supabase
+      .from('import_history')
+      .insert([{
+        user_id: request.user_id,
+        import_type: 'amazon_oauth',
+        total_items: products.length,
+        imported_items: imported,
+        skipped_items: skipped,
+        error_count: 0,
+        import_id: result.data!.import_id,
+        created_at: new Date().toISOString()
+      }])
+    
+    await supabase
+      .from('users')
+      .update({ 
+        last_amazon_import: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', request.user_id)
     
     // Compile final results
     result.success = true

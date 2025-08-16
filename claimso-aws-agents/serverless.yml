@@ -34,6 +34,10 @@ functions:
     handler: dist/handlers/email-monitoring-agent.handler
     events:
       - schedule: rate(1 hour)
+      - http:
+          path: /email-monitoring
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -62,6 +66,10 @@ functions:
     events:
       - sqs:
           arn: !GetAtt ProductEnrichmentQueue.Arn
+      - http:
+          path: /product-intelligence
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -70,6 +78,10 @@ functions:
     events:
       - sqs:
           arn: !GetAtt WarrantyEnrichmentQueue.Arn
+      - http:
+          path: /warranty-intelligence
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -77,6 +89,10 @@ functions:
     handler: dist/handlers/warranty-claim-agent.handler
     events:
       - schedule: rate(1 day)
+      - http:
+          path: /warranty-claim
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -84,13 +100,38 @@ functions:
     handler: dist/handlers/cash-extraction-agent.handler
     events:
       - schedule: rate(1 day)
+      - http:
+          path: /cash-extraction
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
+
+  masterOrchestrator:
+    handler: dist/handlers/master-orchestrator.handler
+    events:
+      - http:
+          path: /orchestrator
+          method: post
+          cors: true
+      - http:
+          path: /orchestrator/health
+          method: get
+          cors: true
+    timeout: 300
+    memorySize: 1024
+    environment:
+      ORCHESTRATOR_LOG_LEVEL: ${env:ORCHESTRATOR_LOG_LEVEL, 'info'}
+      MAX_CONCURRENT_WORKFLOWS: ${env:MAX_CONCURRENT_WORKFLOWS, '10'}
 
   retailerAPIAgent:
     handler: dist/handlers/retailer-api-agent.handler
     events:
       - schedule: rate(1 hour)
+      - http:
+          path: /retailer-api
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -98,6 +139,10 @@ functions:
     handler: dist/handlers/bank-integration-agent.handler
     events:
       - schedule: rate(2 hours)
+      - http:
+          path: /bank-integration
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 
@@ -105,6 +150,10 @@ functions:
     handler: dist/handlers/duplicate-detection-agent.handler
     events:
       - schedule: rate(6 hours)
+      - http:
+          path: /duplicate-detection
+          method: post
+          cors: true
     timeout: 300
     memorySize: 512
 

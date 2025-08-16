@@ -1,7 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { createProduct } from '../shared/database';
+import { createProduct, type AgentType } from '../shared/database';
 import { generateOrderNumber, logAgentActivity } from '../shared/utils';
 import { PurchaseEvent } from '../shared/types';
+
+const AGENT_TYPE: AgentType = 'browser-extension';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const agentName = 'BrowserExtensionAgent';
@@ -168,7 +170,7 @@ async function createProductFromPurchaseEvent(purchaseEvent: PurchaseEvent): Pro
     source: purchaseEvent.source // Track the capture source
   };
 
-  return await createProduct(product);
+  return await createProduct(AGENT_TYPE, product, purchaseEvent.userId);
 }
 
 function extractBrandFromProduct(productName: string): string {

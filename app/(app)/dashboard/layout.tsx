@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import TopNavigation from '@/components/shared/TopNavigation';
+import { UIStateProvider } from '@/components/layout/UIStateContext';
+import Header from '@/components/layout/Header';
+import Sidebar from '@/components/layout/Sidebar';
+import MainContent from '@/components/layout/MainContent';
+import BottomNavBar from '@/components/layout/BottomNavBar';
 
 export default async function AppLayout({
   children,
@@ -63,21 +67,26 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      {/* Top Navigation */}
-      <TopNavigation 
-        user={user} 
-        profile={profile} 
-        stats={stats}
-      />
-      
-      {/* Main Content Area */}
-      <div className="min-h-screen">
-        {/* Page Content */}
-        <main className="p-6 max-w-7xl mx-auto">
+    <UIStateProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <Header 
+          user={user} 
+          profile={profile} 
+          stats={stats}
+        />
+        
+        {/* Sidebar */}
+        <Sidebar stats={stats} />
+        
+        {/* Main Content */}
+        <MainContent>
           {children}
-        </main>
+        </MainContent>
+        
+        {/* Bottom Navigation (Mobile) */}
+        <BottomNavBar stats={stats} />
       </div>
-    </div>
+    </UIStateProvider>
   );
 }

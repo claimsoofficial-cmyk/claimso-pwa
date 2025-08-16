@@ -65,12 +65,27 @@ export async function updateProductDetails(formData: FormData): Promise<UpdatePr
       notes: notes?.trim().slice(0, 500) || null,
     };
 
-    // CRITICAL SECURITY: Verify user owns the product using a service role client
-    // We need the service role key to check ownership without being blocked by RLS
+    // CRITICAL SECURITY: Verify user owns the product using secure agent authentication
+    // We need to use the secure agent system to check ownership without being blocked by RLS
+    const { generateAgentToken } = await import('@/lib/supabase/agent-auth');
+    const agentToken = await generateAgentToken({
+      agentId: 'product-verification-' + Date.now(),
+      agentType: 'duplicate-detection',
+      permissions: ['read:products'],
+      userId: userId
+    });
+
     const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { 
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: {
+          headers: {
+            Authorization: `Bearer ${agentToken}`,
+          },
+        },
+      }
     );
     
     const { data: existingProduct, error: fetchError } = await supabaseAdmin

@@ -1,6 +1,8 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { updateProduct } from '../shared/database';
+import { getActiveUsers, getProductsByUserId, updateProduct, type AgentType } from '../shared/database';
 import { logAgentActivity } from '../shared/utils';
+
+const AGENT_TYPE: AgentType = 'warranty-intelligence';
 
 export const handler = async (event: SQSEvent): Promise<void> => {
   const agentName = 'WarrantyIntelligenceAgent';
@@ -61,7 +63,7 @@ async function processWarrantyResearch(record: SQSRecord): Promise<void> {
     }
 
     // Update product with warranty information
-    const updateSuccess = await updateProduct(productId, {
+    const updateSuccess = await updateProduct(AGENT_TYPE, productId, {
       warranty_info: warrantyData,
       warranty_length_months: warrantyData.manufacturer_warranty_months || 12
     });
