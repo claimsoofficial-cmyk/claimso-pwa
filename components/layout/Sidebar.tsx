@@ -56,39 +56,39 @@ export default function Sidebar({ stats }: SidebarProps) {
     },
     {
       name: 'Warranties',
-      href: '/warranties',
+      href: '/dashboard',
       icon: Shield,
       badge: stats?.activeWarranties,
       description: 'Track warranty coverage'
     },
     {
       name: 'Quick Cash',
-      href: '/quick-cash',
+      href: '/dashboard',
       icon: DollarSign,
       description: 'Get cash for your products'
     },
     {
       name: 'Analytics',
-      href: '/analytics',
+      href: '/dashboard',
       icon: BarChart3,
       description: 'Product insights and trends'
     },
     {
       name: 'Claims',
-      href: '/claims',
+      href: '/dashboard',
       icon: FileText,
       badge: stats?.pendingClaims,
       description: 'Warranty claims and tracking'
     },
     {
       name: 'Partners',
-      href: '/partners',
+      href: '/dashboard',
       icon: Users,
       description: 'Partner network and offers'
     },
     {
       name: 'Market Trends',
-      href: '/market-trends',
+      href: '/dashboard',
       icon: TrendingUp,
       description: 'Product value insights'
     }
@@ -120,7 +120,7 @@ export default function Sidebar({ stats }: SidebarProps) {
         {/* Add Product Button */}
         <div className="p-4 border-b border-gray-100">
           <Link
-            href="/products/add"
+            href="/products"
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
               "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700",

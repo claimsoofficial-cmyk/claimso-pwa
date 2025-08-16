@@ -313,22 +313,22 @@ class NotificationService {
     switch (action) {
       case 'view':
         if (notificationData.type === 'warranty-expiry') {
-          window.location.href = `/warranties?product=${notificationData.productName}`;
+          window.location.href = `/dashboard?product=${notificationData.productName}`;
         } else if (notificationData.type === 'new-product') {
           window.location.href = `/products?search=${notificationData.productName}`;
         } else if (notificationData.type === 'claim-update') {
-          window.location.href = `/claims/${notificationData.claimId}`;
+          window.location.href = `/dashboard?claim=${notificationData.claimId}`;
         } else if (notificationData.type === 'quick-cash') {
           window.location.href = `/products?quick-cash=${notificationData.productName}`;
         }
         break;
       
       case 'extend':
-        window.location.href = `/warranties/extended?product=${notificationData.productName}`;
+        window.location.href = `/dashboard?warranty=extended&product=${notificationData.productName}`;
         break;
       
       case 'accept':
-        window.location.href = `/quick-cash/accept?product=${notificationData.productName}&amount=${notificationData.amount}`;
+        window.location.href = `/dashboard?quick-cash=accept&product=${notificationData.productName}&amount=${notificationData.amount}`;
         break;
       
       default:

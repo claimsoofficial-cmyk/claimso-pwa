@@ -130,7 +130,7 @@ export default function SearchBar() {
             type: 'warranty',
             title: `${warranty.warranty_type} Warranty`,
             subtitle: warranty.products?.[0]?.product_name || 'Unknown Product',
-            href: `/warranties/${warranty.id}`,
+                            href: `/dashboard?warranty=${warranty.id}`,
             icon: Shield,
             badge: 'Warranty'
           });
@@ -152,7 +152,7 @@ export default function SearchBar() {
             type: 'claim',
             title: `${claim.claim_type} Claim`,
             subtitle: claim.products?.[0]?.product_name || 'Unknown Product',
-            href: `/claims/${claim.id}`,
+                            href: `/dashboard?claim=${claim.id}`,
             icon: FileText,
             badge: claim.status
           });

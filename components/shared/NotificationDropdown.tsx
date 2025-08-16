@@ -134,7 +134,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
         title: 'Samsung TV repair quote ready',
         message: 'Your repair quote for Samsung TV is ready. Estimated cost: $89.',
         priority: 'medium',
-        action_url: '/claims/samsung-tv-repair',
+                    action_url: '/dashboard?claim=samsung-tv-repair',
         action_text: 'View Quote',
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4 hours ago
         read: true,

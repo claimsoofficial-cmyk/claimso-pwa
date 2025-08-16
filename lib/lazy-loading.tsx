@@ -88,8 +88,7 @@ export const LazyAdmin = createLazyComponent(() => import('@/app/(app)/admin/dat
 
 // Modal components
 export const LazyEditProductModal = createLazyComponent(() => import('@/components/domain/products/EditProductModal'));
-export const LazyClaimFilingModal = createLazyComponent(() => import('@/components/domain/products/ClaimFilingModal'));
-export const LazyMaintenanceModal = createLazyComponent(() => import('@/components/domain/products/MaintenanceModal'));
+// Removed dead code components
 export const LazyQuickCashModal = createLazyComponent(() => import('@/components/domain/products/QuickCashModal'));
 export const LazyWarrantyDatabaseModal = createLazyComponent(() => import('@/components/domain/products/WarrantyDatabaseModal'));
 

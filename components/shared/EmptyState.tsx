@@ -69,7 +69,7 @@ export default function EmptyState({
           defaultDescription: 'Start by adding your first product to track warranties and manage your purchases.',
           defaultPrimaryAction: {
             label: 'Add Your First Product',
-            href: '/products/add'
+            href: '/products'
           },
           defaultSecondaryActions: [
             {
@@ -97,7 +97,7 @@ export default function EmptyState({
           defaultDescription: 'Add products to see their warranty information and track expiration dates.',
           defaultPrimaryAction: {
             label: 'Add Products',
-            href: '/products/add'
+            href: '/products'
           },
           defaultSecondaryActions: [
             {
@@ -107,7 +107,7 @@ export default function EmptyState({
             },
             {
               label: 'Get Extended Warranty',
-              href: '/warranties/extended',
+              href: '/dashboard',
               icon: Shield
             }
           ],
@@ -125,7 +125,7 @@ export default function EmptyState({
           defaultDescription: 'When you need to file a warranty claim, we\'ll guide you through the process step by step.',
           defaultPrimaryAction: {
             label: 'File New Claim',
-            href: '/claims/new'
+            href: '/dashboard'
           },
           defaultSecondaryActions: [
             {
@@ -153,7 +153,7 @@ export default function EmptyState({
           defaultDescription: 'Add products and track warranties to see spending patterns and coverage insights.',
           defaultPrimaryAction: {
             label: 'Add Products',
-            href: '/products/add'
+            href: '/products'
           },
           defaultSecondaryActions: [
             {

@@ -189,7 +189,7 @@ export default function ProductsPage() {
         </div>
         
         <Button 
-          onClick={() => window.location.href = '/products/add'}
+                      onClick={() => window.location.href = '/products'}
           className="hover-lift"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -388,7 +388,7 @@ export default function ProductsPage() {
               }
             </p>
             <Button 
-              onClick={() => window.location.href = '/products/add'}
+              onClick={() => window.location.href = '/products'}
               className="hover-lift"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -413,7 +413,7 @@ export default function ProductsPage() {
               </div>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/analytics'}
+                onClick={() => window.location.href = '/dashboard'}
                 className="hover-lift"
               >
                 View Analytics

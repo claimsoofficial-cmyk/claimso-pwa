@@ -34,9 +34,7 @@ const STATIC_FILES = [
 // API endpoints to cache
 const API_ENDPOINTS = [
   '/api/products',
-  '/api/warranties',
   '/api/user-connections',
-  '/api/analytics',
   '/api/notifications',
 ];
 

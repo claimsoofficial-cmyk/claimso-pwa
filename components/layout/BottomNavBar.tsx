@@ -48,12 +48,12 @@ export default function BottomNavBar({ stats }: BottomNavBarProps) {
     },
     {
       name: 'Quick Cash',
-      href: '/quick-cash',
+      href: '/dashboard',
       icon: DollarSign
     },
     {
       name: 'Analytics',
-      href: '/analytics',
+      href: '/dashboard',
       icon: BarChart3
     }
   ];
@@ -114,7 +114,7 @@ export default function BottomNavBar({ stats }: BottomNavBarProps) {
 
       {/* Floating Action Button for Add Product */}
       <Link
-        href="/products/add"
+        href="/products"
         className={cn(
           "fixed bottom-20 right-4 z-50",
           "w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg",
