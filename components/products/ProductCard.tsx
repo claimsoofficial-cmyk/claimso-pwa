@@ -17,7 +17,9 @@ import {
   Edit, 
   Eye,
   Share2,
-  Trash2
+  Trash2,
+  FileText,
+  Calendar
 } from 'lucide-react';
 
 import type { Product } from '@/lib/types/common';
@@ -74,11 +76,12 @@ export default function ProductCard({ product, onActionClick, viewMode = 'grid' 
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => onActionClick(product.id, 'quick_cash')}
+            title="Quick Cash"
+            className="h-8 w-8"
           >
-            <DollarSign className="h-4 w-4 mr-1" />
-            Quick Cash
+            <DollarSign className="h-4 w-4" />
           </Button>
           
           <DropdownMenu>
@@ -96,6 +99,10 @@ export default function ProductCard({ product, onActionClick, viewMode = 'grid' 
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onActionClick(product.id, 'warranty')}>
                 Warranty Info
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onActionClick(product.id, 'claim')}>
+                <FileText className="h-4 w-4 mr-2" />
+                File Claim
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -134,6 +141,10 @@ export default function ProductCard({ product, onActionClick, viewMode = 'grid' 
               <DropdownMenuItem onClick={() => onActionClick(product.id, 'warranty')}>
                 Warranty Info
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onActionClick(product.id, 'claim')}>
+                <FileText className="h-4 w-4 mr-2" />
+                File Claim
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -161,24 +172,35 @@ export default function ProductCard({ product, onActionClick, viewMode = 'grid' 
           )}
         </div>
 
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-3">
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => onActionClick(product.id, 'quick_cash')}
-            className="flex-1"
+            title="Quick Cash"
+            className="h-8 w-8"
           >
-            <DollarSign className="h-4 w-4 mr-1" />
-            Quick Cash
+            <DollarSign className="h-4 w-4" />
           </Button>
           
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => onActionClick(product.id, 'warranty')}
+            size="icon"
+            onClick={() => onActionClick(product.id, 'claim')}
+            title="File Claim"
+            className="h-8 w-8"
           >
-            <Shield className="h-4 w-4 mr-1" />
-            Warranty
+            <FileText className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onActionClick(product.id, 'calendar')}
+            title="Add to Calendar"
+            className="h-8 w-8"
+          >
+            <Calendar className="h-4 w-4" />
           </Button>
         </div>
       </div>

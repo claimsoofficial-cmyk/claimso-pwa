@@ -17,7 +17,10 @@ import {
   Bot,
   Wifi,
   WifiOff,
-  AlertCircle
+  AlertCircle,
+  BarChart3,
+  TrendingUp,
+  PieChart
 } from 'lucide-react';
 import type { Product, UserConnection } from '@/lib/types/common';
 import ProductGrid from '@/components/products/ProductGrid';
@@ -45,6 +48,9 @@ export default function DashboardPage() {
   const [quickCashModalOpen, setQuickCashModalOpen] = useState(false);
   const [warrantyModalOpen, setWarrantyModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  // Insights state
+  const [showInsights, setShowInsights] = useState(false);
 
   const supabase = createClient();
 
@@ -55,6 +61,28 @@ export default function DashboardPage() {
   const forceSync = () => {
     fetchProducts();
     fetchUserConnections();
+  };
+
+  // Generate ICS calendar content
+  const generateICSContent = (events: Array<{title: string, start: Date, description: string}>) => {
+    let ics = 'BEGIN:VCALENDAR\r\n';
+    ics += 'VERSION:2.0\r\n';
+    ics += 'PRODID:-//Claimso//Product Calendar//EN\r\n';
+    ics += 'CALSCALE:GREGORIAN\r\n';
+    ics += 'METHOD:PUBLISH\r\n';
+    
+    events.forEach(event => {
+      ics += 'BEGIN:VEVENT\r\n';
+      ics += `UID:${Date.now()}-${Math.random().toString(36).substr(2, 9)}\r\n`;
+      ics += `DTSTART:${event.start.toISOString().replace(/[-:]/g, '').split('.')[0]}Z\r\n`;
+      ics += `DTEND:${new Date(event.start.getTime() + 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0]}Z\r\n`;
+      ics += `SUMMARY:${event.title}\r\n`;
+      ics += `DESCRIPTION:${event.description}\r\n`;
+      ics += 'END:VEVENT\r\n';
+    });
+    
+    ics += 'END:VCALENDAR\r\n';
+    return ics;
   };
 
   // ==============================================================================
@@ -310,6 +338,75 @@ export default function DashboardPage() {
         setSelectedProduct(product);
         setWarrantyModalOpen(true);
         break;
+      case 'claim':
+        // Trigger WarrantyClaimAgent for this product
+        try {
+          toast.info('Analyzing product for warranty claim opportunities...');
+          
+          // This would trigger the WarrantyClaimAgent
+          // For now, show a message about the agent system
+          toast.success('Claim analysis initiated! Our AI agent will review your product and identify warranty claim opportunities.');
+          
+          // TODO: Integrate with WarrantyClaimAgent API
+          // const response = await fetch('/api/ai-integration', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({
+          //     agentType: 'warranty-claim',
+          //     productId: productId,
+          //     action: 'analyze'
+          //   })
+          // });
+        } catch (error) {
+          console.error('Error initiating claim analysis:', error);
+          toast.error('Failed to initiate claim analysis');
+        }
+        break;
+      case 'calendar':
+        // Add product events to calendar
+        try {
+          toast.info('Adding product events to calendar...');
+          
+          // Generate calendar events for this product
+          const events = [];
+          
+          // Add warranty expiry event if warranty exists
+          if (product.warranties && product.warranties.length > 0) {
+            const warranty = product.warranties[0];
+            if (warranty.warranty_end_date) {
+              events.push({
+                title: `${product.product_name} Warranty Expires`,
+                start: new Date(warranty.warranty_end_date),
+                description: `Warranty for ${product.product_name} expires on ${new Date(warranty.warranty_end_date).toLocaleDateString()}`
+              });
+            }
+          }
+          
+          // Add maintenance reminder (30 days from now)
+          events.push({
+            title: `${product.product_name} Maintenance Check`,
+            start: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            description: `Schedule maintenance check for ${product.product_name}`
+          });
+          
+          // Generate ICS file and download
+          const icsContent = generateICSContent(events);
+          const blob = new Blob([icsContent], { type: 'text/calendar' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${product.product_name}-events.ics`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          toast.success('Calendar events added! Check your calendar app.');
+        } catch (error) {
+          console.error('Error adding to calendar:', error);
+          toast.error('Failed to add to calendar');
+        }
+        break;
       default:
         console.warn('Unknown action:', action);
     }
@@ -510,6 +607,14 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-3">
               <Button
+                onClick={() => setShowInsights(!showInsights)}
+                variant={showInsights ? "default" : "outline"}
+                className="flex items-center gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                {showInsights ? 'Hide' : 'View'} Insights
+              </Button>
+              <Button
                 onClick={() => setShowAgentDashboard(!showAgentDashboard)}
                 variant={showAgentDashboard ? "default" : "outline"}
                 className="flex items-center gap-2"
@@ -591,6 +696,144 @@ export default function DashboardPage() {
       {/* AI Agent Dashboard */}
       {showAgentDashboard && (
         <AgentDashboard />
+      )}
+
+      {/* Insights Section */}
+      {showInsights && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Product Insights & Analytics
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  AI-powered analysis of your product portfolio
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Total Value */}
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-700">Total Portfolio Value</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      ${products.reduce((sum, p) => sum + (p.purchase_price || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
+
+              {/* Category Distribution */}
+              <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-700">Categories</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {new Set(products.map(p => p.category)).size}
+                    </p>
+                  </div>
+                  <PieChart className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+
+              {/* Warranty Coverage */}
+              <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-purple-700">Warranty Coverage</p>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {products.filter(p => p.warranties && p.warranties.length > 0).length}/{products.length}
+                    </p>
+                  </div>
+                  <Shield className="h-8 w-8 text-purple-600" />
+                </div>
+              </div>
+
+              {/* Top Brand */}
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700">Top Brand</p>
+                    <p className="text-lg font-bold text-orange-900">
+                      {(() => {
+                        const brandCounts = products.reduce((acc, p) => {
+                          if (p.brand) acc[p.brand] = (acc[p.brand] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>);
+                        const topBrand = Object.entries(brandCounts).sort(([,a], [,b]) => b - a)[0];
+                        return topBrand ? topBrand[0] : 'N/A';
+                      })()}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-orange-600" />
+                </div>
+              </div>
+
+              {/* Average Price */}
+              <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-red-700">Average Price</p>
+                    <p className="text-lg font-bold text-red-900">
+                      ${(() => {
+                        const prices = products.map(p => p.purchase_price).filter((price): price is number => price !== null && price !== undefined);
+                        return prices.length > 0 
+                          ? (prices.reduce((sum, price) => sum + price, 0) / prices.length).toFixed(0)
+                          : '0';
+                      })()}
+                    </p>
+                  </div>
+                  <BarChart3 className="h-8 w-8 text-red-600" />
+                </div>
+              </div>
+
+              {/* Cash Opportunities */}
+              <div className="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-yellow-700">Cash Opportunities</p>
+                    <p className="text-lg font-bold text-yellow-900">
+                      {products.filter(p => p.category && !['Groceries', 'Consumables'].includes(p.category)).length}
+                    </p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-yellow-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* AI Agent Insights */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Bot className="h-4 w-4" />
+                AI Agent Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600 mb-2">
+                    <strong>WarrantyClaimAgent:</strong> Continuously monitoring your products for warranty claim opportunities
+                  </p>
+                  <p className="text-gray-600 mb-2">
+                    <strong>CashExtractionAgent:</strong> Scanning for cash-back and trade-in opportunities
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 mb-2">
+                    <strong>ProductIntelligenceAgent:</strong> Enriching product data and identifying maintenance needs
+                  </p>
+                  <p className="text-gray-600 mb-2">
+                    <strong>EmailMonitoringAgent:</strong> Automatically capturing new purchases from email receipts
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Products Section */}

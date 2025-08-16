@@ -9,7 +9,7 @@ const AGENT_JWT_AUDIENCE = 'claimso-agents';
 // Agent types for AWS Lambda functions
 export type AgentType = 'email-monitoring' | 'retailer-api' | 'bank-integration' | 'duplicate-detection' | 
                        'product-intelligence' | 'warranty-intelligence' | 'warranty-claim' | 'cash-extraction' |
-                       'browser-extension' | 'mobile-app';
+                       'browser-extension' | 'mobile-app' | 'calendar';
 
 // Generate JWT token for agent authentication
 async function generateAgentToken(agentType: AgentType, userId?: string): Promise<string> {
@@ -43,7 +43,8 @@ function getAgentPermissions(agentType: AgentType): string[] {
     'warranty-claim': ['read:products', 'create:claims', 'update:claims'],
     'cash-extraction': ['read:products', 'read:market_data', 'create:offers'],
     'browser-extension': ['create:products', 'read:users'],
-    'mobile-app': ['create:products', 'read:users']
+    'mobile-app': ['create:products', 'read:users'],
+    'calendar': ['read:products', 'read:warranties', 'create:calendar_events']
   };
   
   return permissions[agentType] || [];

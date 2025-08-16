@@ -116,48 +116,8 @@ export default function SearchBar() {
         });
       }
 
-      // Search warranties
-      const { data: warranties } = await supabase
-        .from('warranties')
-        .select('id, warranty_type, coverage_details, products(product_name)')
-        .ilike('coverage_details', `%${searchQuery}%`)
-        .limit(3);
-
-      if (warranties) {
-        warranties.forEach(warranty => {
-          searchResults.push({
-            id: warranty.id,
-            type: 'warranty',
-            title: `${warranty.warranty_type} Warranty`,
-            subtitle: warranty.products?.[0]?.product_name || 'Unknown Product',
-                            href: `/dashboard?warranty=${warranty.id}`,
-            icon: Shield,
-            badge: 'Warranty'
-          });
-        });
-      }
-
-      // Search claims
-      const { data: claims } = await supabase
-        .from('claims')
-        .select('id, claim_type, status, products(product_name)')
-        .eq('user_id', user.id)
-        .ilike('claim_type', `%${searchQuery}%`)
-        .limit(3);
-
-      if (claims) {
-        claims.forEach(claim => {
-          searchResults.push({
-            id: claim.id,
-            type: 'claim',
-            title: `${claim.claim_type} Claim`,
-            subtitle: claim.products?.[0]?.product_name || 'Unknown Product',
-                            href: `/dashboard?claim=${claim.id}`,
-            icon: FileText,
-            badge: claim.status
-          });
-        });
-      }
+      // Note: Warranty and claim search removed - these tables don't exist yet
+      // Will be re-enabled when warranty and claim systems are implemented
 
       setResults(searchResults);
     } catch (error) {

@@ -157,6 +157,17 @@ functions:
     timeout: 300
     memorySize: 512
 
+  calendarAgent:
+    handler: dist/handlers/calendar-agent.handler
+    events:
+      - schedule: rate(1 day)
+      - http:
+          path: /calendar
+          method: post
+          cors: true
+    timeout: 300
+    memorySize: 512
+
 resources:
   Resources:
     ProductEnrichmentQueue:
