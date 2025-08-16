@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, ComponentType } from 'react';
-import { LoadingState } from '@/components/shared/LoadingState';
+import LoadingState from '@/components/shared/LoadingState';
 
 // Lazy loading wrapper with error boundary and loading state
 interface LazyComponentProps {
@@ -64,7 +64,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
   return React.forwardRef<React.ComponentRef<T>, React.ComponentProps<T>>((props, ref) => (
     <LazyErrorBoundary fallback={errorFallback}>
       <Suspense fallback={fallback}>
-        <LazyComponent {...props} ref={ref} />
+        <LazyComponent {...(props as any)} />
       </Suspense>
     </LazyErrorBoundary>
   ));
@@ -82,9 +82,9 @@ export function preloadComponent<T extends ComponentType<any>>(
 // Lazy loaded components
 export const LazyDashboard = createLazyComponent(() => import('@/app/(app)/dashboard/page'));
 export const LazyProducts = createLazyComponent(() => import('@/app/(app)/products/page'));
-export const LazyProductDetail = createLazyComponent(() => import('@/app/(app)/products/[id]/page'));
-export const LazySettings = createLazyComponent(() => import('@/app/(app)/settings/page'));
-export const LazyAdmin = createLazyComponent(() => import('@/app/(app)/admin/page'));
+export const LazyProductDetail = createLazyComponent(() => import('@/app/(app)/products/page'));
+export const LazySettings = createLazyComponent(() => import('@/app/(app)/settings/account/page'));
+export const LazyAdmin = createLazyComponent(() => import('@/app/(app)/admin/data-dashboard/page'));
 
 // Modal components
 export const LazyEditProductModal = createLazyComponent(() => import('@/components/domain/products/EditProductModal'));
@@ -101,15 +101,15 @@ export const LazySearchModal = createLazyComponent(() => import('@/components/se
 // Preload functions for critical components
 export const preloadDashboard = preloadComponent(() => import('@/app/(app)/dashboard/page'));
 export const preloadProducts = preloadComponent(() => import('@/app/(app)/products/page'));
-export const preloadSettings = preloadComponent(() => import('@/app/(app)/settings/page'));
+export const preloadSettings = preloadComponent(() => import('@/app/(app)/settings/account/page'));
 
 // Route-based code splitting
 export const routeComponents = {
   dashboard: () => import('@/app/(app)/dashboard/page'),
   products: () => import('@/app/(app)/products/page'),
-  productDetail: () => import('@/app/(app)/products/[id]/page'),
-  settings: () => import('@/app/(app)/settings/page'),
-  admin: () => import('@/app/(app)/admin/page'),
+  productDetail: () => import('@/app/(app)/products/page'),
+  settings: () => import('@/app/(app)/settings/account/page'),
+  admin: () => import('@/app/(app)/admin/data-dashboard/page'),
   cart: () => import('@/app/(app)/cart/page'),
   share: () => import('@/app/(app)/share/product/[productId]/page'),
 } as const;

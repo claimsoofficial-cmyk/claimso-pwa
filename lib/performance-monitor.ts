@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 // Performance Monitoring System for Claimso
 // Tracks Core Web Vitals, custom metrics, and performance analytics
 
@@ -80,7 +82,7 @@ class PerformanceMonitor {
     // First Input Delay (FID)
     this.observeMetric('first-input', (entries) => {
       const firstInput = entries[0];
-      this.metrics.fid = firstInput.processingStart - firstInput.startTime;
+      this.metrics.fid = (firstInput as any).processingStart - firstInput.startTime;
       this.recordEvent('fid', this.metrics.fid);
     });
 
@@ -185,7 +187,7 @@ class PerformanceMonitor {
         this.recordEvent('apiError', responseTime, {
           url: args[0],
           method: args[1]?.method || 'GET',
-          error: error.message,
+          error: (error as Error).message,
         });
         
         throw error;
@@ -237,8 +239,8 @@ class PerformanceMonitor {
     // Send to your analytics service
     if (process.env.NODE_ENV === 'production') {
       // Example: Google Analytics 4
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'performance_metric', {
+      if (typeof (window as any).gtag !== 'undefined') {
+        (window as any).gtag('event', 'performance_metric', {
           metric_name: event.type,
           metric_value: event.value,
           timestamp: event.timestamp,
@@ -448,10 +450,10 @@ export type { PerformanceMetrics, PerformanceEvent };
 
 // React hook for performance monitoring
 export const usePerformanceMonitor = () => {
-  const [metrics, setMetrics] = React.useState<PerformanceMetrics>(performanceMonitor.getMetrics());
-  const [score, setScore] = React.useState<number>(performanceMonitor.getPerformanceScore());
+        const [metrics, setMetrics] = useState<PerformanceMetrics>(performanceMonitor.getMetrics());
+  const [score, setScore] = useState<number>(performanceMonitor.getPerformanceScore());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const updateMetrics = () => {
       setMetrics(performanceMonitor.getMetrics());
       setScore(performanceMonitor.getPerformanceScore());

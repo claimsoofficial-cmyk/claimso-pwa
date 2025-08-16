@@ -72,7 +72,7 @@ async function productIntelligenceAgentExample() {
         ai_enrichment_score: 0.95
       };
       
-      const updatedProduct = await agentDb.updateProduct(productId, enrichedData);
+      const updatedProduct = await agentDb.updateProduct(productId as string, enrichedData);
       console.log('✅ Product enriched securely:', updatedProduct.id);
     }
     

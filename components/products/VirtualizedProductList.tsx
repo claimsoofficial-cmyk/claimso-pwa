@@ -13,6 +13,7 @@ interface VirtualizedProductListProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   loading?: boolean;
+  onActionClick?: (productId: string, action: string) => void;
 }
 
 const ITEM_HEIGHT = 280; // Height of each product card
@@ -24,7 +25,8 @@ export const VirtualizedProductList: React.FC<VirtualizedProductListProps> = ({
   containerHeight = CONTAINER_HEIGHT,
   onLoadMore,
   hasMore = false,
-  loading = false
+  loading = false,
+  onActionClick
 }) => {
   const [listRef, setListRef] = useState<List | null>(null);
   const { ref: loadMoreRef, inView } = useInView({
@@ -53,7 +55,10 @@ export const VirtualizedProductList: React.FC<VirtualizedProductListProps> = ({
 
     return (
       <div style={style} className="px-2 py-1">
-        <ProductCard product={product} />
+        <ProductCard 
+          product={product} 
+          onActionClick={onActionClick || (() => {})}
+        />
       </div>
     );
   }, [products]);
@@ -78,18 +83,8 @@ export const VirtualizedProductList: React.FC<VirtualizedProductListProps> = ({
   // Handle keyboard navigation
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (!listRef) return;
-
-    const currentIndex = Math.floor(listRef.state.scrollOffset / itemHeight);
     
     switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        scrollToItem(currentIndex + 1);
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        scrollToItem(currentIndex - 1);
-        break;
       case 'Home':
         event.preventDefault();
         scrollToTop();
@@ -99,7 +94,7 @@ export const VirtualizedProductList: React.FC<VirtualizedProductListProps> = ({
         scrollToItem(products.length - 1);
         break;
     }
-  }, [listRef, itemHeight, scrollToItem, scrollToTop, products.length]);
+  }, [listRef, scrollToItem, scrollToTop, products.length]);
 
   if (products.length === 0) {
     return (
@@ -121,6 +116,7 @@ export const VirtualizedProductList: React.FC<VirtualizedProductListProps> = ({
       <List
         ref={setListRef}
         height={containerHeight}
+        width="100%"
         itemCount={products.length}
         itemSize={itemHeight}
         itemData={itemData}

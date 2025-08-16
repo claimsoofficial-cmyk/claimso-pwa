@@ -358,7 +358,7 @@ export const useCacheManagement = () => {
         totalQueries: queries.length,
         activeQueries: queries.filter(q => q.isActive()).length,
         staleQueries: queries.filter(q => q.isStale()).length,
-        fetchingQueries: queries.filter(q => q.isFetching()).length,
+        fetchingQueries: queries.filter(q => q.state.status === 'pending').length,
       };
     },
   };
