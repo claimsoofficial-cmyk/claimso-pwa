@@ -180,6 +180,21 @@ async function handleStaticRequest(request) {
 
 // Handle page requests with network-first strategy
 async function handlePageRequest(request) {
+  const url = new URL(request.url);
+  
+  // Don't intercept auth-related pages or API routes
+  if (url.pathname.startsWith('/auth/') || 
+      url.pathname.includes('callback') || 
+      url.pathname.includes('error') ||
+      url.pathname.startsWith('/api/')) {
+    return fetch(request);
+  }
+
+  // Don't intercept the root page during auth flow
+  if (url.pathname === '/' && url.searchParams.has('auth_required')) {
+    return fetch(request);
+  }
+
   try {
     // Try network first
     const networkResponse = await fetch(request);
@@ -200,8 +215,13 @@ async function handlePageRequest(request) {
     return cachedResponse;
   }
 
-  // Return offline page
-  return caches.match('/offline.html');
+  // Only return offline page for non-auth pages and when we're sure we're offline
+  if (!url.pathname.startsWith('/auth/') && !navigator.onLine) {
+    return caches.match('/offline.html');
+  }
+  
+  // For auth pages or when online, let the request fail normally
+  throw new Error('Network request failed');
 }
 
 // Background sync for offline actions
