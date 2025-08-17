@@ -1,2 +1,73 @@
 # Exclude AWS agents from Vercel deployment
 claimso-aws-agents/
+
+# Exclude Playwright testing files and dependencies
+playwright-report/
+playwright/.cache/
+test-results/
+playwright.config.*
+tests/
+e2e/
+__tests__/
+*.test.*
+*.spec.*
+
+# Exclude MCP server files and configurations
+.mcp/
+mcp-servers/
+*.mcp.json
+mcp-config/
+
+# Exclude test files and documentation
+test-*.js
+test-*.ts
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test-report.json
+
+# Exclude development and documentation files
+*.md
+docs/
+documentation/
+
+# Exclude Playwright packages and browsers
+@playwright/
+node_modules/@playwright/
+node_modules/playwright/
+
+# Exclude development tools and analyzers
+lighthouse-report/
+bundle-analysis/
+coverage/
+.nyc_output/
+
+# Exclude CI/CD and development configs
+.github/
+.gitlab-ci.yml
+.circleci/
+.travis.yml
+azure-pipelines.yml
+
+# Exclude local development files
+.env.local
+.env.development
+.env.test
+.env.staging
+
+# Exclude IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

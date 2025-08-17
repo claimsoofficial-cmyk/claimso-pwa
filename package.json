@@ -6,7 +6,25 @@
     "dev": "next dev",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=2048 next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
+    "lighthouse:prod": "lighthouse https://claimso-dh0aoxncy-claimsos-projects.vercel.app --output=html --output-path=./lighthouse-report-prod.html",
+    "analyze": "cross-env ANALYZE=true next build",
+    "analyze:bundle": "webpack-bundle-analyzer .next/static/chunks/*.js",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:fix": "npm audit fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "mcp:test": "node scripts/test-mcp-integration.js",
+    "mcp:setup": "node scripts/setup-mcp-servers.js",
+    "performance:test": "node scripts/performance-test.js",
+    "performance:monitor": "node scripts/performance-monitor.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -48,8 +66,10 @@
     "@eslint/eslintrc": "^3",
     "@eslint/js": "^9.33.0",
     "@next/bundle-analyzer": "^15.4.6",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-window": "^1.8.8",
@@ -60,9 +80,12 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.3.0",
+    "lighthouse": "^12.8.1",
+    "node-fetch": "^3.3.2",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5",
-    "typescript-eslint": "^8.39.0"
+    "typescript-eslint": "^8.39.0",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }
