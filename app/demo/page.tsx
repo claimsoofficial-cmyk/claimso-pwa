@@ -273,6 +273,69 @@ const CALENDAR_EVENTS = [
   }
 ];
 
+const DOCUMENTS = [
+  {
+    id: '1',
+    type: 'receipt',
+    name: 'Amazon MacBook Pro Receipt',
+    product: 'MacBook Pro 16" M3 Max',
+    date: '2024-01-15',
+    size: '245 KB',
+    status: 'processed',
+    icon: '📄'
+  },
+  {
+    id: '2',
+    type: 'warranty',
+    name: 'AppleCare+ Warranty Document',
+    product: 'MacBook Pro 16" M3 Max',
+    date: '2024-01-15',
+    size: '1.2 MB',
+    status: 'active',
+    icon: '🛡️'
+  },
+  {
+    id: '3',
+    type: 'manual',
+    name: 'Sony Headphones User Manual',
+    product: 'Sony WH-1000XM5 Headphones',
+    date: '2024-02-10',
+    size: '3.1 MB',
+    status: 'archived',
+    icon: '📖'
+  },
+  {
+    id: '4',
+    type: 'service',
+    name: 'Dyson Service Record',
+    product: 'Dyson V15 Detect Absolute',
+    date: '2024-03-01',
+    size: '567 KB',
+    status: 'processed',
+    icon: '🔧'
+  },
+  {
+    id: '5',
+    type: 'receipt',
+    name: 'Best Buy Headphones Receipt',
+    product: 'Sony WH-1000XM5 Headphones',
+    date: '2024-02-10',
+    size: '189 KB',
+    status: 'processed',
+    icon: '📄'
+  },
+  {
+    id: '6',
+    type: 'warranty',
+    name: 'Sony Extended Warranty',
+    product: 'Sony WH-1000XM5 Headphones',
+    date: '2024-02-10',
+    size: '892 KB',
+    status: 'active',
+    icon: '🛡️'
+  }
+];
+
 const RETAILERS = [
   { name: 'Amazon', status: 'connected', icon: '🛒', lastSync: '2 hours ago' },
   { name: 'Best Buy', status: 'connected', icon: '📱', lastSync: '1 day ago' },
@@ -297,6 +360,7 @@ export default function DemoPage() {
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [showEmailReceiptModal, setShowEmailReceiptModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -338,6 +402,9 @@ export default function DemoPage() {
         break;
       case 'calendar':
         setShowCalendarModal(true);
+        break;
+      case 'documents':
+        setShowDocumentsModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -805,6 +872,127 @@ export default function DemoPage() {
     </div>
   );
 
+  // Documents Modal
+  const DocumentsModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Document Vault</h2>
+            <Button variant="ghost" onClick={() => setShowDocumentsModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">
+            All your receipts, warranties, manuals, and service records in one secure place
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Document Upload */}
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Upload className="h-8 w-8 text-green-600" />
+                  <h3 className="text-lg font-semibold text-green-900">Upload Documents</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-dashed border-gray-300">
+                    <div className="text-center">
+                      <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-sm font-medium text-gray-900 mb-1">Drop files here or click to upload</p>
+                      <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Supported document types:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Receipts</Badge>
+                      <Badge variant="outline">Warranties</Badge>
+                      <Badge variant="outline">Manuals</Badge>
+                      <Badge variant="outline">Service Records</Badge>
+                      <Badge variant="outline">Invoices</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Document Stats */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <BarChart3 className="h-8 w-8 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-blue-900">Document Stats</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-blue-900">6</div>
+                      <div className="text-xs text-blue-700">Total Documents</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-green-900">4</div>
+                      <div className="text-xs text-green-700">Processed</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-purple-900">2</div>
+                      <div className="text-xs text-purple-700">Active Warranties</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-orange-900">6.2 MB</div>
+                      <div className="text-xs text-orange-700">Total Size</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Document List */}
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <h3 className="text-lg font-semibold">All Documents</h3>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {DOCUMENTS.map((doc) => (
+                    <div key={doc.id} className="p-4 bg-gray-50 rounded-lg border hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-2xl">{doc.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{doc.name}</h4>
+                          <p className="text-xs text-gray-600">{doc.product}</p>
+                        </div>
+                        <Badge variant={doc.status === 'active' ? 'default' : doc.status === 'processed' ? 'secondary' : 'outline'}>
+                          {doc.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{doc.date}</span>
+                        <span>{doc.size}</span>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <FileText className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <Upload className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   // Calendar Modal
   const CalendarModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1210,6 +1398,15 @@ export default function DemoPage() {
                   <Calendar className="h-4 w-4" />
                   Calendar
                 </Button>
+                <Button
+                  onClick={() => handleAction('documents')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Documents
+                </Button>
                 <Button 
                   onClick={() => handleAction('refresh')} 
                   variant="outline" 
@@ -1492,6 +1689,7 @@ export default function DemoPage() {
       {showRepairModal && <RepairModal />}
       {showEmailReceiptModal && <EmailReceiptModal />}
       {showCalendarModal && <CalendarModal />}
+      {showDocumentsModal && <DocumentsModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
