@@ -50,6 +50,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isLoggedIn = !!session && !error
 
+  // Handle demo route - allow access without authentication
+  if (pathname === '/demo') {
+    console.log('Demo page accessed - no authentication required')
+    return NextResponse.next()
+  }
+
   // Handle dashboard routes - redirect to homepage if not authenticated
   if (pathname.startsWith('/dashboard')) {
     if (!isLoggedIn) {
@@ -142,6 +148,7 @@ export const config = {
     // --- Application Routes ---
     // Protect the core authenticated user experience
     '/', // Protect the homepage to redirect logged-in users to the dashboard
+    '/demo', // Demo page for VC presentation
     '/dashboard',
     '/dashboard/:path*',
     '/settings/:path*', // Assuming a future settings page
