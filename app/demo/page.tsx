@@ -336,6 +336,53 @@ const DOCUMENTS = [
   }
 ];
 
+const PRICE_ALERTS = [
+  {
+    id: '1',
+    product: 'Samsung 65" QLED 4K TV',
+    currentPrice: 1299,
+    originalPrice: 1499,
+    priceDrop: 200,
+    percentage: 13,
+    retailer: 'Best Buy',
+    status: 'active',
+    icon: '📺'
+  },
+  {
+    id: '2',
+    product: 'Sony WH-1000XM5 Headphones',
+    currentPrice: 349,
+    originalPrice: 399,
+    priceDrop: 50,
+    percentage: 13,
+    retailer: 'Amazon',
+    status: 'active',
+    icon: '🎧'
+  },
+  {
+    id: '3',
+    product: 'Dyson V15 Detect Absolute',
+    currentPrice: 649,
+    originalPrice: 749,
+    priceDrop: 100,
+    percentage: 13,
+    retailer: 'Target',
+    status: 'expired',
+    icon: '🧹'
+  },
+  {
+    id: '4',
+    product: 'iPhone 15 Pro Max',
+    currentPrice: 1099,
+    originalPrice: 1199,
+    priceDrop: 100,
+    percentage: 8,
+    retailer: 'Verizon',
+    status: 'active',
+    icon: '📱'
+  }
+];
+
 const RETAILERS = [
   { name: 'Amazon', status: 'connected', icon: '🛒', lastSync: '2 hours ago' },
   { name: 'Best Buy', status: 'connected', icon: '📱', lastSync: '1 day ago' },
@@ -361,6 +408,7 @@ export default function DemoPage() {
   const [showEmailReceiptModal, setShowEmailReceiptModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [showPriceTrackingModal, setShowPriceTrackingModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -405,6 +453,9 @@ export default function DemoPage() {
         break;
       case 'documents':
         setShowDocumentsModal(true);
+        break;
+      case 'prices':
+        setShowPriceTrackingModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -866,6 +917,147 @@ export default function DemoPage() {
               <Shield className="h-4 w-4 mr-2" />
               File Warranty Claim
             </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Price Tracking Modal
+  const PriceTrackingModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Price Tracking</h2>
+            <Button variant="ghost" onClick={() => setShowPriceTrackingModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">
+            Monitor price drops and get alerts when your wishlist items go on sale
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Price Alerts Setup */}
+            <Card className="bg-orange-50 border-orange-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <TrendingUp className="h-8 w-8 text-orange-600" />
+                  <h3 className="text-lg font-semibold text-orange-900">Price Alerts</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Alert settings:</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Email notifications</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Push notifications</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Price drop alerts</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Tracked retailers:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Amazon</Badge>
+                      <Badge variant="outline">Best Buy</Badge>
+                      <Badge variant="outline">Target</Badge>
+                      <Badge variant="outline">Walmart</Badge>
+                      <Badge variant="outline">+20 more</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Price Tracking Stats */}
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <BarChart3 className="h-8 w-8 text-green-600" />
+                  <h3 className="text-lg font-semibold text-green-900">Tracking Stats</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-green-900">4</div>
+                      <div className="text-xs text-green-700">Active Alerts</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-orange-900">$450</div>
+                      <div className="text-xs text-orange-700">Total Savings</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-blue-900">12%</div>
+                      <div className="text-xs text-blue-700">Avg. Drop</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-purple-900">8</div>
+                      <div className="text-xs text-purple-700">Alerts Today</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Price Alerts List */}
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <h3 className="text-lg font-semibold">Active Price Alerts</h3>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {PRICE_ALERTS.map((alert) => (
+                    <div key={alert.id} className="p-4 bg-gray-50 rounded-lg border hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-2xl">{alert.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{alert.product}</h4>
+                          <p className="text-xs text-gray-600">{alert.retailer}</p>
+                        </div>
+                        <Badge variant={alert.status === 'active' ? 'default' : 'secondary'}>
+                          {alert.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Current Price:</span>
+                          <span className="font-bold text-green-600">${alert.currentPrice}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Original Price:</span>
+                          <span className="text-gray-600 line-through">${alert.originalPrice}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">You Save:</span>
+                          <span className="font-bold text-orange-600">${alert.priceDrop} ({alert.percentage}%)</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          View Deal
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <Bell className="h-3 w-3 mr-1" />
+                          Set Alert
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -1407,6 +1599,15 @@ export default function DemoPage() {
                   <FileText className="h-4 w-4" />
                   Documents
                 </Button>
+                <Button
+                  onClick={() => handleAction('prices')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Price Tracking
+                </Button>
                 <Button 
                   onClick={() => handleAction('refresh')} 
                   variant="outline" 
@@ -1690,6 +1891,7 @@ export default function DemoPage() {
       {showEmailReceiptModal && <EmailReceiptModal />}
       {showCalendarModal && <CalendarModal />}
       {showDocumentsModal && <DocumentsModal />}
+      {showPriceTrackingModal && <PriceTrackingModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
