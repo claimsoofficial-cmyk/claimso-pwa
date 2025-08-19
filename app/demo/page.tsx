@@ -26,11 +26,18 @@ import {
   RefreshCw,
   Activity,
   PieChart,
-  LineChart
+  LineChart,
+  Bell,
+  Mail,
+  Camera,
+  CreditCard,
+  Calendar,
+  AlertTriangle,
+  ArrowUpRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Simplified demo data
+// Enhanced demo data with images and cash opportunities
 const DEMO_PRODUCTS = [
   {
     id: '1',
@@ -39,7 +46,13 @@ const DEMO_PRODUCTS = [
     price: 3499,
     category: 'Electronics',
     warranty: '3-year AppleCare+',
-    location: 'Apple Store'
+    location: 'Apple Store',
+    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop',
+    cashOpportunities: [
+      { type: 'Trade-in', value: 2800, platform: 'Apple Store' },
+      { type: 'Resale', value: 3200, platform: 'eBay' },
+      { type: 'Cash-back', value: 175, platform: 'Rakuten' }
+    ]
   },
   {
     id: '2',
@@ -48,7 +61,13 @@ const DEMO_PRODUCTS = [
     price: 399,
     category: 'Electronics',
     warranty: '2-year warranty',
-    location: 'Best Buy'
+    location: 'Best Buy',
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
+    cashOpportunities: [
+      { type: 'Trade-in', value: 250, platform: 'Best Buy' },
+      { type: 'Resale', value: 320, platform: 'Facebook Marketplace' },
+      { type: 'Cash-back', value: 20, platform: 'Rakuten' }
+    ]
   },
   {
     id: '3',
@@ -57,7 +76,13 @@ const DEMO_PRODUCTS = [
     price: 749,
     category: 'Appliances',
     warranty: '2-year warranty',
-    location: 'Target'
+    location: 'Target',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    cashOpportunities: [
+      { type: 'Trade-in', value: 400, platform: 'Dyson' },
+      { type: 'Resale', value: 550, platform: 'OfferUp' },
+      { type: 'Cash-back', value: 37, platform: 'Target Circle' }
+    ]
   },
   {
     id: '4',
@@ -66,7 +91,13 @@ const DEMO_PRODUCTS = [
     price: 1199,
     category: 'Electronics',
     warranty: '2-year AppleCare+',
-    location: 'Verizon Store'
+    location: 'Verizon Store',
+    image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop',
+    cashOpportunities: [
+      { type: 'Trade-in', value: 800, platform: 'Apple Store' },
+      { type: 'Resale', value: 950, platform: 'Swappa' },
+      { type: 'Cash-back', value: 60, platform: 'Verizon' }
+    ]
   },
   {
     id: '5',
@@ -75,7 +106,52 @@ const DEMO_PRODUCTS = [
     price: 1299,
     category: 'Electronics',
     warranty: '2-year warranty',
-    location: 'Costco'
+    location: 'Costco',
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop',
+    cashOpportunities: [
+      { type: 'Trade-in', value: 600, platform: 'Best Buy' },
+      { type: 'Resale', value: 900, platform: 'Craigslist' },
+      { type: 'Cash-back', value: 65, platform: 'Costco' }
+    ]
+  }
+];
+
+const NOTIFICATIONS = [
+  {
+    id: '1',
+    type: 'warranty',
+    title: 'Warranty Expiring Soon',
+    message: 'Your Sony headphones warranty expires in 30 days',
+    product: 'Sony WH-1000XM5 Headphones',
+    time: '2 hours ago',
+    icon: '🛡️'
+  },
+  {
+    id: '2',
+    type: 'cash',
+    title: 'Cash Opportunity Found',
+    message: 'Trade-in value increased for your MacBook Pro',
+    product: 'MacBook Pro 16" M3 Max',
+    time: '1 day ago',
+    icon: '💰'
+  },
+  {
+    id: '3',
+    type: 'price',
+    title: 'Price Drop Alert',
+    message: 'Samsung TV price dropped by $200',
+    product: 'Samsung 65" QLED 4K TV',
+    time: '3 days ago',
+    icon: '📉'
+  },
+  {
+    id: '4',
+    type: 'receipt',
+    title: 'Receipt Processed',
+    message: 'New purchase added from Amazon',
+    product: 'Amazon Purchase',
+    time: '1 week ago',
+    icon: '📄'
   }
 ];
 
@@ -98,6 +174,10 @@ export default function DemoPage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview']));
   const [activePanel, setActivePanel] = useState<'main' | 'retailers' | 'insights' | 'agents'>('main');
+  const [showQuickCashModal, setShowQuickCashModal] = useState(false);
+  const [showWarrantyModal, setShowWarrantyModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
   const totalValue = DEMO_PRODUCTS.reduce((sum, p) => sum + p.price, 0);
   const activeWarranties = DEMO_PRODUCTS.length;
@@ -118,10 +198,14 @@ export default function DemoPage() {
         toast.success(`Viewing ${productName} details`);
         break;
       case 'warranty':
-        toast.success(`Warranty details for ${productName}`);
+        const product = DEMO_PRODUCTS.find(p => p.name === productName);
+        setSelectedProduct(product);
+        setShowWarrantyModal(true);
         break;
       case 'cash':
-        toast.success(`Cash extraction analysis for ${productName}`);
+        const cashProduct = DEMO_PRODUCTS.find(p => p.name === productName);
+        setSelectedProduct(cashProduct);
+        setShowQuickCashModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -134,6 +218,9 @@ export default function DemoPage() {
         break;
       case 'refresh':
         toast.success('Data refreshed! All systems operational.');
+        break;
+      case 'notifications':
+        setShowNotifications(!showNotifications);
         break;
       default:
         toast.success('Action completed successfully!');
@@ -354,6 +441,191 @@ export default function DemoPage() {
     </div>
   );
 
+  // Quick Cash Modal
+  const QuickCashModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Cash Extraction Analysis</h2>
+            <Button variant="ghost" onClick={() => setShowQuickCashModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          {selectedProduct && (
+            <div className="mt-4 flex items-center gap-4">
+              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-16 h-16 object-cover rounded-lg" />
+              <div>
+                <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
+                <p className="text-sm text-gray-600">Original Price: ${selectedProduct.price.toLocaleString()}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {selectedProduct?.cashOpportunities.map((opportunity: any, index: number) => (
+              <Card key={index} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      ${opportunity.value.toLocaleString()}
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      {opportunity.type}
+                    </div>
+                    <div className="text-xs text-gray-600 mb-3">
+                      via {opportunity.platform}
+                    </div>
+                    <Button size="sm" className="w-full">
+                      <ArrowUpRight className="h-4 w-4 mr-2" />
+                      Get Cash
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              <h3 className="font-semibold text-green-900">Total Potential Cash</h3>
+            </div>
+            <p className="text-2xl font-bold text-green-900 mb-2">
+              ${selectedProduct?.cashOpportunities.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}
+            </p>
+            <p className="text-sm text-green-700">
+              This represents up to {Math.round((selectedProduct?.cashOpportunities.reduce((sum: number, opp: any) => sum + opp.value, 0) / selectedProduct?.price) * 100)}% of your original purchase value
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Warranty Modal
+  const WarrantyModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Warranty Analysis</h2>
+            <Button variant="ghost" onClick={() => setShowWarrantyModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          {selectedProduct && (
+            <div className="mt-4 flex items-center gap-4">
+              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-16 h-16 object-cover rounded-lg" />
+              <div>
+                <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
+                <p className="text-sm text-gray-600">Warranty: {selectedProduct.warranty}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Coverage Status</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Hardware Defects</span>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Battery Issues</span>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Screen Damage</span>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Accidental Damage</span>
+                    <X className="h-4 w-4 text-red-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="h-5 w-5 text-green-600" />
+                  <h3 className="font-semibold text-green-900">Claim Opportunities</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <span>Warranty expires in 6 months</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Eligible for extended warranty</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Free repair available</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6 bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Bot className="h-5 w-5 text-purple-600" />
+              <h3 className="font-semibold text-purple-900">AI Recommendation</h3>
+            </div>
+            <p className="text-sm text-purple-700 mb-3">
+              Consider filing a warranty claim for the minor screen issue detected. This could result in a free replacement or repair.
+            </p>
+            <Button className="w-full">
+              <Shield className="h-4 w-4 mr-2" />
+              File Warranty Claim
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Notifications Panel
+  const NotificationsPanel = () => (
+    <div className="fixed top-20 right-4 bg-white rounded-lg shadow-xl border max-w-sm w-full z-40">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">Notifications</h3>
+          <Button variant="ghost" size="sm" onClick={() => setShowNotifications(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="max-h-96 overflow-y-auto">
+        {NOTIFICATIONS.map((notification) => (
+          <div key={notification.id} className="p-4 border-b hover:bg-gray-50 cursor-pointer">
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{notification.icon}</span>
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 text-sm">{notification.title}</h4>
+                <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                <p className="text-xs text-gray-500 mt-2">{notification.time}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (activePanel !== 'main') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -391,6 +663,15 @@ export default function DemoPage() {
                 <Users className="h-4 w-4" />
                 <span>Demo User</span>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 relative"
+                onClick={() => handleAction('notifications')}
+              >
+                <Bell className="h-4 w-4" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              </Button>
             </div>
             <Button
               variant="ghost"
@@ -565,52 +846,59 @@ export default function DemoPage() {
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {DEMO_PRODUCTS.map((product) => (
-                  <div key={product.id} className="p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                        <p className="text-sm text-gray-600">{product.brand} • {product.category}</p>
-                      </div>
+                  <div key={product.id} className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow overflow-hidden">
+                    <div className="aspect-video bg-gray-100">
+                      <img 
+                        src={product.image} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Price:</span>
-                        <span className="font-semibold">${product.price.toLocaleString()}</span>
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1">{product.name}</h3>
+                        <p className="text-xs text-gray-600">{product.brand} • {product.category}</p>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Warranty:</span>
-                        <span className="text-green-600">{product.warranty}</span>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">Price:</span>
+                          <span className="font-semibold">${product.price.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">Warranty:</span>
+                          <span className="text-green-600">{product.warranty}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">Location:</span>
+                          <span className="text-blue-600">{product.location}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Location:</span>
-                        <span className="text-blue-600">{product.location}</span>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-xs"
+                          onClick={() => handleAction('view', product.name)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-xs"
+                          onClick={() => handleAction('warranty', product.name)}
+                        >
+                          Warranty
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-xs"
+                          onClick={() => handleAction('cash', product.name)}
+                        >
+                          Cash
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => handleAction('view', product.name)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => handleAction('warranty', product.name)}
-                      >
-                        Warranty
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => handleAction('cash', product.name)}
-                      >
-                        Cash
-                      </Button>
                     </div>
                   </div>
                 ))}
@@ -738,6 +1026,11 @@ export default function DemoPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals and Notifications */}
+      {showQuickCashModal && <QuickCashModal />}
+      {showWarrantyModal && <WarrantyModal />}
+      {showNotifications && <NotificationsPanel />}
     </div>
   );
 }
