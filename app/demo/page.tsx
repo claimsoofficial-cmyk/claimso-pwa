@@ -230,6 +230,49 @@ const EMAIL_RECEIPTS = [
   }
 ];
 
+const CALENDAR_EVENTS = [
+  {
+    id: '1',
+    type: 'warranty',
+    title: 'Sony Headphones Warranty Expires',
+    date: '2024-04-20',
+    time: 'All day',
+    product: 'Sony WH-1000XM5 Headphones',
+    description: '2-year manufacturer warranty expires',
+    color: 'red'
+  },
+  {
+    id: '2',
+    type: 'service',
+    title: 'MacBook Pro Battery Check',
+    date: '2024-03-25',
+    time: '10:00 AM',
+    product: 'MacBook Pro 16" M3 Max',
+    description: 'Recommended battery health check',
+    color: 'blue'
+  },
+  {
+    id: '3',
+    type: 'maintenance',
+    title: 'Dyson Filter Replacement',
+    date: '2024-03-30',
+    time: '2:00 PM',
+    product: 'Dyson V15 Detect Absolute',
+    description: 'Filter replacement reminder',
+    color: 'green'
+  },
+  {
+    id: '4',
+    type: 'price',
+    title: 'iPhone Trade-in Value Check',
+    date: '2024-04-05',
+    time: 'All day',
+    product: 'iPhone 15 Pro Max',
+    description: 'Check updated trade-in values',
+    color: 'purple'
+  }
+];
+
 const RETAILERS = [
   { name: 'Amazon', status: 'connected', icon: '🛒', lastSync: '2 hours ago' },
   { name: 'Best Buy', status: 'connected', icon: '📱', lastSync: '1 day ago' },
@@ -253,6 +296,7 @@ export default function DemoPage() {
   const [showWarrantyModal, setShowWarrantyModal] = useState(false);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [showEmailReceiptModal, setShowEmailReceiptModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -291,6 +335,9 @@ export default function DemoPage() {
         break;
       case 'email':
         setShowEmailReceiptModal(true);
+        break;
+      case 'calendar':
+        setShowCalendarModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -758,6 +805,126 @@ export default function DemoPage() {
     </div>
   );
 
+  // Calendar Modal
+  const CalendarModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Smart Calendar</h2>
+            <Button variant="ghost" onClick={() => setShowCalendarModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">
+            Never miss warranty expirations, service appointments, or price drops
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Calendar Integration */}
+            <Card className="bg-purple-50 border-purple-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Calendar className="h-8 w-8 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-purple-900">Calendar Sync</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Connected calendars:</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Google Calendar</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Apple Calendar</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Outlook Calendar</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Auto-sync events:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Warranty Expirations</Badge>
+                      <Badge variant="outline">Service Reminders</Badge>
+                      <Badge variant="outline">Price Alerts</Badge>
+                      <Badge variant="outline">Maintenance</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Events */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold">Upcoming Events</h3>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {CALENDAR_EVENTS.map((event) => (
+                    <div key={event.id} className={`p-3 rounded-lg border-l-4 border-${event.color}-500 bg-gray-50`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {event.title}
+                          </span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {event.type}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-1">{event.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">{event.date} • {event.time}</span>
+                        <span className="font-medium">{event.product}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Calendar Stats */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-red-900 mb-1">1</div>
+                <div className="text-sm text-red-700">Warranty Expiring</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-900 mb-1">1</div>
+                <div className="text-sm text-blue-700">Service Due</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-900 mb-1">1</div>
+                <div className="text-sm text-green-700">Maintenance</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-purple-50 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-900 mb-1">1</div>
+                <div className="text-sm text-purple-700">Price Alert</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   // Email Receipt Modal
   const EmailReceiptModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1033,6 +1200,15 @@ export default function DemoPage() {
                 >
                   <Mail className="h-4 w-4" />
                   Email Receipts
+                </Button>
+                <Button
+                  onClick={() => handleAction('calendar')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Calendar
                 </Button>
                 <Button 
                   onClick={() => handleAction('refresh')} 
@@ -1315,6 +1491,7 @@ export default function DemoPage() {
       {showWarrantyModal && <WarrantyModal />}
       {showRepairModal && <RepairModal />}
       {showEmailReceiptModal && <EmailReceiptModal />}
+      {showCalendarModal && <CalendarModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
