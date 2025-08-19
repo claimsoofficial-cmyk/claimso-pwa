@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Enhanced demo data with images and cash opportunities
+// Enhanced demo data with SVG icons and cash opportunities
 const DEMO_PRODUCTS = [
   {
     id: '1',
@@ -47,7 +47,7 @@ const DEMO_PRODUCTS = [
     category: 'Electronics',
     warranty: '3-year AppleCare+',
     location: 'Apple Store',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop',
+    icon: '💻',
     cashOpportunities: [
       { type: 'Trade-in', value: 2800, platform: 'Apple Store' },
       { type: 'Resale', value: 3200, platform: 'eBay' },
@@ -62,7 +62,7 @@ const DEMO_PRODUCTS = [
     category: 'Electronics',
     warranty: '2-year warranty',
     location: 'Best Buy',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
+    icon: '🎧',
     cashOpportunities: [
       { type: 'Trade-in', value: 250, platform: 'Best Buy' },
       { type: 'Resale', value: 320, platform: 'Facebook Marketplace' },
@@ -77,7 +77,7 @@ const DEMO_PRODUCTS = [
     category: 'Appliances',
     warranty: '2-year warranty',
     location: 'Target',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    icon: '🧹',
     cashOpportunities: [
       { type: 'Trade-in', value: 400, platform: 'Dyson' },
       { type: 'Resale', value: 550, platform: 'OfferUp' },
@@ -92,7 +92,7 @@ const DEMO_PRODUCTS = [
     category: 'Electronics',
     warranty: '2-year AppleCare+',
     location: 'Verizon Store',
-    image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop',
+    icon: '📱',
     cashOpportunities: [
       { type: 'Trade-in', value: 800, platform: 'Apple Store' },
       { type: 'Resale', value: 950, platform: 'Swappa' },
@@ -107,7 +107,7 @@ const DEMO_PRODUCTS = [
     category: 'Electronics',
     warranty: '2-year warranty',
     location: 'Costco',
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop',
+    icon: '📺',
     cashOpportunities: [
       { type: 'Trade-in', value: 600, platform: 'Best Buy' },
       { type: 'Resale', value: 900, platform: 'Craigslist' },
@@ -454,7 +454,9 @@ export default function DemoPage() {
           </div>
           {selectedProduct && (
             <div className="mt-4 flex items-center gap-4">
-              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-16 h-16 object-cover rounded-lg" />
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-3xl">
+                {selectedProduct.icon}
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
                 <p className="text-sm text-gray-600">Original Price: ${selectedProduct.price.toLocaleString()}</p>
@@ -464,7 +466,7 @@ export default function DemoPage() {
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {selectedProduct?.cashOpportunities.map((opportunity: any, index: number) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
@@ -487,19 +489,6 @@ export default function DemoPage() {
               </Card>
             ))}
           </div>
-          
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              <h3 className="font-semibold text-green-900">Total Potential Cash</h3>
-            </div>
-            <p className="text-2xl font-bold text-green-900 mb-2">
-              ${selectedProduct?.cashOpportunities.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}
-            </p>
-            <p className="text-sm text-green-700">
-              This represents up to {Math.round((selectedProduct?.cashOpportunities.reduce((sum: number, opp: any) => sum + opp.value, 0) / selectedProduct?.price) * 100)}% of your original purchase value
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -518,7 +507,9 @@ export default function DemoPage() {
           </div>
           {selectedProduct && (
             <div className="mt-4 flex items-center gap-4">
-              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-16 h-16 object-cover rounded-lg" />
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-3xl">
+                {selectedProduct.icon}
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
                 <p className="text-sm text-gray-600">Warranty: {selectedProduct.warranty}</p>
@@ -847,12 +838,8 @@ export default function DemoPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {DEMO_PRODUCTS.map((product) => (
                   <div key={product.id} className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow overflow-hidden">
-                    <div className="aspect-video bg-gray-100">
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                      <span className="text-6xl">{product.icon}</span>
                     </div>
                     <div className="p-4">
                       <div className="mb-3">
