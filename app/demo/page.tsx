@@ -383,6 +383,61 @@ const PRICE_ALERTS = [
   }
 ];
 
+const MAINTENANCE_RECORDS = [
+  {
+    id: '1',
+    product: 'MacBook Pro 16" M3 Max',
+    serviceType: 'routine',
+    serviceDate: '2024-01-15',
+    providerName: 'Apple Store',
+    providerContact: '1-800-APL-CARE',
+    cost: 0,
+    currency: 'USD',
+    description: 'Battery health check and system diagnostics',
+    nextServiceDate: '2024-07-15',
+    icon: '💻'
+  },
+  {
+    id: '2',
+    product: 'Dyson V15 Detect Absolute',
+    serviceType: 'cleaning',
+    serviceDate: '2024-02-01',
+    providerName: 'Dyson Service Center',
+    providerContact: '1-866-DYSON-US',
+    cost: 29,
+    currency: 'USD',
+    description: 'Filter replacement and deep cleaning',
+    nextServiceDate: '2024-05-01',
+    icon: '🧹'
+  },
+  {
+    id: '3',
+    product: 'Sony WH-1000XM5 Headphones',
+    serviceType: 'inspection',
+    serviceDate: '2024-02-15',
+    providerName: 'Sony Support',
+    providerContact: '1-800-222-7669',
+    cost: 0,
+    currency: 'USD',
+    description: 'Audio quality inspection and firmware update',
+    nextServiceDate: '2024-08-15',
+    icon: '🎧'
+  },
+  {
+    id: '4',
+    product: 'iPhone 15 Pro Max',
+    serviceType: 'upgrade',
+    serviceDate: '2024-03-01',
+    providerName: 'Apple Store',
+    providerContact: '1-800-APL-CARE',
+    cost: 0,
+    currency: 'USD',
+    description: 'iOS update and security patch installation',
+    nextServiceDate: '2024-06-01',
+    icon: '📱'
+  }
+];
+
 const RETAILERS = [
   { name: 'Amazon', status: 'connected', icon: '🛒', lastSync: '2 hours ago' },
   { name: 'Best Buy', status: 'connected', icon: '📱', lastSync: '1 day ago' },
@@ -409,6 +464,7 @@ export default function DemoPage() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [showPriceTrackingModal, setShowPriceTrackingModal] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -456,6 +512,9 @@ export default function DemoPage() {
         break;
       case 'prices':
         setShowPriceTrackingModal(true);
+        break;
+      case 'maintenance':
+        setShowMaintenanceModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -917,6 +976,147 @@ export default function DemoPage() {
               <Shield className="h-4 w-4 mr-2" />
               File Warranty Claim
             </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Maintenance Tracking Modal
+  const MaintenanceModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Maintenance Tracking</h2>
+            <Button variant="ghost" onClick={() => setShowMaintenanceModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">
+            Track service history, maintenance schedules, and keep your products in top condition
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Maintenance Setup */}
+            <Card className="bg-indigo-50 border-indigo-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Wrench className="h-8 w-8 text-indigo-600" />
+                  <h3 className="text-lg font-semibold text-indigo-900">Service Types</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Tracked services:</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Routine maintenance</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Repairs & upgrades</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Cleaning services</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Inspections</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Auto-reminders:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Service Due</Badge>
+                      <Badge variant="outline">Warranty Expiry</Badge>
+                      <Badge variant="outline">Filter Changes</Badge>
+                      <Badge variant="outline">Software Updates</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Maintenance Stats */}
+            <Card className="bg-teal-50 border-teal-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <BarChart3 className="h-8 w-8 text-teal-600" />
+                  <h3 className="text-lg font-semibold text-teal-900">Maintenance Stats</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-teal-900">4</div>
+                      <div className="text-xs text-teal-700">Service Records</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-orange-900">$29</div>
+                      <div className="text-xs text-orange-700">Total Spent</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-blue-900">2</div>
+                      <div className="text-xs text-blue-700">Due Soon</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-purple-900">100%</div>
+                      <div className="text-xs text-purple-700">Uptime</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Maintenance Records */}
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <h3 className="text-lg font-semibold">Service History</h3>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {MAINTENANCE_RECORDS.map((record) => (
+                    <div key={record.id} className="p-4 bg-gray-50 rounded-lg border hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-2xl">{record.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{record.product}</h4>
+                          <p className="text-xs text-gray-600">{record.providerName}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {record.serviceType}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs text-gray-600">{record.description}</p>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500">Service Date: {record.serviceDate}</span>
+                          <span className="font-medium">${record.cost}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500">Next Service: {record.nextServiceDate}</span>
+                          <span className="text-blue-600">{record.providerContact}</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Schedule
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
+                          <Wrench className="h-3 w-3 mr-1" />
+                          Service
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -1608,6 +1808,15 @@ export default function DemoPage() {
                   <TrendingUp className="h-4 w-4" />
                   Price Tracking
                 </Button>
+                <Button
+                  onClick={() => handleAction('maintenance')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Wrench className="h-4 w-4" />
+                  Maintenance
+                </Button>
                 <Button 
                   onClick={() => handleAction('refresh')} 
                   variant="outline" 
@@ -1892,6 +2101,7 @@ export default function DemoPage() {
       {showCalendarModal && <CalendarModal />}
       {showDocumentsModal && <DocumentsModal />}
       {showPriceTrackingModal && <PriceTrackingModal />}
+      {showMaintenanceModal && <MaintenanceModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
