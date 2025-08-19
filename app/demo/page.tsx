@@ -36,7 +36,11 @@ import {
   ArrowUpRight,
   Wrench,
   Clock,
-  MapPin
+  MapPin,
+  Upload,
+  FileText,
+  CheckSquare,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -183,6 +187,49 @@ const NOTIFICATIONS = [
   }
 ];
 
+const EMAIL_RECEIPTS = [
+  {
+    id: '1',
+    from: 'receipts@amazon.com',
+    subject: 'Your Amazon.com order #123-4567890-1234567',
+    date: '2024-03-20',
+    status: 'processed',
+    products: ['MacBook Pro 16" M3 Max'],
+    total: 3499,
+    retailer: 'Amazon'
+  },
+  {
+    id: '2',
+    from: 'receipts@bestbuy.com',
+    subject: 'Best Buy Receipt - Order #BB123456',
+    date: '2024-03-19',
+    status: 'processed',
+    products: ['Sony WH-1000XM5 Headphones'],
+    total: 399,
+    retailer: 'Best Buy'
+  },
+  {
+    id: '3',
+    from: 'receipts@target.com',
+    subject: 'Target Receipt - Transaction #TGT789012',
+    date: '2024-03-18',
+    status: 'pending',
+    products: ['Dyson V15 Detect Absolute'],
+    total: 749,
+    retailer: 'Target'
+  },
+  {
+    id: '4',
+    from: 'receipts@verizon.com',
+    subject: 'Verizon Wireless Receipt #VZW456789',
+    date: '2024-03-17',
+    status: 'processed',
+    products: ['iPhone 15 Pro Max'],
+    total: 1199,
+    retailer: 'Verizon'
+  }
+];
+
 const RETAILERS = [
   { name: 'Amazon', status: 'connected', icon: '🛒', lastSync: '2 hours ago' },
   { name: 'Best Buy', status: 'connected', icon: '📱', lastSync: '1 day ago' },
@@ -205,6 +252,7 @@ export default function DemoPage() {
   const [showQuickCashModal, setShowQuickCashModal] = useState(false);
   const [showWarrantyModal, setShowWarrantyModal] = useState(false);
   const [showRepairModal, setShowRepairModal] = useState(false);
+  const [showEmailReceiptModal, setShowEmailReceiptModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -240,6 +288,9 @@ export default function DemoPage() {
         const repairProduct = DEMO_PRODUCTS.find(p => p.name === productName);
         setSelectedProduct(repairProduct);
         setShowRepairModal(true);
+        break;
+      case 'email':
+        setShowEmailReceiptModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -707,6 +758,116 @@ export default function DemoPage() {
     </div>
   );
 
+  // Email Receipt Modal
+  const EmailReceiptModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Email Receipt Processing</h2>
+            <Button variant="ghost" onClick={() => setShowEmailReceiptModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mt-2">
+            Forward your receipts to receipts@claimso.com and we'll automatically process them
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Email Setup */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Mail className="h-8 w-8 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-blue-900">Email Setup</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Forward receipts to:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+                        receipts@claimso.com
+                      </code>
+                      <Button size="sm" variant="outline">
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Supported retailers:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Amazon</Badge>
+                      <Badge variant="outline">Best Buy</Badge>
+                      <Badge variant="outline">Target</Badge>
+                      <Badge variant="outline">Walmart</Badge>
+                      <Badge variant="outline">Apple</Badge>
+                      <Badge variant="outline">+50 more</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Receipts */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold">Recent Receipts</h3>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {EMAIL_RECEIPTS.map((receipt) => (
+                    <div key={receipt.id} className="p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {receipt.retailer}
+                          </span>
+                        </div>
+                        <Badge variant={receipt.status === 'processed' ? 'default' : 'secondary'}>
+                          {receipt.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-1">{receipt.subject}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">{receipt.date}</span>
+                        <span className="font-medium">${receipt.total}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Processing Stats */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-900 mb-1">3</div>
+                <div className="text-sm text-green-700">Processed Today</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-900 mb-1">1</div>
+                <div className="text-sm text-blue-700">Pending</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-purple-50 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-900 mb-1">95%</div>
+                <div className="text-sm text-purple-700">Success Rate</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   // Notifications Panel
   const NotificationsPanel = () => (
     <div className="fixed top-20 right-4 bg-white rounded-lg shadow-xl border max-w-sm w-full z-40">
@@ -863,6 +1024,15 @@ export default function DemoPage() {
                 >
                   <Bot className="h-4 w-4" />
                   Monitor AI Agents
+                </Button>
+                <Button
+                  onClick={() => handleAction('email')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  Email Receipts
                 </Button>
                 <Button 
                   onClick={() => handleAction('refresh')} 
@@ -1144,6 +1314,7 @@ export default function DemoPage() {
       {showQuickCashModal && <QuickCashModal />}
       {showWarrantyModal && <WarrantyModal />}
       {showRepairModal && <RepairModal />}
+      {showEmailReceiptModal && <EmailReceiptModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
