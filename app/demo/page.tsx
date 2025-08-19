@@ -33,7 +33,10 @@ import {
   CreditCard,
   Calendar,
   AlertTriangle,
-  ArrowUpRight
+  ArrowUpRight,
+  Wrench,
+  Clock,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -52,6 +55,11 @@ const DEMO_PRODUCTS = [
       { type: 'Trade-in', value: 2800, platform: 'Apple Store' },
       { type: 'Resale', value: 3200, platform: 'eBay' },
       { type: 'Cash-back', value: 175, platform: 'Rakuten' }
+    ],
+    repairOptions: [
+      { type: 'Screen Repair', cost: 299, duration: '2-3 days', location: 'Apple Store' },
+      { type: 'Battery Replacement', cost: 129, duration: 'Same day', location: 'Apple Store' },
+      { type: 'Logic Board Repair', cost: 599, duration: '5-7 days', location: 'Apple Service Center' }
     ]
   },
   {
@@ -67,6 +75,11 @@ const DEMO_PRODUCTS = [
       { type: 'Trade-in', value: 250, platform: 'Best Buy' },
       { type: 'Resale', value: 320, platform: 'Facebook Marketplace' },
       { type: 'Cash-back', value: 20, platform: 'Rakuten' }
+    ],
+    repairOptions: [
+      { type: 'Ear Pad Replacement', cost: 49, duration: '1-2 days', location: 'Sony Service Center' },
+      { type: 'Battery Replacement', cost: 89, duration: '3-5 days', location: 'Sony Service Center' },
+      { type: 'Noise Cancellation Fix', cost: 149, duration: '5-7 days', location: 'Sony Service Center' }
     ]
   },
   {
@@ -82,6 +95,11 @@ const DEMO_PRODUCTS = [
       { type: 'Trade-in', value: 400, platform: 'Dyson' },
       { type: 'Resale', value: 550, platform: 'OfferUp' },
       { type: 'Cash-back', value: 37, platform: 'Target Circle' }
+    ],
+    repairOptions: [
+      { type: 'Motor Replacement', cost: 199, duration: '3-5 days', location: 'Dyson Service Center' },
+      { type: 'Battery Replacement', cost: 149, duration: '2-3 days', location: 'Dyson Service Center' },
+      { type: 'Filter Replacement', cost: 29, duration: 'Same day', location: 'Dyson Service Center' }
     ]
   },
   {
@@ -97,6 +115,11 @@ const DEMO_PRODUCTS = [
       { type: 'Trade-in', value: 800, platform: 'Apple Store' },
       { type: 'Resale', value: 950, platform: 'Swappa' },
       { type: 'Cash-back', value: 60, platform: 'Verizon' }
+    ],
+    repairOptions: [
+      { type: 'Screen Repair', cost: 399, duration: '2-3 days', location: 'Apple Store' },
+      { type: 'Battery Replacement', cost: 89, duration: 'Same day', location: 'Apple Store' },
+      { type: 'Camera Repair', cost: 199, duration: '3-5 days', location: 'Apple Service Center' }
     ]
   },
   {
@@ -112,6 +135,11 @@ const DEMO_PRODUCTS = [
       { type: 'Trade-in', value: 600, platform: 'Best Buy' },
       { type: 'Resale', value: 900, platform: 'Craigslist' },
       { type: 'Cash-back', value: 65, platform: 'Costco' }
+    ],
+    repairOptions: [
+      { type: 'Panel Replacement', cost: 799, duration: '5-7 days', location: 'Samsung Service Center' },
+      { type: 'Power Supply Repair', cost: 199, duration: '3-5 days', location: 'Samsung Service Center' },
+      { type: 'Remote Replacement', cost: 49, duration: 'Same day', location: 'Samsung Service Center' }
     ]
   }
 ];
@@ -176,6 +204,7 @@ export default function DemoPage() {
   const [activePanel, setActivePanel] = useState<'main' | 'retailers' | 'insights' | 'agents'>('main');
   const [showQuickCashModal, setShowQuickCashModal] = useState(false);
   const [showWarrantyModal, setShowWarrantyModal] = useState(false);
+  const [showRepairModal, setShowRepairModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
@@ -206,6 +235,11 @@ export default function DemoPage() {
         const cashProduct = DEMO_PRODUCTS.find(p => p.name === productName);
         setSelectedProduct(cashProduct);
         setShowQuickCashModal(true);
+        break;
+      case 'repair':
+        const repairProduct = DEMO_PRODUCTS.find(p => p.name === productName);
+        setSelectedProduct(repairProduct);
+        setShowRepairModal(true);
         break;
       case 'connect':
         setActivePanel('retailers');
@@ -488,6 +522,90 @@ export default function DemoPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Repair Modal
+  const RepairModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Repair Services</h2>
+            <Button variant="ghost" onClick={() => setShowRepairModal(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          {selectedProduct && (
+            <div className="mt-4 flex items-center gap-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-3xl">
+                {selectedProduct.icon}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
+                <p className="text-sm text-gray-600">Find repair services near you</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {selectedProduct?.repairOptions.map((repair: any, index: number) => (
+              <Card key={index} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-900 text-sm">{repair.type}</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {repair.duration}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="h-4 w-4" />
+                      <span>{repair.location}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-2xl font-bold text-blue-600">
+                        ${repair.cost}
+                      </div>
+                      <Button size="sm" className="text-xs">
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Schedule Repair
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Wrench className="h-5 w-5 text-blue-600" />
+              <h3 className="font-semibold text-blue-900">Repair Summary</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center text-sm">
+              <div>
+                <p className="text-2xl font-bold text-blue-900">
+                  {selectedProduct?.repairOptions.length}
+                </p>
+                <p className="text-blue-700">Available Services</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-900">
+                  ${Math.min(...selectedProduct?.repairOptions.map((r: any) => r.cost) || [0])}
+                </p>
+                <p className="text-blue-700">Starting Price</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-900">Same Day</p>
+                <p className="text-blue-700">Fastest Service</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -860,19 +978,11 @@ export default function DemoPage() {
                           <span className="text-blue-600">{product.location}</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 text-xs"
-                          onClick={() => handleAction('view', product.name)}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 text-xs"
+                          className="text-xs"
                           onClick={() => handleAction('warranty', product.name)}
                         >
                           Warranty
@@ -880,10 +990,26 @@ export default function DemoPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 text-xs"
+                          className="text-xs"
                           onClick={() => handleAction('cash', product.name)}
                         >
                           Cash
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => handleAction('repair', product.name)}
+                        >
+                          Repair
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => handleAction('view', product.name)}
+                        >
+                          View
                         </Button>
                       </div>
                     </div>
@@ -1017,6 +1143,7 @@ export default function DemoPage() {
       {/* Modals and Notifications */}
       {showQuickCashModal && <QuickCashModal />}
       {showWarrantyModal && <WarrantyModal />}
+      {showRepairModal && <RepairModal />}
       {showNotifications && <NotificationsPanel />}
     </div>
   );
